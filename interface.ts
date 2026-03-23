@@ -1,3 +1,19 @@
+import { Document } from "mongoose";
+
+export interface IUser extends Document {
+  _id: any;
+  name: string;
+  email: string;
+  role: "user" | "admin";
+  tel: string;
+  password?: string;
+  resetPasswordToken?: string;
+  resetPasswordExpire?: Date;
+  createdAt: Date;
+  matchPassword(enteredPassword: string): Promise<boolean>;
+  getSignedJwtToken(): string;
+}
+
 interface MassageType {
   name: string;
   description: string;

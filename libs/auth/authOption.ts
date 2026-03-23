@@ -6,6 +6,7 @@ import getUser from "./getUser";
 export const authOptions: NextAuthOptions = {
   pages:{
     signIn: "/signin",
+    signOut: '/signout'
   },
   providers: [
     CredentialsProvider({
