@@ -28,7 +28,10 @@ export const authOptions: NextAuthOptions = {
         if (user) {
           // Any object returned will be saved in `user` property of the JWT
           const userData = await getUser(user.token);
-          return userData.data
+          return {
+            ...userData.data,
+            token: user.token,
+          }
         } else {
           // If you return null then an error will be displayed advising the user to check their details.
           return null
