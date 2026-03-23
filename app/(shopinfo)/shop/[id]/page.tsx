@@ -1,4 +1,5 @@
 import ShopUI from "@/component/ui/ShopUI";
+import MassageServiceList from "@/component/ui/MassageServiceList";
 import getSingleShops from "@/libs/shops/getSingleShop";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -33,10 +34,23 @@ export default async function ShopDetailPage({
         </span>
         <span>Browse More Shops</span>
       </Link>
+
       <div className="min-h-screen flex flex-col items-center py-16 px-4">
         <div className="max-w-5xl w-full bg-[#1e2d3d] rounded-2xl overflow-hidden border border-gray-700/50 shadow-2xl">
           <ShopUI shop={shop}/>
         </div>
+
+        <div className="max-w-5xl w-full mt-16">
+          <div className="mb-10 text-center">
+            <h2 className="text-2xl font-serif tracking-[0.2em] uppercase text-gray-100">
+              Service Menu
+            </h2>
+            <div className="h-[1px] w-12 bg-blue-500/50 mx-auto mt-4" />
+          </div>
+
+          <MassageServiceList services={shop.massageType} />
+        </div>
+        
       </div>
     </div>
   );

@@ -1,7 +1,17 @@
+interface MassageType {
+  name: string;
+  description: string;
+  price: number;
+  picture?: string;
+  _id?: string;
+}
+
 interface ShopItem {
   _id: string;
   id?: string;
   name: string;
+  
+  shopDescription: string; 
 
   address: {
     street: string;
@@ -15,11 +25,14 @@ interface ShopItem {
   openClose: {
     open: string;
     close: string;
-
-
   };
-    picture: string;
+
+  massageType: MassageType[];
+
+  picture: string;
   __v?: number;
+
+  reservations?:[];
 }
   
 interface ShopJson {
