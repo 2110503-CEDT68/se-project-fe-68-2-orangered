@@ -15,8 +15,10 @@ interface ShopItem {
   openClose: {
     open: string;
     close: string;
-  };
 
+
+  };
+    picture?: string;
   __v?: number;
 }
   

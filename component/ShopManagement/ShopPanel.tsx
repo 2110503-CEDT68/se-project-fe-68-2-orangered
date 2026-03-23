@@ -18,7 +18,7 @@ export default async function ShopPanel({
             <Link href={`/shop/${shopItem.id}`} className="block group">
               <ShopCard
                 shopName={shopItem.name}
-                imgSrc={'https://i.pinimg.com/1200x/4b/35/23/4b352395a4843dd059b7eb96444433ff.jpg'}
+                imgSrc={shopItem.picture ? shopItem.picture : 'https://i.pinimg.com/1200x/4b/35/23/4b352395a4843dd059b7eb96444433ff.jpg'}
                 address={shopItem.address}
                 openClose={shopItem.openClose}
               />
