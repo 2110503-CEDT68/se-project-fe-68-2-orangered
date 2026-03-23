@@ -17,7 +17,9 @@ export default async function ShopDetailPage({ params }: { params: Promise<{ id:
           <p>ADDRESS: {shop.address.street} {shop.address.district} {shop.address.province} {shop.address.postalcode}</p>
           <p>TEL : {shop.tel}</p>
         </div>
-        
+        <form action="submit">
+          
+        </form>
       </div>
       
     </div>
