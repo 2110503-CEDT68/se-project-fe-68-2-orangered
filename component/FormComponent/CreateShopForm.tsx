@@ -338,7 +338,6 @@ export default function CreateShopForm() {
             </div>
           </div>
 
-          {/* Address */}
           <div>
             <SectionLabel>Address</SectionLabel>
             <div className="space-y-5">
