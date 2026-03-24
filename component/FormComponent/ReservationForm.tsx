@@ -22,9 +22,11 @@ export default function ReservationForm({ shop }: { shop: ShopItem }) {
   const [massageType, setMassageType] = useState<string>("");
   const [massagePrice, setMassagePrice] = useState<number>(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [validationError, setValidationError] = useState<string>("");
 
   const handleTreatmentChange = (typeName: string) => {
     setMassageType(typeName);
+    setValidationError("");
   };
 
   const getShopTime = (timeStr: string) => {
@@ -78,6 +80,19 @@ export default function ReservationForm({ shop }: { shop: ShopItem }) {
   };
 
   async function handleCreateReservation() {
+    setValidationError("");
+    if (!massageType) {
+      setValidationError("Please select a treatment.");
+      return;
+    }
+    if (!date) {
+      setValidationError("Please select a date.");
+      return;
+    }
+    if (!time) {
+      setValidationError("Please select a time.");
+      return;
+    }
     if (!session || !date || !time || !massageType) return;
     
     const selectedTreatment = shop.massageType.find((t) => t.name === massageType);
@@ -160,7 +175,7 @@ export default function ReservationForm({ shop }: { shop: ShopItem }) {
                 <DatePicker
                   value={date}
                   disablePast
-                  onChange={(newValue) => setDate(newValue)}
+                  onChange={(newValue) => { setDate(newValue); setValidationError(""); }}
                   slotProps={{
                     textField: { size: "small", sx: timeStyle, placeholder: "DATE" },
                     popper: { sx: pickerStyle }
@@ -169,7 +184,7 @@ export default function ReservationForm({ shop }: { shop: ShopItem }) {
                 <TimePicker
                   value={time}
                   ampm={false}
-                  onChange={(newValue) => setTime(newValue)}
+                  onChange={(newValue) => { setTime(newValue); setValidationError(""); }}
                   minTime={getShopTime(shop.openClose.open)}
                   maxTime={getShopTime(shop.openClose.close)}
                   slotProps={{
@@ -181,7 +196,13 @@ export default function ReservationForm({ shop }: { shop: ShopItem }) {
             </div>
           </div>
 
-          <div className="pt-2">
+          <div className="pt-2 space-y-2">
+            {validationError && (
+              <p className="text-red-400 text-[10px] uppercase tracking-[0.2em] flex items-center gap-1.5">
+                <span>⚠</span>
+                {validationError}
+              </p>
+            )}
             <SubmitButton />
           </div>
         </div>
