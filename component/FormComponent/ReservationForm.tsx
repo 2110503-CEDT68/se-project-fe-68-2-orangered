@@ -46,11 +46,23 @@ export default function ReservationForm({ shop }: { shop: ShopItem }) {
   async function handleCreateReservation() {
     if (!session || !date || !time || !massageType) return;
     
-    // Final validation check before submitting
-    const openTime = getShopTime(shop.openClose.open);
-    const closeTime = getShopTime(shop.openClose.close);
+    const openTime = date
+      .hour(dayjs(shop.openClose.open, "HH:mm").hour())
+      .minute(dayjs(shop.openClose.open, "HH:mm").minute());
+
+    const closeTime = date
+      .hour(dayjs(shop.openClose.close, "HH:mm").hour())
+      .minute(dayjs(shop.openClose.close, "HH:mm").minute());
+
+    const selectedDateTime = date
+      .hour(time.hour())
+      .minute(time.minute());
+
+    // // Final validation check before submitting
+    // const openTime = getShopTime(shop.openClose.open);
+    // const closeTime = getShopTime(shop.openClose.close);
     
-    if (time.isBefore(openTime) || time.isAfter(closeTime)) {
+    if (selectedDateTime.isBefore(openTime) || selectedDateTime.isAfter(closeTime)) {
       alert(`Please select a time between ${shop.openClose.open} and ${shop.openClose.close}`);
       return;
     }
