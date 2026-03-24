@@ -51,11 +51,15 @@ export default function ReservationCard({
           </div>
 
           <div className="space-y-1">
-            <p className="text-[8px] uppercase tracking-[0.2em] text-blue-400/80 font-bold">Treatment</p>
-            <p className="text-[11px] font-medium text-gray-100 uppercase tracking-wider">
-               {/* Fallback to 'Standard' if data is missing */}
-               {item.massageType || "Standard Massage"} 
-            </p>
+            <p className="text-[8px] uppercase tracking-[0.2em] text-blue-400/80 font-bold">Treatment & Fee</p>
+            <div className="flex flex-col">
+              <p className="text-[11px] font-medium text-gray-100 uppercase tracking-wider">
+                {item.massageType || "Standard Massage"}
+              </p>
+              <p className="text-[10px] font-mono text-blue-400 mt-0.5">
+                {item.massagePrice ? `$${item.massagePrice}` : "N/A"}
+              </p>
+            </div>
           </div>
 
           <div className="space-y-1">
@@ -102,7 +106,7 @@ export default function ReservationCard({
         onClose={() => setIsModalOpen(false)}
         onConfirm={() => onDelete(item._id)}
         title="Cancel Reservation"
-        message={`Are you sure you want to cancel your ${item.massageType || 'session'} at ${item.shop.name}? This will free up the time slot for other members.`}
+        message={`Are you sure you want to cancel your ${item.massageType || 'session'} at ${item.shop.name}? This will refund your $${item.massagePrice || 0} reservation fee.`}
         confirmText="Confirm Cancellation"
         isDanger={true}
       />
