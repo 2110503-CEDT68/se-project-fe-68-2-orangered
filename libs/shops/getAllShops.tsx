@@ -1,6 +1,7 @@
 export default async function getAllShops() {
   const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/shops`, {
     method: "GET",
+    cache: "no-store",
   })
 
   if (!response.ok) {

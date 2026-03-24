@@ -15,13 +15,10 @@ export default async function createShop(
     postalcode: string;
   },
   tel: string,
-  openClose: {
-    open: string;
-    close: string;
-  },
+  openClose: { open: string; close: string },
   massageType: MassageType[],
   picture?: string,
-  shopDescription?: string,
+  shopDescription?: string
 ) {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/shops`,
@@ -44,10 +41,8 @@ export default async function createShop(
   );
 
   if (!response.ok) {
-    console.log("Fetch failed with status:", response.status);
     throw new Error("Failed to create shop");
   }
 
-  const result = await response.json();
-  return result;
+  return response.json();
 }
