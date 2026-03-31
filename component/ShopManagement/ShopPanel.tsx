@@ -16,6 +16,7 @@ export default async function ShopPanel({
           <div key={shopItem._id} className="w-full">
             <Link href={`/shop/${shopItem._id}`} className="block group">
               <ShopCard
+                shopId={shopItem._id}
                 shopName={shopItem.name}
                 imgSrc={
                   shopItem.picture

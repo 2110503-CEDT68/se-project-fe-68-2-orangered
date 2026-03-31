@@ -6,8 +6,9 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import DeleteButton from "@/component/ui/DeleteButton";
 import { authOptions } from "@/libs/auth/authOption";
-import { ShopItem } from "@/interface";
+import { ShopItem } from "@/interface"; 
 import EditButton from "@/component/ui/EditButton";
+import UserComments from "@/component/ui/UserComments";
 
 export default async function ShopDetailPage({
   params,
@@ -18,19 +19,36 @@ export default async function ShopDetailPage({
   
   const shopDetail = await getSingleShops(id);
   const shop: ShopItem = shopDetail.data;
+  const shopId = shop.id || shop._id; 
 
   const session = await getServerSession(authOptions);
 
   let reservationCount = 0;
+  let validReservationId = ""; // <-- Add a variable to hold the reservation ID
+
   if (session && session.user.role === "user") {
     try {
       const reservations = await getAllReservations(session.user.token);
+      
+      const resData = reservations.data || [];
+      reservationCount = reservations.count || resData.length || 0;
 
-      reservationCount = reservations.count || reservations.data?.length || 0;
+      // Find a reservation the user made for THIS specific shop
+      // Adjust "res.shop._id" if your API returns the shop relationship differently
+      const shopReservation = resData.find((res: any) => 
+        (res.shop?._id || res.shop) === shopId
+      );
+
+      if (shopReservation) {
+        validReservationId = shopReservation._id;
+      }
+
     } catch (error) {
       console.error("Error fetching quota:", error);
     }
   }
+
+  const userToken = session?.user?.token || "";
 
   return (
     <div className="min-h-screen text-white pb-24 px-8 pt-6">
@@ -59,15 +77,22 @@ export default async function ShopDetailPage({
             <div className="h-[1px] w-12 bg-blue-500/50 mx-auto mt-4" />
           </div>
           <MassageServiceList services={shop.massageType} />
+          
+          {/* Pass the reservationId here! */}
+          <UserComments 
+            shopId={shopId} 
+            token={userToken} 
+            reservationId={validReservationId} 
+            userId={session?.user?._id}
+          />
         </div>
       </div>
 
       {session?.user.role === "admin" && 
       <div>
-        <DeleteButton shopId={shop._id}/> 
-        <EditButton shopId={shop._id}/>
+        <DeleteButton shopId={shopId}/> 
+        <EditButton shopId={shopId}/>
       </div>
-      
       }
     </div>
   );
