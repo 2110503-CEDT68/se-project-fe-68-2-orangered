@@ -84,7 +84,7 @@ export default function ShopUI({
                 Authentication Required
               </p>
               <Link 
-                href="/auth/signin"
+                href="/api/auth/signin"
                 className="inline-block w-full py-3 bg-transparent border border-blue-500/30 text-blue-400 text-[10px] uppercase tracking-[0.4em] hover:bg-blue-500/10 transition-all rounded-lg"
               >
                 Sign In
