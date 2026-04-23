@@ -26,12 +26,15 @@ export default function Card({
   ratingCount?: number;
 }) {
 
+  const isValidUrl = imgSrc && (imgSrc.startsWith("http") || imgSrc.startsWith("/") || imgSrc.startsWith("data:"));
+  const displayImage = isValidUrl ? imgSrc : "https://i.pinimg.com/1200x/4b/35/23/4b352395a4843dd059b7eb96444433ff.jpg";
+
   return (
     <div className="group relative w-full bg-card rounded-xl overflow-hidden border border-card-border transition-all duration-300 hover:border-accent/50 shadow-sm">
       
       <div className="relative w-full h-56 overflow-hidden">
         <Image 
-          src={imgSrc} 
+          src={displayImage} 
           alt={shopName} 
           fill 
           className="object-cover transition-transform duration-700 group-hover:scale-110" 

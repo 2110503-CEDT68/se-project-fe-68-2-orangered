@@ -17,7 +17,7 @@ export default function MassageServiceList({ services }: { services: MassageType
 
             className="group flex flex-row items-center border border-card-border bg-card/50 rounded-lg hover:border-accent/50 dark:hover:border-accent-500/50 transition-all duration-500 overflow-hidden min-h-[110px]"
           >
-            {service.picture ? (
+            {service.picture && (service.picture.startsWith("http") || service.picture.startsWith("/") || service.picture.startsWith("data:")) ? (
               <div className="relative h-32 w-0 opacity-0 group-hover:w-40 group-hover:opacity-100 transition-all duration-500 ease-in-out overflow-hidden shadow-xl">
                 <Image
                   src={service.picture}
