@@ -22,18 +22,26 @@ export default function AnnouncementPage() {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
 
+    const isAuthorized = session?.user?.role === 'admin' || session?.user?.role === 'shopowner';
+
     const API_BASE_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/announcements`;
 
     const fetchAnnouncements = async () => {
+        if (!session?.user?.token) return;
         try {
-            const res = await fetch(API_BASE_URL);
+            setLoading(true);
+            const res = await fetch(API_BASE_URL, {
+                headers: { 'Authorization': `Bearer ${session.user.token}` }
+            });
             const result = await res.json();
             setAnnouncements(result.data || []);
         } catch (err) { console.error(err); }
         finally { setLoading(false); }
     };
 
-    useEffect(() => { fetchAnnouncements(); }, []);
+    useEffect(() => { 
+        if (session?.user?.token) fetchAnnouncements(); 
+    }, [session?.user?.token]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -95,37 +103,39 @@ export default function AnnouncementPage() {
                     Announcements Manager
                 </h1>
 
-                {/* ฟอร์มจัดการ: ใช้ bg-card และ border-card-border */}
-                <form onSubmit={handleSubmit} className="bg-card border border-card-border p-8 rounded-2xl mb-12 shadow-2xl transition-all">
-                    <h2 className="text-lg font-serif font-bold text-accent mb-6 uppercase tracking-widest">
-                        {editingId ? '✏️ Edit Announcement' : '✨ Create New Post'}
-                    </h2>
-                    <input 
-                        type="text" placeholder="Title" value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        className="w-full bg-surface border border-card-border rounded-xl p-3 mb-4 focus:border-accent outline-none text-text-main"
-                        required
-                    />
-                    <input 
-                        type="text" placeholder="Image URL (https://...)" value={imageUrl}
-                        onChange={(e) => setImageUrl(e.target.value)}
-                        className="w-full bg-surface border border-card-border rounded-xl p-3 mb-4 focus:border-accent outline-none text-text-main"
-                    />
-                    <textarea 
-                        placeholder="Content details..." value={content}
-                        onChange={(e) => setContent(e.target.value)}
-                        className="w-full bg-surface border border-card-border rounded-xl p-3 mb-6 h-32 focus:border-accent outline-none text-text-main"
-                        required
-                    />
-                    <div className="flex gap-3">
-                        <button type="submit" disabled={isProcessing} className="bg-accent hover:opacity-90 text-white px-8 py-3 rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all">
-                            {isProcessing ? 'Processing...' : editingId ? 'Update Post' : 'Publish Post'}
-                        </button>
-                        {editingId && (
-                            <button type="button" onClick={resetForm} className="bg-text-sub/20 text-text-sub px-8 py-3 rounded-xl font-bold uppercase text-[10px] tracking-widest hover:bg-text-sub/30">Cancel</button>
-                        )}
-                    </div>
-                </form>
+                {/* ฟอร์มจัดการ: ใช้ bg-card และ border-card-border (แสดงเฉพาะ admin หรือ shopowner) */}
+                {isAuthorized && (
+                    <form onSubmit={handleSubmit} className="bg-card border border-card-border p-8 rounded-2xl mb-12 shadow-2xl transition-all">
+                        <h2 className="text-lg font-serif font-bold text-accent mb-6 uppercase tracking-widest">
+                            {editingId ? '✏️ Edit Announcement' : '✨ Create New Post'}
+                        </h2>
+                        <input 
+                            type="text" placeholder="Title" value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            className="w-full bg-surface border border-card-border rounded-xl p-3 mb-4 focus:border-accent outline-none text-text-main"
+                            required
+                        />
+                        <input 
+                            type="text" placeholder="Image URL (https://...)" value={imageUrl}
+                            onChange={(e) => setImageUrl(e.target.value)}
+                            className="w-full bg-surface border border-card-border rounded-xl p-3 mb-4 focus:border-accent outline-none text-text-main"
+                        />
+                        <textarea 
+                            placeholder="Content details..." value={content}
+                            onChange={(e) => setContent(e.target.value)}
+                            className="w-full bg-surface border border-card-border rounded-xl p-3 mb-6 h-32 focus:border-accent outline-none text-text-main"
+                            required
+                        />
+                        <div className="flex gap-3">
+                            <button type="submit" disabled={isProcessing} className="bg-accent hover:opacity-90 text-white px-8 py-3 rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all">
+                                {isProcessing ? 'Processing...' : editingId ? 'Update Post' : 'Publish Post'}
+                            </button>
+                            {editingId && (
+                                <button type="button" onClick={resetForm} className="bg-text-sub/20 text-text-sub px-8 py-3 rounded-xl font-bold uppercase text-[10px] tracking-widest hover:bg-text-sub/30">Cancel</button>
+                            )}
+                        </div>
+                    </form>
+                )}
 
                 {/* รายการประกาศ */}
                 <div className="space-y-8">
@@ -143,10 +153,12 @@ export default function AnnouncementPage() {
                             <div className="p-8">
                                 <div className="flex justify-between items-start mb-4">
                                     <h2 className="text-xl font-serif font-semibold text-text-main tracking-wide">{item.title}</h2>
-                                    <div className="flex gap-3">
-                                        <button onClick={() => startEdit(item)} className="text-[9px] uppercase tracking-widest bg-gold/10 text-gold hover:bg-gold/20 px-3 py-1.5 rounded border border-gold/20 transition-all">Edit</button>
-                                        <button onClick={() => handleDelete(item._id)} className="text-[9px] uppercase tracking-widest bg-red-500/10 text-red-500 hover:bg-red-500/20 px-3 py-1.5 rounded border border-red-500/20 transition-all">Delete</button>
-                                    </div>
+                                    {isAuthorized && (
+                                        <div className="flex gap-3">
+                                            <button onClick={() => startEdit(item)} className="text-[9px] uppercase tracking-widest bg-gold/10 text-gold hover:bg-gold/20 px-3 py-1.5 rounded border border-gold/20 transition-all">Edit</button>
+                                            <button onClick={() => handleDelete(item._id)} className="text-[9px] uppercase tracking-widest bg-red-500/10 text-red-500 hover:bg-red-500/20 px-3 py-1.5 rounded border border-red-500/20 transition-all">Delete</button>
+                                        </div>
+                                    )}
                                 </div>
                                 <p className="text-text-sub text-sm leading-relaxed whitespace-pre-wrap">{item.content}</p>
                             </div>

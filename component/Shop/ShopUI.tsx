@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Session } from "next-auth";
 import { ShopItem } from "@/interface";
 import AvgRatingBadge from "../Rating/AvgRatingBadge";
+import ShopAnnouncement from "./ShopAnnouncement";
 
 const PLACEHOLDER_IMG = "https://i.pinimg.com/1200x/4b/35/23/4b352395a4843dd059b7eb96444433ff.jpg";
 
@@ -23,6 +24,8 @@ export default function ShopUI({
 
   return (
     <div className="flex flex-col md:flex-row bg-background transition-colors duration-300">
+      <ShopAnnouncement shopId={shop._id} />
+      
       <div className="relative w-full md:w-1/2 h-80 md:h-auto overflow-hidden">
         <Image
           src={displayImage}

@@ -16,7 +16,7 @@ export default function AnnouncementManager() {
   const [content, setContent] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const API_URL = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000') + '/api/announcements';
+  const API_URL = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000') + '/api/v1/announcements';
 
   useEffect(() => { fetchAnnouncements(); }, []);
 

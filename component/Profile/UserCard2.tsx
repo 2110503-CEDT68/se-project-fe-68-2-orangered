@@ -232,7 +232,7 @@ export default function UserCard({ session, onUpdate }: UserCardProps) {
         {/* Avatar */}
         <div className="flex flex-col items-center gap-3">
           <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-gray-700/50">
-            {profilePicture ? (
+            {profilePicture && (profilePicture.startsWith("http") || profilePicture.startsWith("/") || profilePicture.startsWith("data:")) ? (
               <Image
                 src={profilePicture}
                 alt="Profile picture"

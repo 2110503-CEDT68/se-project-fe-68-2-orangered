@@ -196,7 +196,7 @@ export default function UserComments({
                 <div className="flex gap-5">
                   {/* Profile Picture Frame */}
                   <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full border border-accent/20 bg-surface shadow-inner">
-                    {comment.user.profilePicture ? (
+                    {comment.user.profilePicture && (comment.user.profilePicture.startsWith("http") || comment.user.profilePicture.startsWith("/") || comment.user.profilePicture.startsWith("data:")) ? (
                       <Image
                         src={comment.user.profilePicture}
                         alt={comment.user.name}

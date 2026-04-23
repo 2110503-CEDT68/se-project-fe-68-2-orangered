@@ -138,7 +138,7 @@ export default function AdminUserEditorCard({
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="flex items-start gap-4">
             <div className="relative h-14 w-14 overflow-hidden rounded-full border border-card-border bg-background">
-              {avatarSrc ? (
+              {avatarSrc && (avatarSrc.startsWith("http") || avatarSrc.startsWith("/") || avatarSrc.startsWith("data:")) ? (
                 <Image
                   src={avatarSrc}
                   alt={`${user.name} avatar`}
@@ -146,7 +146,7 @@ export default function AdminUserEditorCard({
                   className="object-cover"
                 />
               ) : null}
-              {!avatarSrc ? (
+              {!(avatarSrc && (avatarSrc.startsWith("http") || avatarSrc.startsWith("/") || avatarSrc.startsWith("data:"))) ? (
                 <div className="flex h-full w-full items-center justify-center text-sm font-semibold uppercase tracking-[0.2em] text-accent">
                   {initials}
                 </div>
