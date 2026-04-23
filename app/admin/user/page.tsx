@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 
 
 export default function AdminUserPage() {
+  console.log("BACKEND_URL:", process.env.BACKEND_URL);
   const { data: session, status } = useSession();
   const [allUserData, setAllUserData] = useState<EditableUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);

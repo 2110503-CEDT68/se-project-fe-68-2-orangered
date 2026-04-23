@@ -1,11 +1,18 @@
 services:
   frontend:
-    build: .
+    build: 
+      context: .
+      args:
+        BACKEND_URL: http://backend:5000
+        NEXT_PUBLIC_BACKEND_URL: http://localhost:5000
     container_name: orangered_frontend
     ports:
       - "3000:3000"
     env_file:
       - .env.local
+    environment:
+      - NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
+      - BACKEND_URL=http://backend:5000
     networks:
       - app_network
     restart: unless-stopped

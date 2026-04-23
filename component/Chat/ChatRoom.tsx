@@ -4,6 +4,7 @@ import useChat from "@/libs/chat/useChat";
 import { useSession } from "next-auth/react";
 import ChatBox from "./ChatBox";
 import Pusher from "pusher-js";
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
 
 const TIME_DIVIDER_THRESHOLD_MS = 60 * 60 * 1000; // 1 hour
 
@@ -87,7 +88,7 @@ function ChatRoom({ shopId, shopName, userId, isAdmin }: ChatProps) {
     if (!isAdmin || !token) return;
 
     fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/messages/shop/${shopId}/rooms`,
+      `${getBackendBaseUrl()}/api/v1/messages/shop/${shopId}/rooms`,
       {
         headers: {
           authorization: `Bearer ${token}`,

@@ -11,7 +11,6 @@ export default async function shop({
 }: {
   searchParams?: Promise<{ page?: string }>;
 }) {
-  
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const parsedPage = Number(resolvedSearchParams?.page ?? "1");
   const currentPage = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;

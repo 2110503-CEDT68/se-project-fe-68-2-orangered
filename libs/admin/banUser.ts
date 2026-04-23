@@ -1,6 +1,8 @@
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
+
 export default async function banUser(token: string, uid: string) {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/${uid}/hard`,
+    `${getBackendBaseUrl()}/api/v1/auth/${uid}/hard`,
     {
       method: "DELETE",
       headers: {

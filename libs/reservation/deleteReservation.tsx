@@ -1,5 +1,7 @@
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
+
 export default async function deleteReservation({token, rid}: DeleteProps) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/reservations/${rid}`, {
+  const res = await fetch(`${getBackendBaseUrl()}/api/v1/reservations/${rid}`, {
     method: "DELETE",
     headers: {
       authorization: `Bearer ${token}`,

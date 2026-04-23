@@ -7,6 +7,7 @@ import { signIn } from "next-auth/react";
 import { TextField } from "@mui/material";
 import Image from "next/image";
 import TermsContent from "../../component/TermsContent/termsContent";
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -75,7 +76,7 @@ export default function RegisterPage() {
     if (hasError) return;
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/register`, {
+      const res = await fetch(`${getBackendBaseUrl()}/api/v1/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

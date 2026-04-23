@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import BsPencil from "@/component/icons/edit";
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
 
 export default function ProfilePage() {
   const { data: session, status, update } = useSession();
@@ -75,7 +76,7 @@ export default function ProfilePage() {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/avatar`,
+        `${getBackendBaseUrl()}/api/v1/auth/avatar`,
         {
           method: "PUT",
           headers: {
@@ -149,7 +150,7 @@ export default function ProfilePage() {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/me`,
+        `${getBackendBaseUrl()}/api/v1/auth/me`,
         {
           method: "PUT",
           headers: {

@@ -1,3 +1,5 @@
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
+
 type GetAllShopsOptions = {
   page?: number;
   limit?: number;
@@ -26,7 +28,7 @@ export default async function getAllShops(options: GetAllShopsOptions = {}) {
   }
 
   const queryString = params.toString();
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/shops${queryString ? `?${queryString}` : ""}`, {
+  const response = await fetch(`${getBackendBaseUrl()}/api/v1/shops${queryString ? `?${queryString}` : ""}`, {
     method: "GET",
     cache: "no-store",
   });

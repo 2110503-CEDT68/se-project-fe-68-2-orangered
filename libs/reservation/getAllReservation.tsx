@@ -1,3 +1,5 @@
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
+
 type GetAllReservationsOptions = {
   page?: number;
   limit?: number;
@@ -33,7 +35,7 @@ export default async function getAllReservations(
   }
 
   const queryString = params.toString();
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/reservations/${queryString ? `?${queryString}` : ""}`, {
+  const res = await fetch(`${getBackendBaseUrl()}/api/v1/reservations/${queryString ? `?${queryString}` : ""}`, {
     method: "GET",
     headers: {
       authorization: `Bearer ${token}`,

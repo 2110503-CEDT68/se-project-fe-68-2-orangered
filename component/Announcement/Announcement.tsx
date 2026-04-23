@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
 
 interface Announcement {
   _id: string;
@@ -16,7 +17,7 @@ export default function AnnouncementManager() {
   const [content, setContent] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const API_URL = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000') + '/api/announcements';
+  const API_URL = `${getBackendBaseUrl()}/api/announcements`;
 
   useEffect(() => { fetchAnnouncements(); }, []);
 

@@ -1,3 +1,5 @@
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
+
 export default async function getRatingsByShop(shopId: string, token?: string) {
   const headers: HeadersInit = {};
   
@@ -6,7 +8,7 @@ export default async function getRatingsByShop(shopId: string, token?: string) {
   }
 
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/shops/${shopId}/rating`,
+    `${getBackendBaseUrl()}/api/v1/shops/${shopId}/rating`,
     { headers, cache: "no-store" }
   );
 

@@ -4,6 +4,7 @@ import { signOut } from "next-auth/react";
 import BsPencil from "../icons/edit";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
 
 interface UserProfile {
   name: string;
@@ -64,7 +65,7 @@ export default function UserCard({ session, onUpdate }: UserCardProps) {
   // Fetch fresh profile from backend on mount
   useEffect(() => {
     if (!session?.user?.token) return;
-    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/me`, {
+    fetch(`${getBackendBaseUrl()}/api/v1/auth/me`, {
       headers: { authorization: `Bearer ${session.user.token}` },
     })
       .then((r) => r.json())
@@ -105,7 +106,7 @@ export default function UserCard({ session, onUpdate }: UserCardProps) {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/avatar`,
+        `${getBackendBaseUrl()}/api/v1/auth/avatar`,
         {
           method: "PUT",
           headers: {
@@ -172,7 +173,7 @@ export default function UserCard({ session, onUpdate }: UserCardProps) {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/me`,
+        `${getBackendBaseUrl()}/api/v1/auth/me`,
         {
           method: "PUT",
           headers: {

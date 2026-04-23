@@ -1,3 +1,5 @@
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
+
 export interface MassageType {
   name: string;
   description?: string;
@@ -22,7 +24,7 @@ export default async function updateShop(
   shopDescription?: string
 ) {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/shops/${sid}`,
+    `${getBackendBaseUrl()}/api/v1/shops/${sid}`,
     {
       method: "PUT",
       headers: {

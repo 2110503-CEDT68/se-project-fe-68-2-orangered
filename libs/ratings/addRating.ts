@@ -1,3 +1,5 @@
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
+
 interface AddRatingParams {
   reservationId?: string;
   shopId?: string;
@@ -14,8 +16,8 @@ export default async function addRating({
   token,
 }: AddRatingParams) {
   const endpoint = reservationId
-    ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/reservations/${reservationId}/ratings`
-    : `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/shops/${shopId}/rating`;
+    ? `${getBackendBaseUrl()}/api/v1/reservations/${reservationId}/ratings`
+    : `${getBackendBaseUrl()}/api/v1/shops/${shopId}/rating`;
 
   const res = await fetch(
     endpoint,

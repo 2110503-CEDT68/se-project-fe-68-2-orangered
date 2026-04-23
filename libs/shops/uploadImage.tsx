@@ -1,4 +1,5 @@
 // libs/shops/uploadImage.ts
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
 
 export default async function uploadImage(
   token: string,
@@ -9,7 +10,7 @@ export default async function uploadImage(
   formData.append("image", file);
 
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/shops/${shopId}/upload`,
+    `${getBackendBaseUrl()}/api/v1/shops/${shopId}/upload`,
     {
       method: "POST",
       headers: {

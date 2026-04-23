@@ -1,5 +1,7 @@
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
+
 export default async function deleteShop(id:string, token:string){
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/shops/${id}`, {
+  const response = await fetch(`${getBackendBaseUrl()}/api/v1/shops/${id}`, {
     method: "DELETE",
     headers: {
       authorization: `Bearer ${token}`,

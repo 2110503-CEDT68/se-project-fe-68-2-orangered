@@ -1,3 +1,5 @@
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
+
 export default async function updateRating(
   ratingId: string,
   score: number,
@@ -5,7 +7,7 @@ export default async function updateRating(
   token: string
 ) {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/ratings/${ratingId}`,
+    `${getBackendBaseUrl()}/api/v1/ratings/${ratingId}`,
     {
       method: "PUT",
       headers: {

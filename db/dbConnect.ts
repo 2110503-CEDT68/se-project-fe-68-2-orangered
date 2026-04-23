@@ -8,7 +8,7 @@ export const dbConnect = async() => {
 
     if (isConnected) return
 
-    const MONGO_URI = process.env.NEXT_PUBLIC_BACKEND_URL
+    const MONGO_URI = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL
 
     if (!MONGO_URI) throw new Error('Plese define mongo')
 

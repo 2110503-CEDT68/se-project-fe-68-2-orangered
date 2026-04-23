@@ -1,5 +1,7 @@
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
+
 export default async function deactivateUser(token:string, uid:string){
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/${uid}`,{
+  const res = await fetch(`${getBackendBaseUrl()}/api/v1/auth/${uid}`,{
       method: "DELETE",
       headers: {
         authorization: `Bearer ${token}`,

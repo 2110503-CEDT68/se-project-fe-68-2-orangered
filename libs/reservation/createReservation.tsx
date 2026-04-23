@@ -1,3 +1,5 @@
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
+
 export default async function createReservations(
   token:string, 
   name:string, 
@@ -5,7 +7,7 @@ export default async function createReservations(
   sid:string, 
   massageType: string, 
   massagePrice: Number){
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/shops/${sid}/reservations/`, {
+  const res = await fetch(`${getBackendBaseUrl()}/api/v1/shops/${sid}/reservations/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

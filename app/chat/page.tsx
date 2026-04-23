@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 import { ShopItem } from "@/interface";
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
 
 type ShopsResponse = {
   success: boolean;
@@ -49,7 +50,7 @@ export default function ChatPage() {
         });
 
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/shops?${query.toString()}`,
+          `${getBackendBaseUrl()}/api/v1/shops?${query.toString()}`,
           {
             method: "GET",
             cache: "no-store",

@@ -1,3 +1,5 @@
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
+
 export interface MassageType {
   name: string;
   description?: string;
@@ -21,7 +23,7 @@ export default async function createShop(
   shopDescription?: string
 ) {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/shops`,
+    `${getBackendBaseUrl()}/api/v1/shops`,
     {
       method: "POST",
       headers: {

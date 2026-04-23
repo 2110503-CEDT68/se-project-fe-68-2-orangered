@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import Pusher from 'pusher-js';
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
 
 export interface User {
   _id?: string;
@@ -45,7 +46,7 @@ export default function useChat(roomId: string, token?:string, currentUser?: Use
 
     const fetchMessages = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/messages/${roomId}`, {
+        const res = await fetch(`${getBackendBaseUrl()}/api/v1/messages/${roomId}`, {
           credentials: 'include',
           headers: {
             "Content-Type": "application/json",
@@ -119,7 +120,7 @@ export default function useChat(roomId: string, token?:string, currentUser?: Use
     setMessages(prev => [...prev, optimisticMsg]);
 
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/messages`, {
+      await fetch(`${getBackendBaseUrl()}/api/v1/messages`, {
         method: 'POST',
         headers: {
           "Content-Type": "application/json",
@@ -150,7 +151,7 @@ export default function useChat(roomId: string, token?:string, currentUser?: Use
       })
     );
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/messages/${id}`, {
+    const res = await fetch(`${getBackendBaseUrl()}/api/v1/messages/${id}`, {
       method: 'PUT',
       headers: {
         "Content-Type": "application/json",
@@ -164,7 +165,7 @@ export default function useChat(roomId: string, token?:string, currentUser?: Use
 
   const deleteMessage = async (id: string) => {
     setMessages(prev => prev.map(m => m._id === id ? { ...m, deleted: true } : m));
-    await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/messages/${id}`, {
+    await fetch(`${getBackendBaseUrl()}/api/v1/messages/${id}`, {
       method: 'DELETE',
       headers: {
         "Content-Type": "application/json",

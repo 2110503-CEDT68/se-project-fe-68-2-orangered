@@ -1,10 +1,12 @@
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
+
 export default async function updateReservation(
   rid: string,
   appDate: string,
   token: string
 ) {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/reservations/${rid}`,
+    `${getBackendBaseUrl()}/api/v1/reservations/${rid}`,
     {
       method: "PUT",
       headers: {

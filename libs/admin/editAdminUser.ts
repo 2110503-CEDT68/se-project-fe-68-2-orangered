@@ -1,7 +1,8 @@
 import deactivateUser from "./deactivateUser";
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
 
 export default async function editAdminUser(token:string, uid:string, payload:Record<string, string | null>){
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/${uid}`,{
+  const res = await fetch(`${getBackendBaseUrl()}/api/v1/auth/${uid}`,{
       method: "PUT",
       headers: {
         authorization: `Bearer ${token}`,

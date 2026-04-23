@@ -4,9 +4,10 @@ import { NextAuthOptions } from "next-auth";
 import getUser from "./getUser";
 import Google from "next-auth/providers/google";
 import { cookies } from "next/headers";
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
 
 const loginWithGoogle = async (idToken: string, role?: "user" | "shopowner") => {
-  const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL;
+  const backendUrl = getBackendBaseUrl();
 
   if (!backendUrl) {
     throw new Error("BACKEND_URL or NEXT_PUBLIC_BACKEND_URL is required for Google OAuth");
