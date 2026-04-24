@@ -21,7 +21,7 @@ export default function AdminUserEditorCard({
   token: string;
   isCurrentUser: boolean;
   onSaved: (user: EditableUser) => void;
-  onDeleted: (userId: string) => void;
+  onDeleted: (user: EditableUser) => void;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -122,7 +122,7 @@ export default function AdminUserEditorCard({
 
     try {
       await banUser(token, user._id);
-      onDeleted(user._id);
+      onDeleted(user);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to delete user"

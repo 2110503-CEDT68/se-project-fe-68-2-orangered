@@ -9,7 +9,7 @@ export default async function getAllUser(token:string) {
   })
 
   if(!res.ok){
-    throw Error("Failed to login")
+    throw Error("Failed to load users")
   }
   return await res.json();
 }
