@@ -10,6 +10,8 @@ import { ShopItem } from "@/interface";
 import EditButton from "@/component/ui/EditButton";
 import UserComments from "@/component/Shop/UserComments";
 import ChatRoom from "@/component/Chat/ChatRoom";
+import ShopAnnouncement from "@/component/Shop/ShopAnnouncement";
+import AnnouncementButton from "@/component/ui/AnnouncementButton";
 
 export default async function ShopDetailPage({
   params,
@@ -84,6 +86,8 @@ export default async function ShopDetailPage({
         <span>Browse More Shops</span>
       </Link>
 
+      <ShopAnnouncement shopId={shop._id} />
+
       <div className="min-h-screen flex flex-col items-center py-16 px-4">
         <div className="max-w-5xl w-full bg-card rounded-2xl overflow-hidden border border-card-border shadow-2xl">
           <ShopUI 
@@ -134,6 +138,7 @@ export default async function ShopDetailPage({
 
       {canManageShop && 
       <div className="flex gap-4 justify-center mt-8">
+        <AnnouncementButton shopId={shopId} canManage={canManageShop}/>
         <DeleteButton shopId={shopId} canManage={canManageShop}/> 
         <EditButton shopId={shopId} canManage={canManageShop}/>
       </div>

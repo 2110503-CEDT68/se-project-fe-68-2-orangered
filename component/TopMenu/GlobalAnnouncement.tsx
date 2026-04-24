@@ -31,15 +31,19 @@ export default function GlobalAnnouncement() {
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+        if (!backendUrl) return; // backend URL not configured
+
         const fetchAnnouncements = async () => {
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/announcements/all`);
+                const res = await fetch(`${backendUrl}/api/v1/announcements/all`);
+                if (!res.ok) return;
                 const result = await res.json();
                 if (result.success && result.data) {
                     setAnnouncements(result.data);
                 }
             } catch (err) {
-                console.error("Failed to fetch announcements", err);
+                // silently fail — backend might be offline
             }
         };
         fetchAnnouncements();

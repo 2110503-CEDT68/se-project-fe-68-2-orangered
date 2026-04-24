@@ -11,6 +11,7 @@ import ReservationLoading from "@/component/ReservationManagement/ReservationLoa
 import ReservationNoSession from "@/component/ReservationManagement/ReservationNoSession";
 import PaginationLinkNav from "@/component/ui/PaginationLinkNav";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import NoReservationShopOwner from "@/component/ReservationManagement/NoReservationShop";
 
 const RESERVATIONS_PER_PAGE = 6;
 
@@ -72,7 +73,7 @@ export default function ShopOwnerReservationsPage() {
 
       await fetchReservations(nextPage);
     } catch (err) {
-      console.error("Delete failed");
+      console.error("Delete failed", err);
     }
   }
 
@@ -97,7 +98,7 @@ export default function ShopOwnerReservationsPage() {
   if (loading) return <ReservationLoading />;
 
   if (!reservations || reservations.data.length === 0) {
-    return <NoReservation isAdmin={false} />;
+    return <NoReservationShopOwner/>
   }
 
   const now = Date.now();

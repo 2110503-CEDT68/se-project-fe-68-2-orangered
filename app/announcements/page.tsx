@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { useSession } from "next-auth/react"; // 1. ดึง session มาใช้เพื่อส่ง token
-import { getBackendBaseUrl } from "@/libs/api/baseUrl";
+import { useSession } from "next-auth/react";
 
 interface Announcement {
     _id: string;
@@ -10,38 +9,69 @@ interface Announcement {
     content: string;
     imageUrl?: string;
     createdAt: string;
+    shop?: { _id: string; name: string; picture?: string; };
+}
+
+interface Shop {
+    _id: string;
+    name: string;
+    picture?: string;
 }
 
 export default function AnnouncementPage() {
     const { data: session } = useSession();
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
     const [loading, setLoading] = useState(true);
+    const [shops, setShops] = useState<Shop[]>([]);
 
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [imageUrl, setImageUrl] = useState('');
+    const [selectedShopId, setSelectedShopId] = useState('');
     const [editingId, setEditingId] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
     const isAuthorized = session?.user?.role === 'admin' || session?.user?.role === 'shopowner';
-    const API_BASE_URL = `${getBackendBaseUrl()}/api/announcements`;
+    const isShopOwner = session?.user?.role === 'shopowner';
+    const API_BASE_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/announcements`;
+    const SHOPS_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/shops`;
 
-    const fetchAnnouncements = async () => {
-        if (!session?.user?.token) return;
+  const fetchAnnouncements = async () => {
+    if (!session?.user?.token) return;
+    try {
+      setLoading(true);
+      const res = await fetch(API_BASE_URL, {
+        headers: { Authorization: `Bearer ${session.user.token}` },
+      });
+      const result = await res.json();
+      setAnnouncements(result.data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+    const fetchMyShops = async () => {
+        if (!session?.user?.token || !isShopOwner) return;
         try {
-            setLoading(true);
-            const res = await fetch(API_BASE_URL, {
+            const res = await fetch(`${SHOPS_URL}/mine`, {
                 headers: { 'Authorization': `Bearer ${session.user.token}` }
             });
             const result = await res.json();
-            setAnnouncements(result.data || []);
+            if (result.success && result.data) {
+                setShops(result.data);
+                if (result.data.length > 0) setSelectedShopId(result.data[0]._id);
+            }
         } catch (err) { console.error(err); }
-        finally { setLoading(false); }
     };
 
     useEffect(() => {
-        if (session?.user?.token) fetchAnnouncements();
+        if (session?.user?.token) {
+            fetchAnnouncements();
+            fetchMyShops();
+        }
     }, [session?.user?.token]);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -59,16 +89,25 @@ export default function AnnouncementPage() {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${session.user.token}`
                 },
-                body: JSON.stringify({ title, content, imageUrl }),
+                body: JSON.stringify({
+                    title,
+                    content,
+                    imageUrl,
+                    // ส่ง shop ไปด้วยถ้าเป็น shopowner และเลือกร้าน
+                    ...(isShopOwner && selectedShopId ? { shop: selectedShopId } : {})
+                }),
             });
 
-            if (res.ok) {
-                resetForm();
-                fetchAnnouncements();
-            }
-        } catch (err) { alert('เกิดข้อผิดพลาด'); }
-        finally { setIsProcessing(false); }
-    };
+      if (res.ok) {
+        resetForm();
+        fetchAnnouncements();
+      }
+    } catch (err) {
+      alert("เกิดข้อผิดพลาด");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
     const handleDelete = async (id: string) => {
         if (!session?.user?.token) return;
@@ -84,13 +123,13 @@ export default function AnnouncementPage() {
         } catch (err) { console.error(err); }
     };
 
-    const startEdit = (item: Announcement) => {
-        setEditingId(item._id);
-        setTitle(item.title);
-        setContent(item.content);
-        setImageUrl(item.imageUrl || '');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
+  const startEdit = (item: Announcement) => {
+    setEditingId(item._id);
+    setTitle(item.title);
+    setContent(item.content);
+    setImageUrl(item.imageUrl || "");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
     const resetForm = () => {
         setEditingId(null);
@@ -164,6 +203,35 @@ export default function AnnouncementPage() {
                                 </div>
 
                                 <div className="space-y-6">
+                                    {/* Shop Selector (shopowner only with multiple shops) */}
+                                    {isShopOwner && shops.length > 1 && !editingId && (
+                                        <div className="group">
+                                            <label className="block text-[9px] uppercase tracking-[0.25em] text-text-sub group-focus-within:text-accent transition-colors mb-2">
+                                                Target Shop *
+                                            </label>
+                                            <div className="relative">
+                                                <select
+                                                    value={selectedShopId}
+                                                    onChange={(e) => setSelectedShopId(e.target.value)}
+                                                    className="w-full appearance-none bg-background/40 border border-card-border rounded-xl px-4 py-3 text-sm text-text-main focus:outline-none focus:border-accent/60 transition-all pr-10"
+                                                    required
+                                                >
+                                                    {shops.map(shop => (
+                                                        <option key={shop._id} value={shop._id}>
+                                                            {shop.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-sub/50">
+                                                    ▾
+                                                </div>
+                                            </div>
+                                            <p className="text-[9px] text-text-sub/40 mt-1.5 tracking-wide">
+                                                เลือกร้านที่ต้องการโพสต์ประกาศ
+                                            </p>
+                                        </div>
+                                    )}
+
                                     {/* Title field */}
                                     <div className="group">
                                         <label className="block text-[9px] uppercase tracking-[0.25em] text-text-sub group-focus-within:text-accent transition-colors mb-2">
@@ -228,11 +296,10 @@ export default function AnnouncementPage() {
                                     <button
                                         type="submit"
                                         disabled={isProcessing}
-                                        className={`flex items-center gap-2 px-8 py-3 rounded-xl text-[10px] uppercase tracking-[0.3em] font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
-                                            editingId
-                                                ? 'bg-gold/20 border border-gold/40 text-gold hover:bg-gold/30'
-                                                : 'bg-accent/20 border border-accent/40 text-accent hover:bg-accent hover:text-white'
-                                        }`}
+                                        className={`flex items-center gap-2 px-8 py-3 rounded-xl text-[10px] uppercase tracking-[0.3em] font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${editingId
+                                            ? 'bg-gold/20 border border-gold/40 text-gold hover:bg-gold/30'
+                                            : 'bg-accent/20 border border-accent/40 text-accent hover:bg-accent hover:text-white'
+                                            }`}
                                     >
                                         {isProcessing ? (
                                             <>
@@ -320,12 +387,20 @@ export default function AnnouncementPage() {
                                         {/* Header row */}
                                         <div className="flex justify-between items-start gap-4 mb-4">
                                             <div className="flex-1 min-w-0">
-                                                {/* Date badge */}
-                                                <div className="flex items-center gap-2 mb-3">
+                                                {/* Date + Shop badge */}
+                                                <div className="flex items-center gap-3 mb-3 flex-wrap">
                                                     <span className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.3em] text-text-sub/50 font-mono">
                                                         <span className="w-1 h-1 rounded-full bg-accent/50 inline-block" />
                                                         {formatDate(item.createdAt)}
                                                     </span>
+                                                    {item.shop && (
+                                                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-accent/20 bg-accent/5 text-[9px] uppercase tracking-widest text-accent font-bold">
+                                                            {item.shop.picture && (
+                                                                <img src={item.shop.picture} alt="" className="w-3 h-3 rounded-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                                            )}
+                                                            {item.shop.name}
+                                                        </span>
+                                                    )}
                                                 </div>
                                                 <h2 className="text-xl font-serif font-semibold text-text-main group-hover:text-accent transition-colors duration-300 leading-snug">
                                                     {item.title}

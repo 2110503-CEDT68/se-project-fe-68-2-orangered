@@ -9,7 +9,7 @@ export default async function deleteReservation({token, rid}: DeleteProps) {
   })
 
   if(!res.ok){
-    throw Error("Failed to login")
+    throw Error(`Delete failed: ${res.status}`)
   }
   return await res.json();
 }
