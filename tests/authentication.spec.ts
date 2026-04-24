@@ -15,6 +15,7 @@ const ADMIN = {
   password: process.env.TEST_ADMIN_PASSWORD ?? "",
 };
 const SHOP_ID = process.env.TEST_SHOP_ID ?? "";
+const TEST_DEACTIVATE_EMAIL = process.env.TEST_DEACTIVATE_EMAIL ?? "";
 
 // ─── US3-1: Google OAuth Login ─────────────────────────────────────────
 
@@ -53,12 +54,25 @@ test("US3-3: customer can edit their profile", async ({ page }) => {
   );
 });
 
-// ─── US3-4: User add profile avatar ─────────────────────────────────────────
+// ─── US3-4: Admin deactivate user ─────────────────────────────────────────
+test("US3-4: Admin deactivate user", async ({ page }) => {
+  await login(page, ADMIN.email, ADMIN.password);
+  await page.waitForLoadState("networkidle");
+  await page.goto(`${BASE_URL}/admin/user`);
+  const userCard = page.locator("article", { hasText: TEST_DEACTIVATE_EMAIL });
 
+  await userCard.getByRole("button", { name: /edit user/i }).click();
+
+  await userCard.getByLabel(/status/i).selectOption("inactive");
+
+  await userCard.getByRole("button", { name: /save changes/i }).click();
+});
+
+// ─── US3-5: User add profile avatar ─────────────────────────────────────────
 const TEST_AVATAR_URL =
   "https://i.pinimg.com/736x/93/aa/77/93aa772323aaa7e25093d29e02d82a3e.jpg";
 
-test("US3-4: User adds profile picture via URL", async ({ page }) => {
+test("US3-5: User adds profile picture via URL", async ({ page }) => {
   await login(page, CUSTOMER.email, CUSTOMER.password);
   await page.waitForLoadState("networkidle");
   await page.goto(`${BASE_URL}/profile`);
@@ -85,7 +99,8 @@ test("US3-4: User adds profile picture via URL", async ({ page }) => {
   );
 });
 
-test("US3-5: User agree to terms of sevices before registration", async ({
+// ─── US3-6: User agree to terms of sevices before registration ─────────────────────────────────────────
+test("US3-6: User agree to terms of sevices before registration", async ({
   page,
 }) => {
   await page.goto(`${BASE_URL}/register`);
@@ -108,7 +123,8 @@ test("US3-5: User agree to terms of sevices before registration", async ({
   await expect(page.getByTestId("user-role")).toHaveText("user");
 });
 
-test("US3-6: User can register as a shop owner", async ({ page }) => {
+// ─── US3-6: User can register as a shop owner ─────────────────────────────────────────
+test("US3-7: User can register as a shop owner", async ({ page }) => {
   await page.goto(`${BASE_URL}/register`);
   await page.getByLabel(/Full Name/i).fill("Shop Owner Test");
   await page.getByLabel(/Email Address/i).fill(`shop_${Date.now()}@test.com`);
@@ -123,7 +139,6 @@ test("US3-6: User can register as a shop owner", async ({ page }) => {
 
   await expect(page).toHaveURL(`${BASE_URL}`);
 
-  
   await page.goto(`${BASE_URL}/profile`);
   await expect(page.getByTestId("user-role")).toHaveText("shopowner");
 });
