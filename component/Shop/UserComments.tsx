@@ -44,6 +44,8 @@ export default function UserComments({
   const [ratings, setRatings] = useState<ReviewComment[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
   // Form State
   const [score, setScore] = useState(0);
   const [review, setReview] = useState("");
@@ -65,19 +67,25 @@ export default function UserComments({
   };
 
   const handleConfirmDelete = async () => {
-    const ratingId = modalConfig.targetId;
-    if (!ratingId || !token) return;
+  const ratingId = modalConfig.targetId;
+  if (!ratingId || !token) return;
 
-    try {
-      await deleteRating(ratingId, token);
-      if (editingId === ratingId) handleCancelEdit();
-      await fetchRatings();
-    } catch (err: any) {
-      // You could even trigger another "Alert" modal here for errors
-      alert(err.message || "Failed to delete review");
-    }
-  };
+  try {
+    await deleteRating(ratingId, token);
+    
+    // SET DELETE MESSAGE
+    setSuccessMessage("Review deleted successfully.");
+    setTimeout(() => setSuccessMessage(null), 3000);
 
+    if (editingId === ratingId) handleCancelEdit();
+    
+    // Close modal and refresh list
+    setModalConfig({ isOpen: false, targetId: null });
+    await fetchRatings();
+  } catch (err: any) {
+    alert(err.message || "Failed to delete review");
+  }
+};
   const formRef = useRef<HTMLDivElement>(null);
 
   const fetchRatings = async () => {
@@ -113,37 +121,43 @@ export default function UserComments({
         : createDisabledMessage;
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!token) return;
+  e.preventDefault();
+  if (!token) return;
 
-    setIsSubmitting(true);
-    try {
-      if (editingId) {
-        await updateRating(editingId, score, review, token);
-      } else {
-        if (!canSubmitNewRating) {
-          throw new Error(
-            formDisabledMessage || "You cannot review this shop yet.",
-          );
-        }
-
-        await addRating({
-          reservationId,
-          shopId,
-          score,
-          review,
-          token,
-        });
+  setIsSubmitting(true);
+  try {
+    if (editingId) {
+      // UPDATE ACTION
+      await updateRating(editingId, score, review, token);
+      setSuccessMessage("Review updated successfully!"); 
+    } else {
+      // PUBLISH ACTION
+      if (!canSubmitNewRating) {
+        throw new Error(formDisabledMessage || "You cannot review this shop yet.");
       }
-
-      handleCancelEdit();
-      await fetchRatings();
-    } catch (err: any) {
-      alert(err.message || "Could not submit review");
-    } finally {
-      setIsSubmitting(false);
+      await addRating({
+        reservationId,
+        shopId,
+        score,
+        review,
+        token,
+      });
+      setSuccessMessage("Review published successfully!"); 
     }
-  };
+    
+    // UI Cleanup
+    handleCancelEdit();
+    await fetchRatings();
+    
+    // Auto-hide message after 3 seconds
+    setTimeout(() => setSuccessMessage(null), 3000);
+
+  } catch (err: any) {
+    alert(err.message || "Could not submit review");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleEditClick = (comment: ReviewComment) => {
     setEditingId(comment._id);
@@ -178,6 +192,11 @@ export default function UserComments({
 
   return (
     <div id="reviews" className="mt-20 scroll-mt-24">
+      {successMessage && (
+      <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 bg-accent text-white px-6 py-3 rounded-2xl shadow-2xl animate-bounce text-xs uppercase tracking-widest font-bold">
+        ✦ {successMessage}
+      </div>
+    )}
       <div className="mb-10 flex items-end justify-between gap-4">
         <div>
           <p className="text-[11px] uppercase tracking-[0.4em] text-accent font-bold">
@@ -272,7 +291,6 @@ export default function UserComments({
                           )}
                         </p>
                         <div className="mt-3 flex items-center gap-3">
-                          {/* StarRating ควรส่ง Props สี accent เข้าไปถ้าทำได้ครับ */}
                           <StarRating score={comment.score} />
                           <span className="text-[12px] font-mono font-medium text-accent">
                             {comment.score}.0
@@ -280,7 +298,6 @@ export default function UserComments({
                         </div>
                       </div>
 
-                      {/* Action Buttons ปรับสีให้เบาลง */}
                       <div className="flex min-h-8 items-start justify-end">
                         {showActions ? (
                           <div className="flex gap-2 rounded-xl border border-card-border bg-surface/50 p-1.5 shadow-sm">

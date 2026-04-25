@@ -65,6 +65,7 @@ export default function CommentForm({
         <StarPicker
           value={score}
           onChange={onScoreChange}
+          aria-label="Rate your experience"
           disabled={isDisabled && !isEditing}
         />
       </div>
