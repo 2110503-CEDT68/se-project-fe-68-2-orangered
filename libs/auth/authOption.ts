@@ -22,7 +22,8 @@ const loginWithGoogle = async (idToken: string, role?: "user" | "shopowner") => 
   });
 
   if (!response.ok) {
-    throw new Error("Google OAuth login failed");
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.msg || errorData.message || "Google OAuth login failed");
   }
 
   return response.json();
@@ -58,6 +59,7 @@ export const authOptions: NextAuthOptions = {
         } catch (err: any) {
           const message =
             err?.response?.data?.msg ||
+            err?.message ||
             err?.msg ||
             "Something went wrong";
 
