@@ -2,7 +2,7 @@ name: Frontend DevSecOps Pipeline
 
 on:
   push:
-    branches: [main,feat/**,test/**]
+    branches: ['**']
   pull_request:
     branches: [main]
 
