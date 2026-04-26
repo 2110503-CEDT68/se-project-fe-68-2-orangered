@@ -56,7 +56,7 @@ export default function TopMenu(){
         </div>
 
         {/* Center: desktop nav (md+) — flex-1 lets it absorb available space */}
-        <nav className="hidden md:flex flex-1 justify-center items-center min-w-0 gap-1 lg:gap-4 xl:gap-10 tracking-wide uppercase text-sm font-light text-text-main">
+        <nav className="hidden md:flex flex-1 justify-center items-center min-w-0 gap-0 lg:gap-2 xl:gap-5 2xl:gap-12 tracking-wide uppercase text-sm font-light text-text-main">
           {navItems.map(it => (
             <TopMenuItem key={it.label} item={it.label} pageRef={it.href} />
           ))}
@@ -84,9 +84,9 @@ export default function TopMenu(){
               onClick={() => setMenuOpen(prev => !prev)}
               aria-label="Toggle menu"
             >
-              <span className={`block w-[18px] h-px transition-all duration-300 origin-center ${menuOpen ? "rotate-45 translate-y-[6px] bg-gold/90" : "bg-foreground/70"}`} />
-              <span className={`block w-[18px] h-px transition-all duration-300 ${menuOpen ? "opacity-0 scale-x-0 bg-gold/90" : "bg-foreground/70"}`} />
-              <span className={`block w-[18px] h-px transition-all duration-300 origin-center ${menuOpen ? "-rotate-45 -translate-y-[6px] bg-gold/90" : "bg-foreground/70"}`} />
+              <span className={`block w-[18px] h-[1.5px] rounded-full transition-all duration-300 origin-center ${menuOpen ? "rotate-45 translate-y-[6px] bg-gold" : "bg-foreground/80"}`} />
+              <span className={`block w-[18px] h-[1.5px] rounded-full transition-all duration-300 origin-center ${menuOpen ? "opacity-0 scale-x-0 bg-gold" : "bg-foreground/80"}`} />
+              <span className={`block w-[18px] h-[1.5px] rounded-full transition-all duration-300 origin-center ${menuOpen ? "-rotate-45 -translate-y-[6px] bg-gold" : "bg-foreground/80"}`} />
             </button>
           </div>
         </div>

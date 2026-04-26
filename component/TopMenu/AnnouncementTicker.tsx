@@ -45,9 +45,8 @@ export default function AnnouncementTicker() {
   const dotCount = Math.min(announcements.length, 5)
 
   return (
-    <div className="flex flex-1 items-center min-w-0 px-4 relative overflow-hidden">
-
-      <div className="flex items-center gap-4 w-full justify-center">
+    <div className="flex flex-1 items-center min-w-0 relative overflow-hidden">
+      <div className="flex items-center gap-2 sm:gap-4 w-full min-w-0 justify-center">
 
         {/* Live badge */}
         <div className="shrink-0 flex items-center gap-1.5 select-none">
@@ -55,15 +54,15 @@ export default function AnnouncementTicker() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold opacity-50" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-gold" />
           </span>
-          <span className="text-[8px] font-mono uppercase tracking-[0.5em] text-gold/80">Live</span>
+          <span className="text-[8px] font-mono uppercase tracking-[0.4em] sm:tracking-[0.5em] text-gold/80">Live</span>
         </div>
 
-        <span className="w-px h-4 bg-gold/20 shrink-0" />
+        <span className="hidden sm:inline-block w-px h-4 bg-gold/20 shrink-0" />
 
-        {/* Sliding text — clickable */}
+        {/* Sliding text — clickable, truncates when overflowing */}
         <Link
           href="/announcements"
-          className="group relative min-w-0 flex-1 max-w-xl"
+          className="group flex items-center min-w-0 flex-1 max-w-2xl gap-1.5"
           style={{
             opacity: phase === 'in' ? 1 : 0,
             transform: phase === 'in' ? 'translateY(0px)' : 'translateY(-7px)',
@@ -71,17 +70,17 @@ export default function AnnouncementTicker() {
           }}
         >
           {ann.shop?.name && (
-            <span className="text-[9px] font-mono uppercase tracking-[0.3em] text-gold/70 mr-1.5">
+            <span className="hidden sm:inline shrink-0 text-[9px] font-mono uppercase tracking-[0.3em] text-gold/70 max-w-[140px] truncate">
               {ann.shop.name}
             </span>
           )}
-          <span className="text-[11px] font-mono tracking-[0.08em] text-text-sub/70 group-hover:text-text-sub transition-colors truncate">
+          <span className="min-w-0 flex-1 truncate text-[11px] font-mono tracking-[0.08em] text-text-sub/70 group-hover:text-text-sub transition-colors">
             {ann.title}
           </span>
         </Link>
 
         {/* Progress dots */}
-        <div className="hidden sm:flex shrink-0 items-center gap-1 select-none">
+        <div className="hidden md:flex shrink-0 items-center gap-1 select-none">
           {Array.from({ length: dotCount }).map((_, i) => (
             <span
               key={i}
