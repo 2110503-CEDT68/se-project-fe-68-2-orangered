@@ -370,6 +370,7 @@ export default function ProfilePage() {
                         ? "text-accent border-accent/30 bg-accent/5"
                         : "text-text-sub"
                     }`}
+                    data-testid="user-role"
                   >
                     {session.user.role}
                   </span>
