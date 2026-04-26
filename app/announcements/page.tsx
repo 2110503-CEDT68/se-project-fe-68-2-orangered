@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useSession } from "next-auth/react";
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
 
 interface Announcement {
     _id: string;
@@ -34,8 +35,8 @@ export default function AnnouncementPage() {
 
     const isAuthorized = session?.user?.role === 'admin' || session?.user?.role === 'shopowner';
     const isShopOwner = session?.user?.role === 'shopowner';
-    const API_BASE_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/announcements`;
-    const SHOPS_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/shops`;
+    const API_BASE_URL = `${getBackendBaseUrl()}/api/v1/announcements`;
+    const SHOPS_URL = `${getBackendBaseUrl()}/api/v1/shops`;
 
   const fetchAnnouncements = async () => {
     try {
