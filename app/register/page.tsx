@@ -108,7 +108,7 @@ export default function RegisterPage() {
 
   return (
     <>
-      <main className="min-h-screen bg-background text-foreground flex flex-col items-center justify-start px-8 py-32 transition-colors duration-500 relative z-0">
+      <main className="min-h-screen bg-background text-foreground flex flex-col items-center justify-start px-4 sm:px-8 py-16 sm:py-32 transition-colors duration-500 relative z-0">
         <div className="max-w-md w-full">
           <div className="text-center mb-10">
             <h1 className="text-3xl font-serif uppercase tracking-widest text-text-main">Create Account</h1>
@@ -116,7 +116,7 @@ export default function RegisterPage() {
             <div className="h-[1px] w-12 bg-accent/30 mx-auto mt-6" />
           </div>
 
-          <div className="bg-card border border-card-border rounded-2xl p-12 backdrop-blur-sm shadow-2xl transition-colors">
+          <div className="bg-card border border-card-border rounded-2xl p-6 sm:p-12 backdrop-blur-sm shadow-2xl transition-colors">
             <form onSubmit={handleRegister} className="flex flex-col gap-10" noValidate>
               {error && (
                 <Alert severity="error" sx={{ mb: 3, backgroundColor: 'rgba(211, 47, 47, 0.1)', color: '#ef4444', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>

@@ -103,7 +103,7 @@ export default function ReservationPage() {
     reservations.data.length - activeReservationCount;
 
   return (
-    <div className="min-h-screen bg-background text-text-main pb-32 px-8 pt-8 selection:bg-accent/30">
+    <div className="min-h-screen bg-background text-text-main pb-32 px-4 sm:px-8 pt-8 selection:bg-accent/30">
       {/* Navigation Header */}
       <div className="max-w-6xl mx-auto mb-16">
         <Link
@@ -143,7 +143,7 @@ export default function ReservationPage() {
           <p className="text-[10px] uppercase tracking-[0.5em] text-accent font-bold mb-3">
             ✦ {isAdmin ? "Management Console" : "Private Collection"}
           </p>
-          <h1 className="text-4xl font-serif tracking-tight text-text-main">
+          <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-text-main">
             {isAdmin ? "Global Registry" : "Your Reservations"}
           </h1>
           <div className="h-[1px] w-20 bg-gradient-to-r from-accent/60 to-transparent mt-6" />

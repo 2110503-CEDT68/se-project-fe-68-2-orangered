@@ -77,7 +77,7 @@ export default async function ShopDetailPage({
   const userToken = session?.user?.token || "";
 
   return (
-    <div className="min-h-screen bg-background text-text-main pb-24 px-8 pt-6 transition-colors duration-300">
+    <div className="min-h-screen bg-background text-text-main pb-24 px-4 sm:px-8 pt-6 transition-colors duration-300">
       <Link
         href="/shop"
         className="group inline-flex items-center text-[11px] uppercase tracking-[0.2em] text-text-sub hover:text-accent transition-all duration-300"
@@ -124,7 +124,7 @@ export default async function ShopDetailPage({
               </h2>
               <div className="h-[1px] w-12 bg-accent/50 mx-auto mt-4" />
             </div>
-            <div className="h-[600px] rounded-2xl overflow-hidden border border-gray-700/50">
+            <div className="h-[450px] sm:h-[600px] rounded-2xl overflow-hidden border border-gray-700/50">
               <ChatRoom
                 shopId={shopId}
                 shopName={shop.name}

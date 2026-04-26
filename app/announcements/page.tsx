@@ -409,7 +409,7 @@ export default function AnnouncementPage() {
 
                                             {/* Action buttons */}
                                             {isAuthorized && (
-                                                <div className="flex gap-2 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                <div className="flex gap-2 flex-shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
                                                     <button
                                                         onClick={() => startEdit(item)}
                                                         className="text-[9px] uppercase tracking-widest bg-gold/10 text-gold hover:bg-gold/25 px-4 py-2 rounded-lg border border-gold/20 transition-all font-bold"
