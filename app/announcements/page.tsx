@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useSession } from "next-auth/react";
+//Annoucement Page
 
 interface Announcement {
     _id: string;
@@ -37,21 +38,21 @@ export default function AnnouncementPage() {
     const API_BASE_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/announcements`;
     const SHOPS_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/shops`;
 
-  const fetchAnnouncements = async () => {
-    if (!session?.user?.token) return;
-    try {
-      setLoading(true);
-      const res = await fetch(API_BASE_URL, {
-        headers: { Authorization: `Bearer ${session.user.token}` },
-      });
-      const result = await res.json();
-      setAnnouncements(result.data || []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchAnnouncements = async () => {
+        if (!session?.user?.token) return;
+        try {
+            setLoading(true);
+            const res = await fetch(API_BASE_URL, {
+                headers: { Authorization: `Bearer ${session.user.token}` },
+            });
+            const result = await res.json();
+            setAnnouncements(result.data || []);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const fetchMyShops = async () => {
         if (!session?.user?.token || !isShopOwner) return;
@@ -98,16 +99,16 @@ export default function AnnouncementPage() {
                 }),
             });
 
-      if (res.ok) {
-        resetForm();
-        fetchAnnouncements();
-      }
-    } catch (err) {
-      alert("เกิดข้อผิดพลาด");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+            if (res.ok) {
+                resetForm();
+                fetchAnnouncements();
+            }
+        } catch (err) {
+            alert("เกิดข้อผิดพลาด");
+        } finally {
+            setIsProcessing(false);
+        }
+    };
 
     const handleDelete = async (id: string) => {
         if (!session?.user?.token) return;
@@ -123,13 +124,13 @@ export default function AnnouncementPage() {
         } catch (err) { console.error(err); }
     };
 
-  const startEdit = (item: Announcement) => {
-    setEditingId(item._id);
-    setTitle(item.title);
-    setContent(item.content);
-    setImageUrl(item.imageUrl || "");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+    const startEdit = (item: Announcement) => {
+        setEditingId(item._id);
+        setTitle(item.title);
+        setContent(item.content);
+        setImageUrl(item.imageUrl || "");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
 
     const resetForm = () => {
         setEditingId(null);
