@@ -21,7 +21,7 @@ export default function UserSection(){
   return(
     <Link
       href="/profile"
-      className="group flex items-center gap-3 px-8 border-l border-gray-800 hover:bg-accent/5 transition-all duration-500"
+      className="group flex items-center gap-3 px-3 lg:px-6 xl:px-8 hover:bg-accent/5 transition-all duration-500"
     >
       {/* Avatar */}
       <div className="relative w-8 h-8 rounded-full overflow-hidden border border-gray-700 group-hover:border-accent/50 transition-colors duration-300 shrink-0">
@@ -39,8 +39,8 @@ export default function UserSection(){
         )}
       </div>
 
-      {/* Name & role */}
-      <div className="flex flex-col gap-0.5">
+      {/* Name & role — hidden below lg to keep top bar from crowding */}
+      <div className="hidden lg:flex flex-col gap-0.5">
         <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-text-sub group-hover:text-accent transition-colors">
           {name || "Guest Access"}
         </p>

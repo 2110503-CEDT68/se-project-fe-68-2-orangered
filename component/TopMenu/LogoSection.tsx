@@ -4,7 +4,7 @@ import Link from "next/link";
 export default function LogoSection() {
   return (
     <Link href={'/'} className="group h-full flex items-center"> 
-      <div className="h-full flex items-center pr-4 xl:pr-8 gap-5 transition-all duration-700 ease-out">
+      <div className="h-full flex items-center pr-2 md:pr-4 xl:pr-8 gap-3 md:gap-5 transition-all duration-700 ease-out">
         
         <div className="relative h-3/5 aspect-square shrink-0 overflow-hidden">
           <div className="absolute inset-0 bg-background/10 z-10" />
@@ -16,7 +16,7 @@ export default function LogoSection() {
           />
         </div>
 
-        <div className="hidden xl:flex flex-col">
+        <div className="hidden lg:flex flex-col">
           <div className="relative">
             <h1 className="text-2xl font-extralight tracking-[0.15em] text-text-main/90 uppercase font-serif">
               Orange<span className="font-bold text-accent">Red</span>
