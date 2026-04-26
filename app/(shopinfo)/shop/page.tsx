@@ -31,7 +31,7 @@ export default async function shop({
   const isShopOwnerWithNoShops = session?.user?.role === "shopowner" && shops.data.length === 0;
 
   return (
-    <main className="min-h-screen bg-background text-text-main pb-24 px-8 pt-6 transition-colors duration-300">
+    <main className="min-h-screen bg-background text-text-main pb-24 px-4 sm:px-8 pt-6 transition-colors duration-300">
       
       <div className="max-w-7xl mx-auto mb-10">
         <Link

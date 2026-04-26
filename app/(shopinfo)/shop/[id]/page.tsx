@@ -119,7 +119,7 @@ export default async function ShopDetailPage({
 
           <div className="mt-16">
             <div className="mb-6 text-center">
-              <h2 className="text-2xl font-serif tracking-[0.2em] uppercase text-gray-100">
+              <h2 className="text-2xl font-serif tracking-[0.2em] uppercase text-text-main">
                 Chat
               </h2>
               <div className="h-[1px] w-12 bg-accent/50 mx-auto mt-4" />
