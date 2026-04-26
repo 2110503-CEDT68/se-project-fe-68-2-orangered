@@ -38,12 +38,9 @@ export default function AnnouncementPage() {
     const SHOPS_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/shops`;
 
   const fetchAnnouncements = async () => {
-    if (!session?.user?.token) return;
     try {
       setLoading(true);
-      const res = await fetch(API_BASE_URL, {
-        headers: { Authorization: `Bearer ${session.user.token}` },
-      });
+      const res = await fetch(`${API_BASE_URL}/all`);
       const result = await res.json();
       setAnnouncements(result.data || []);
     } catch (err) {
@@ -68,11 +65,11 @@ export default function AnnouncementPage() {
     };
 
     useEffect(() => {
+        fetchAnnouncements();
         if (session?.user?.token) {
-            fetchAnnouncements();
             fetchMyShops();
         }
-    }, [session?.user?.token]);
+    }, [session?.user?.token,]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

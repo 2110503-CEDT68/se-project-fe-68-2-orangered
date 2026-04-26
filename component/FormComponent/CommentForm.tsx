@@ -1,6 +1,6 @@
 "use client";
 
-import type { FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import StarPicker from "../Rating/StarPicker";
 
 interface CommentFormProps {
@@ -84,7 +84,7 @@ export default function CommentForm({
       <div className="flex justify-end gap-3 mt-2">
         <button
           type="submit"
-          disabled={(score === 0 && !isEditing) || isSubmitting || (isDisabled && !isEditing)}
+          disabled={isSubmitting || (isDisabled && !isEditing)}
           className={`text-[10px] uppercase tracking-[0.3em] px-8 py-3 rounded-xl transition-all duration-300 font-bold shadow-lg
             disabled:opacity-20 disabled:cursor-not-allowed
             ${
