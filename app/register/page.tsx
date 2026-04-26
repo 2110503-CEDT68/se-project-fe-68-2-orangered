@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
-import { TextField } from "@mui/material";
+import { Alert, TextField } from "@mui/material";
 import Image from "next/image";
 import TermsContent from "../../component/TermsContent/termsContent";
 import { getBackendBaseUrl } from "@/libs/api/baseUrl";
@@ -90,15 +90,16 @@ export default function RegisterPage() {
           email: formData.email,
           password: formData.password,
         });
-
-        if (result?.error) {
+        
+        if (result?.error) {          
+          setError(data.msg);
           router.push("/api/auth/signin");
         } else {
           router.push("/");
           router.refresh();
         }
       } else {
-        setError(data.error || "Registration failed. Please try again.");
+        setError(data.msg || "Registration failed. Please try again.");
       }
     } catch (err) {
       setError("An unexpected error occurred. Please check your connection.");
@@ -117,7 +118,12 @@ export default function RegisterPage() {
 
           <div className="bg-card border border-card-border rounded-2xl p-12 backdrop-blur-sm shadow-2xl transition-colors">
             <form onSubmit={handleRegister} className="flex flex-col gap-10" noValidate>
-              
+              {error && (
+                <Alert severity="error" sx={{ mb: 3, backgroundColor: 'rgba(211, 47, 47, 0.1)', color: '#ef4444', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  {error}
+                </Alert>
+              )}
+
               <TextField
                 label="Full Name"
                 variant="outlined"

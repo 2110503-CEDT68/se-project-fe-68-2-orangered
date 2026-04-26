@@ -56,21 +56,18 @@ export default function AnnouncementPage() {
     const API_BASE_URL = `${getBackendBaseUrl()}/api/v1/announcements`;
     const SHOPS_URL = `${getBackendBaseUrl()}/api/v1/shops`;
 
-    const fetchAnnouncements = async () => {
-        if (!session?.user?.token) return;
-        try {
-            setLoading(true);
-            const res = await fetch(API_BASE_URL, {
-                headers: { Authorization: `Bearer ${session.user.token}` },
-            });
-            const result = await res.json();
-            setAnnouncements(result.data || []);
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
-    };
+  const fetchAnnouncements = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_BASE_URL}/all`);
+      const result = await res.json();
+      setAnnouncements(result.data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
     const fetchMyShops = async () => {
         if (!session?.user?.token) return;
@@ -89,11 +86,11 @@ export default function AnnouncementPage() {
     };
 
     useEffect(() => {
+        fetchAnnouncements();
         if (session?.user?.token) {
-            fetchAnnouncements();
             fetchMyShops();
         }
-    }, [session?.user?.token]);
+    }, [session?.user?.token,]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

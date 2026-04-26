@@ -1,17 +1,34 @@
 "use client";
 import { TextField, Alert } from "@mui/material";
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image"; // เพิ่ม Import Image
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 export default function SigninPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const authError = searchParams.get("error");
+
+    if (!authError) {
+      return;
+    }
+
+    if (authError === "AccessDenied" || authError === "OAuthCallback" || authError === "OAuthSignin") {
+      setError("Access to this account has been suspended due to a policy violation.");
+      return;
+    }
+
+    setError(authError);
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -30,6 +47,25 @@ export default function SigninPage() {
     } else if (res?.ok) {
       router.push("/");
       router.refresh(); 
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setError("");
+
+    const result = await signIn("google", { redirect: false, callbackUrl: "/" });
+
+    if (result?.error) {
+      if (result.error === "AccessDenied" || result.error === "OAuthCallback" || result.error === "OAuthSignin") {
+        setError("Access to this account has been suspended due to a policy violation.");
+      } else {
+        setError(result.error);
+      }
+      return;
+    }
+
+    if (result?.url) {
+      window.location.href = result.url;
     }
   };
 
