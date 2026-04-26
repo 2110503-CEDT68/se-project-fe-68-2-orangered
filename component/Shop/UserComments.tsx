@@ -10,6 +10,7 @@ import updateRating from "@/libs/ratings/updateRating";
 import deleteRating from "@/libs/ratings/deleteRating";
 import BsTrash from "@/component/icons/trashbin";
 import BsPencil from "@/component/icons/edit";
+import ConfirmationModal from "../ui/ConfirmationModal";
 
 interface ReviewComment {
   _id: string;
@@ -42,15 +43,49 @@ export default function UserComments({
 }: UserCommentsProps) {
   const [ratings, setRatings] = useState<ReviewComment[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
   // Form State
   const [score, setScore] = useState(0);
   const [review, setReview] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Edit State
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    targetId: null as string | null,
+  });
+
+  const handleDeleteRequest = (ratingId: string) => {
+    setModalConfig({
+      isOpen: true,
+      targetId: ratingId,
+    });
+  };
+
+  const handleConfirmDelete = async () => {
+  const ratingId = modalConfig.targetId;
+  if (!ratingId || !token) return;
+
+  try {
+    await deleteRating(ratingId, token);
+    
+    // SET DELETE MESSAGE
+    setSuccessMessage("Review deleted successfully.");
+    setTimeout(() => setSuccessMessage(null), 3000);
+
+    if (editingId === ratingId) handleCancelEdit();
+    
+    // Close modal and refresh list
+    setModalConfig({ isOpen: false, targetId: null });
+    await fetchRatings();
+  } catch (err: any) {
+    alert(err.message || "Failed to delete review");
+  }
+};
   const formRef = useRef<HTMLDivElement>(null);
 
   const fetchRatings = async () => {
@@ -74,7 +109,8 @@ export default function UserComments({
   const userRatings = ratings.filter((rating) => rating.user._id === userId);
   const userRatingCount = userRatings.length;
   const reachedReviewLimit = !isAdmin && userRatingCount >= 5;
-  const canSubmitNewRating = Boolean(token) && (isAdmin || (canCreateRating && !reachedReviewLimit));
+  const canSubmitNewRating =
+    Boolean(token) && (isAdmin || (canCreateRating && !reachedReviewLimit));
 
   const formDisabledMessage = !token
     ? "Please sign in to review this shop."
@@ -85,35 +121,43 @@ export default function UserComments({
         : createDisabledMessage;
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!token) return;
+  e.preventDefault();
+  if (!token) return;
 
-    setIsSubmitting(true);
-    try {
-      if (editingId) {
-        await updateRating(editingId, score, review, token);
-      } else {
-        if (!canSubmitNewRating) {
-          throw new Error(formDisabledMessage || "You cannot review this shop yet.");
-        }
-
-        await addRating({
-          reservationId,
-          shopId,
-          score,
-          review,
-          token,
-        });
+  setIsSubmitting(true);
+  try {
+    if (editingId) {
+      // UPDATE ACTION
+      await updateRating(editingId, score, review, token);
+      setSuccessMessage("Review updated successfully!"); 
+    } else {
+      // PUBLISH ACTION
+      if (!canSubmitNewRating) {
+        throw new Error(formDisabledMessage || "You cannot review this shop yet.");
       }
-      
-      handleCancelEdit();
-      await fetchRatings();
-    } catch (err: any) {
-      alert(err.message || "Could not submit review");
-    } finally {
-      setIsSubmitting(false);
+      await addRating({
+        reservationId,
+        shopId,
+        score,
+        review,
+        token,
+      });
+      setSuccessMessage("Review published successfully!"); 
     }
-  };
+    
+    // UI Cleanup
+    handleCancelEdit();
+    await fetchRatings();
+    
+    // Auto-hide message after 3 seconds
+    setTimeout(() => setSuccessMessage(null), 3000);
+
+  } catch (err: any) {
+    alert(err.message || "Could not submit review");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleEditClick = (comment: ReviewComment) => {
     setEditingId(comment._id);
@@ -130,7 +174,7 @@ export default function UserComments({
 
   const handleDeleteClick = async (ratingId: string) => {
     if (!confirm("Are you sure you want to delete your review?")) return;
-    
+
     try {
       if (!token) return;
       await deleteRating(ratingId, token);
@@ -141,10 +185,18 @@ export default function UserComments({
     }
   };
 
-  if (loading) return <div className="mt-12 text-gray-500 text-sm">Loading reviews...</div>;
+  if (loading)
+    return (
+      <div className="mt-12 text-gray-500 text-sm">Loading reviews...</div>
+    );
 
   return (
     <div id="reviews" className="mt-20 scroll-mt-24">
+      {successMessage && (
+      <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 bg-accent text-white px-6 py-3 rounded-2xl shadow-2xl animate-bounce text-xs uppercase tracking-widest font-bold">
+        ✦ {successMessage}
+      </div>
+    )}
       <div className="mb-10 flex items-end justify-between gap-4">
         <div>
           <p className="text-[11px] uppercase tracking-[0.4em] text-accent font-bold">
@@ -177,26 +229,31 @@ export default function UserComments({
 
       {ratings.length === 0 ? (
         <div className="py-20 text-center border border-dashed border-card-border rounded-3xl">
-          <p className="text-text-sub text-xs uppercase tracking-widest opacity-50">No reviews shared yet.</p>
+          <p className="text-text-sub text-xs uppercase tracking-widest opacity-50">
+            No reviews shared yet.
+          </p>
         </div>
       ) : (
         <div className="flex flex-col gap-6">
           {ratings.map((comment) => {
             const isOwner = comment.user._id === userId;
             const showActions = (isOwner || isAdmin) && !editingId;
-            
+
             return (
               <div
                 key={comment._id}
-                className={`relative overflow-hidden rounded-3xl border border-card-border bg-card/40 p-6 transition-all duration-500 ${editingId === comment._id ? 'opacity-30 scale-[0.98]' : 'hover:shadow-xl hover:shadow-black/5'}`}
+                className={`relative overflow-hidden rounded-3xl border border-card-border bg-card/40 p-6 transition-all duration-500 ${editingId === comment._id ? "opacity-30 scale-[0.98]" : "hover:shadow-xl hover:shadow-black/5"}`}
               >
                 {/* เส้นตกแต่งด้านบนเปลี่ยนเป็นสีทองจางๆ */}
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent" />
-                
+
                 <div className="flex gap-5">
                   {/* Profile Picture Frame */}
                   <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full border border-accent/20 bg-surface shadow-inner">
-                    {comment.user.profilePicture && (comment.user.profilePicture.startsWith("http") || comment.user.profilePicture.startsWith("/") || comment.user.profilePicture.startsWith("data:")) ? (
+                    {comment.user.profilePicture &&
+                    (comment.user.profilePicture.startsWith("http") ||
+                      comment.user.profilePicture.startsWith("/") ||
+                      comment.user.profilePicture.startsWith("data:")) ? (
                       <Image
                         src={comment.user.profilePicture}
                         alt={comment.user.name}
@@ -224,20 +281,23 @@ export default function UserComments({
                           )}
                         </div>
                         <p className="mt-1 text-[10px] uppercase tracking-[0.2em] text-text-sub/60">
-                          {new Date(comment.createdAt).toLocaleDateString("en-US", {
-                            day: "2-digit",
-                            month: "long",
-                            year: "numeric" 
-                          })}
+                          {new Date(comment.createdAt).toLocaleDateString(
+                            "en-US",
+                            {
+                              day: "2-digit",
+                              month: "long",
+                              year: "numeric",
+                            },
+                          )}
                         </p>
                         <div className="mt-3 flex items-center gap-3">
-                          {/* StarRating ควรส่ง Props สี accent เข้าไปถ้าทำได้ครับ */}
                           <StarRating score={comment.score} />
-                          <span className="text-[12px] font-mono font-medium text-accent">{comment.score}.0</span>
+                          <span className="text-[12px] font-mono font-medium text-accent">
+                            {comment.score}.0
+                          </span>
                         </div>
                       </div>
 
-                      {/* Action Buttons ปรับสีให้เบาลง */}
                       <div className="flex min-h-8 items-start justify-end">
                         {showActions ? (
                           <div className="flex gap-2 rounded-xl border border-card-border bg-surface/50 p-1.5 shadow-sm">
@@ -249,11 +309,11 @@ export default function UserComments({
                               <BsPencil />
                             </button>
                             <button
-                              onClick={() => handleDeleteClick(comment._id)}
+                              onClick={() => handleDeleteRequest(comment._id)}
                               className="flex h-8 w-8 items-center justify-center rounded-lg text-text-sub transition-all hover:bg-red-500/10 hover:text-red-500"
                               title="Delete review"
                             >
-                              <BsTrash/>
+                              <BsTrash />
                             </button>
                           </div>
                         ) : null}
@@ -267,7 +327,9 @@ export default function UserComments({
                           "{comment.review}"
                         </p>
                       ) : (
-                        <p className="text-xs italic text-text-sub opacity-50">The guest preferred to stay silent.</p>
+                        <p className="text-xs italic text-text-sub opacity-50">
+                          The guest preferred to stay silent.
+                        </p>
                       )}
                     </div>
                   </div>
@@ -277,6 +339,15 @@ export default function UserComments({
           })}
         </div>
       )}
+      <ConfirmationModal
+      isOpen={modalConfig.isOpen}
+      title="Confirm Deletion"
+      message="Are you sure you want to remove this memory? This action cannot be undone."
+      confirmText="Delete Permanently"
+      isDanger={true}
+      onClose={() => setModalConfig({ isOpen: false, targetId: null })}
+      onConfirm={handleConfirmDelete}
+    />
     </div>
   );
 }
