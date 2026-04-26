@@ -96,16 +96,16 @@ export default function AnnouncementPage() {
                 }),
             });
 
-      if (res.ok) {
-        resetForm();
-        fetchAnnouncements();
-      }
-    } catch (err) {
-      alert("เกิดข้อผิดพลาด");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+            if (res.ok) {
+                resetForm();
+                fetchAnnouncements();
+            }
+        } catch (err) {
+            alert("เกิดข้อผิดพลาด");
+        } finally {
+            setIsProcessing(false);
+        }
+    };
 
     const handleDelete = async (id: string) => {
         if (!session?.user?.token) return;
@@ -121,13 +121,13 @@ export default function AnnouncementPage() {
         } catch (err) { console.error(err); }
     };
 
-  const startEdit = (item: Announcement) => {
-    setEditingId(item._id);
-    setTitle(item.title);
-    setContent(item.content);
-    setImageUrl(item.imageUrl || "");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+    const startEdit = (item: Announcement) => {
+        setEditingId(item._id);
+        setTitle(item.title);
+        setContent(item.content);
+        setImageUrl(item.imageUrl || "");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
 
     const resetForm = () => {
         setEditingId(null);
