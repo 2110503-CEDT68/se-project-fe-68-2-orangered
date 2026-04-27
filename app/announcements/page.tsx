@@ -265,6 +265,7 @@ export default function AnnouncementPage() {
                                                             {shops.map(shop => (
                                                                 <button
                                                                     key={shop._id}
+                                                                    data-shop-id={shop._id}
                                                                     type="button"
                                                                     onClick={() => {
                                                                         setSelectedShopId(shop._id);
