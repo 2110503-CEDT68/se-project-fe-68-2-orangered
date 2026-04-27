@@ -97,7 +97,7 @@ export default function ReservationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-text-main pb-32 px-8 pt-8 selection:bg-accent/30">
+    <div className="min-h-screen bg-background text-text-main pb-32 px-4 sm:px-8 pt-8 selection:bg-accent/30">
       {/* Navigation Header */}
       <div className="max-w-6xl mx-auto mb-16">
         <Link

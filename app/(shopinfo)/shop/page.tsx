@@ -1,23 +1,24 @@
 import ShopPanel from "@/component/Shop/ShopManagement/ShopPanel";
+import ShopFilterBar from "@/component/Shop/ShopFilterBar";
 import Link from "next/link";
 import getAllShops from "@/libs/shops/getAllShops";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/auth/authOption";
+import { ShopItem } from "@/interface";
 import dayjs from "dayjs";
 
 const SHOPS_PER_PAGE = 6;
 
-const sortOptions = [
-  { label: "Recommended", value: "-averageRating,_id" },
-  { label: "Newest", value: "-_id" },
-  { label: "Most Reviewed", value: "-ratingCount" },
-  { label: "On Sale ✦", value: "promo" }, 
-];
-
-export default async function ShopPage({
+export default async function shop({
   searchParams,
 }: {
-  searchParams?: Promise<{ page?: string; sort?: string }>;
+  searchParams?: Promise<{
+    page?: string;
+    name?: string;
+    minRating?: string;
+    openBefore?: string;
+    closeAfter?: string;
+  }>;
 }) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const parsedPage = Number(resolvedSearchParams?.page ?? "1");
@@ -25,13 +26,13 @@ export default async function ShopPage({
   const currentSort = resolvedSearchParams?.sort || sortOptions[0].value;
 
   const session = await getServerSession(authOptions);
+  const fetchOptions: { page: number; limit: number; ownerId?: string ; sort: string } = {
+    page: currentPage,
+    limit: SHOPS_PER_PAGE,
+    sort: "-averageRating,_id"
+  };
   
-const fetchOptions: { page: number; limit: number; ownerId?: string; sort: string } = {
-  page: currentPage,
-  limit: SHOPS_PER_PAGE,
-  sort: currentSort, 
-};
-
+  // If user is a shopowner, only show their shops
   if (session?.user?.role === "shopowner" && session?.user?._id) {
     fetchOptions.ownerId = session.user._id;
   }
@@ -41,11 +42,62 @@ const fetchOptions: { page: number; limit: number; ownerId?: string; sort: strin
   // --- LOGIC: ON SALE SORTING ---
 
 
-  const isShopOwnerWithNoShops = session?.user?.role === "shopowner" && shops.data.length === 0;
+  const isShopOwnerWithNoShops =
+    session?.user?.role === "shopowner" && shops.data.length === 0;
+
+  let filteredData: ShopItem[] = shops.data;
+
+  if (hasFilters) {
+    if (filterName) {
+      const lower = filterName.toLowerCase();
+      filteredData = filteredData.filter((s) =>
+        s.name.toLowerCase().includes(lower),
+      );
+    }
+    if (filterMinRating > 0) {
+      filteredData = filteredData.filter(
+        (s) => (s.averageRating ?? 0) >= filterMinRating,
+      );
+    }
+    if (filterOpenBefore) {
+      const limit = timeToMinutes(filterOpenBefore);
+      filteredData = filteredData.filter(
+        (s) => timeToMinutes(s.openClose.open) <= limit,
+      );
+    }
+    if (filterCloseAfter) {
+      const limit = timeToMinutes(filterCloseAfter);
+      filteredData = filteredData.filter(
+        (s) => timeToMinutes(s.openClose.close) >= limit,
+      );
+    }
+  }
+
+  const totalFiltered = filteredData.length;
+  const totalPages = hasFilters
+    ? Math.max(1, Math.ceil(totalFiltered / SHOPS_PER_PAGE))
+    : shops.pagination.totalPages;
+
+  const pageData = hasFilters
+    ? filteredData.slice(
+        (currentPage - 1) * SHOPS_PER_PAGE,
+        currentPage * SHOPS_PER_PAGE,
+      )
+    : filteredData;
+
+  const shopJson = {
+    ...shops,
+    data: pageData,
+    count: totalFiltered,
+    pagination: {
+      ...shops.pagination,
+      totalPages,
+      total: totalFiltered,
+    },
+  };
 
   return (
-    <main className="min-h-screen bg-background text-text-main pb-24 px-8 pt-6">
-      
+    <main className="min-h-screen bg-background text-text-main pb-24 px-4 sm:px-8 pt-6">
       {/* Back Button */}
       <div className="max-w-7xl mx-auto mb-10">
         <Link
@@ -77,41 +129,12 @@ const fetchOptions: { page: number; limit: number; ownerId?: string; sort: strin
             ? "Your journey as a curator begins here."
             : "Curated wellness experiences for the discerning guest."}
         </p>
+
+        <div className="h-[1px] w-16 bg-accent/30 mx-auto mt-8" />
       </div>
 
-      {/* Sorting Tabs UI */}
-      {!isShopOwnerWithNoShops && (
-  <div className="max-w-5xl mx-auto mb-12">
-    <div className="flex flex-wrap justify-center gap-3">
-      {sortOptions.map((option) => {
-        const isActive = currentSort === option.value;
-        
-        // ถ้า Active อยู่ (กดซ้ำ) ให้ส่งไปแค่ /shop?page=1 (กลับเป็น Default)
-        // ถ้าไม่ Active ให้ส่งไปแบบระบุ Sort ปกติ
-        const targetHref = isActive 
-          ? `/shop?page=1` 
-          : `/shop?page=1&sort=${option.value}`;
+      {!isShopOwnerWithNoShops && <ShopFilterBar />}
 
-        return (
-          <Link
-            key={option.value}
-            href={targetHref}
-            className={`px-5 py-2 rounded-full text-[10px] uppercase tracking-[0.2em] transition-all duration-300 border ${
-              isActive
-                ? "bg-accent text-background border-accent shadow-[0_0_15px_rgba(197,163,87,0.3)]"
-                : "border-card-border text-text-sub hover:border-accent/50 hover:text-accent"
-            }`}
-          >
-            {option.label}
-          </Link>
-        );
-      })}
-    </div>
-    <div className="h-[1px] w-16 bg-gradient-to-r from-transparent via-accent/40 to-transparent mx-auto mt-8" />
-  </div>
-)}
-
-      {/* Main Content */}
       <div className="max-w-5xl mx-auto">
         {isShopOwnerWithNoShops ? (
           <div className="mx-auto max-w-2xl rounded-3xl border border-card-border bg-card/40 backdrop-blur-sm px-8 py-14 text-center shadow-xl">
@@ -119,13 +142,32 @@ const fetchOptions: { page: number; limit: number; ownerId?: string; sort: strin
             <h2 className="text-3xl font-serif tracking-tight mb-4 italic">No shop found under your care</h2>
             <p className="max-w-xl mx-auto text-sm text-text-sub leading-7 mb-8 opacity-70">
               Please initialize your shop profile to begin receiving guests and managing your signature treatments.
+          <div className="mx-auto max-w-2xl rounded-3xl border border-card-border bg-card/80 px-8 py-14 text-center shadow-[0_30px_80px_rgba(0,0,0,0.08)]">
+            <p className="text-[10px] uppercase tracking-[0.4em] text-accent mb-4 font-bold">
+              No Shop Yet
+            </p>
+            <h2 className="text-3xl md:text-4xl font-serif tracking-tight mb-4">
+              Please create a shop first
+            </h2>
+            <p className="max-w-xl mx-auto text-sm text-text-sub leading-7 mb-8">
+              You are signed in as a shopowner, but there is no shop linked to
+              your account yet. Create one to start managing reservations,
+              opening hours, and shop information.
+            </p>
+          </div>
+        ) : hasFilters && pageData.length === 0 ? (
+          <div className="text-center py-24 space-y-4">
+            <p className="text-[10px] uppercase tracking-[0.4em] text-accent/60">
+              No Results
+            </p>
+            <p className="text-text-sub text-sm">
+              No shops match your current filters.
             </p>
           </div>
         ) : (
-          <ShopPanel shopJson={shops} currentPage={currentPage} />
+          <ShopPanel shopJson={shopJson} currentPage={currentPage} />
         )}
       </div>
-      
     </main>
   );
 }

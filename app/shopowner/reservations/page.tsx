@@ -28,7 +28,8 @@ export default function ShopOwnerReservationsPage() {
   const [currentTab, setCurrentTab] = useState<"upcoming" | "past" | "all">("upcoming");
 
   const parsedPage = Number(searchParams.get("page") ?? "1");
-  const currentPage = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+  const currentPage =
+    Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
 
   // 2. Fetch Function ที่ส่ง Status ไปที่ Backend
   const fetchReservations = useCallback(async (page: number, tab: string) => {
@@ -72,7 +73,7 @@ export default function ShopOwnerReservationsPage() {
       const nextPage = reservations && reservations.data.length === 1 && currentPage > 1
           ? currentPage - 1
           : currentPage;
-      
+
       if (nextPage !== currentPage) {
         const params = new URLSearchParams(searchParams.toString());
         nextPage === 1 ? params.delete("page") : params.set("page", String(nextPage));
@@ -108,8 +109,14 @@ export default function ShopOwnerReservationsPage() {
     return <NoReservationShopOwner/>;
   }
 
+  const now = Date.now();
+  const activeReservationCount = reservations.data.filter(
+    (item) => new Date(item.appDate).getTime() >= now
+  ).length;
+  const passedReservationCount = reservations.data.length - activeReservationCount;
+
   return (
-    <div className="min-h-screen bg-background text-text-main pb-32 px-8 pt-8 selection:bg-accent/30">
+    <div className="min-h-screen bg-background text-text-main pb-32 px-4 sm:px-8 pt-8 selection:bg-accent/30">
       {/* Navigation Header */}
       <div className="max-w-6xl mx-auto mb-16">
         <Link

@@ -4,7 +4,7 @@ export default function TermsContent() {
     <div className="space-y-6 text-[var(--text-sub)] text-sm md:text-base leading-relaxed">
       {/* Header */}
       <h2 className="text-3xl font-bold text-[var(--text-main)] border-b border-[var(--card-border)] pb-4">
-        Terms of Service
+        Terms of Service & Privacy Policy
       </h2>
       <p className="italic text-[var(--gold)]">Last Updated: April 2026</p>
 

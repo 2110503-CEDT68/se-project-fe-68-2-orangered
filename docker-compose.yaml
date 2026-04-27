@@ -1,7 +1,19 @@
 services:
+  backend:
+    build:
+      context: ./se-project-be-68-2-orangered
+    container_name: orangered_backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./se-project-be-68-2-orangered/config/config.env
+    networks:
+      - app_network
+    restart: unless-stopped
+
   frontend:
-    build: 
-      context: .
+    build:
+      context: ./se-project-fe-68-2-orangered
       args:
         BACKEND_URL: http://backend:5000
         NEXT_PUBLIC_BACKEND_URL: http://localhost:5000
@@ -9,10 +21,12 @@ services:
     ports:
       - "3000:3000"
     env_file:
-      - .env.local
+      - ./se-project-fe-68-2-orangered/.env.local
     environment:
       - NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
       - BACKEND_URL=http://backend:5000
+    depends_on:
+      - backend
     networks:
       - app_network
     restart: unless-stopped

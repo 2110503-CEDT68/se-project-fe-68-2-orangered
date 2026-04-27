@@ -1,12 +1,11 @@
-'use client'
+"use client";
 
-import CreateShopForm from "@/component/FormComponent/CreateShopForm"
+import CreateShopForm from "@/component/FormComponent/CreateShopForm";
 
-export default function CreateShopPage(){
-
-  return(
+export default function CreateShopPage() {
+  return (
     <div>
-      <CreateShopForm/>
+      <CreateShopForm />
     </div>
-  )
+  );
 }

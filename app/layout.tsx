@@ -29,10 +29,12 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const nextAuthSession = await getServerSession(authOptions);
-  
+
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
+      >
         <NextAuthProvider session={nextAuthSession}>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <TopMenu />

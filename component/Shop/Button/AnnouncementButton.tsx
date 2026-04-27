@@ -9,7 +9,7 @@ export default function AnnouncementButton({ shopId, canManage }: { shopId: stri
   if (!canManage && session?.user?.role !== "admin") return null;
 
   return(
-    <div className="fixed bottom-20 left-10 flex flex-col gap-4 z-40">
+    <div className="fixed bottom-25 left-10 flex flex-col gap-4 z-40">
       <button
         onClick={() => router.push(`/announcements`)}
         className="group flex flex-col items-start gap-1"

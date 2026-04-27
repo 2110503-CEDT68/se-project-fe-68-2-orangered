@@ -75,26 +75,22 @@ export default function ProfilePage() {
     setInfoSuccess(null);
 
     try {
-      const res = await fetch(
-        `${getBackendBaseUrl()}/api/v1/auth/avatar`,
-        {
-          method: "PUT",
-          headers: {
-            authorization: `Bearer ${session.user.token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ profilePictureUrl: urlInput.trim() }),
+      const res = await fetch(`${getBackendBaseUrl()}/api/v1/auth/avatar`, {
+        method: "PUT",
+        headers: {
+          authorization: `Bearer ${session.user.token}`,
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({ profilePictureUrl: urlInput.trim() }),
+      });
       const data = await res.json();
       if (data.success) {
         setProfilePicture(data.profilePicture);
         await update({ profilePicture: data.profilePicture });
         setShowUrlInput(false);
         setUrlInput("");
-        
-        setInfoSuccess("Identity Updated Successfully"); 
-        
+
+        setInfoSuccess("Identity Updated Successfully");
       } else {
         setError(data.message ?? "Failed to save");
       }
@@ -149,17 +145,14 @@ export default function ProfilePage() {
     setInfoSuccess(null);
 
     try {
-      const res = await fetch(
-        `${getBackendBaseUrl()}/api/v1/auth/me`,
-        {
-          method: "PUT",
-          headers: {
-            authorization: `Bearer ${session.user.token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
+      const res = await fetch(`${getBackendBaseUrl()}/api/v1/auth/me`, {
+        method: "PUT",
+        headers: {
+          authorization: `Bearer ${session.user.token}`,
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify(payload),
+      });
 
       const data = await res.json();
 
@@ -246,7 +239,7 @@ export default function ProfilePage() {
       .slice(0, 2) ?? "?";
 
   return (
-    <main className="min-h-screen bg-background text-foreground pb-24 px-8 pt-6 animate-in fade-in duration-700 transition-colors duration-500">
+    <main className="min-h-screen bg-background text-foreground pb-24 px-4 sm:px-8 pt-6 animate-in fade-in duration-700 transition-colors duration-500">
       <div className="max-w-7xl mx-auto mb-10">
         <Link
           href="/"
@@ -276,14 +269,14 @@ export default function ProfilePage() {
           <button
             type="button"
             onClick={handleOpenInfoEditor}
-            className="absolute right-6 top-10 flex h-10 w-10 items-center justify-center rounded-full border border-gold/20 bg-background/60 text-gold shadow-lg backdrop-blur-md transition-all duration-500 hover:border-gold hover:bg-gold hover:text-background z-10"
+            className="absolute right-4 sm:right-6 top-4 sm:top-10 flex h-10 w-10 items-center justify-center rounded-full border border-gold/20 bg-background/60 text-gold shadow-lg backdrop-blur-md transition-all duration-500 hover:border-gold hover:bg-gold hover:text-background z-10"
             aria-label="Edit profile details"
           >
             <BsPencil className="h-4 w-4" />
           </button>
 
           <div
-            className="p-12 space-y-12"
+            className="p-6 sm:p-12 space-y-12"
             ref={infoEditorRef}
             onBlur={handleInfoBlur}
           >
@@ -421,23 +414,23 @@ export default function ProfilePage() {
             </div>
 
             {isEditingInfo && (
-  <div className="flex justify-center gap-4 mt-8 animate-in fade-in slide-in-from-top-2 duration-300">
-    <button
-      onClick={handleSaveInfo}
-      disabled={infoSaving}
-      className="px-8 py-2 bg-gold/10 border border-gold/30 text-gold text-[10px] uppercase tracking-[0.3em] hover:bg-gold hover:text-background transition-all duration-500 rounded-full disabled:opacity-50"
-    >
-      {infoSaving ? "Saving..." : "Confirm Changes"}
-    </button>
-    
-    <button
-      onClick={handleCancelInlineEdit}
-      className="px-8 py-2 border border-card-border text-text-sub text-[10px] uppercase tracking-[0.3em] hover:text-text-main transition-all duration-500 rounded-full"
-    >
-      Cancel
-    </button>
-  </div>
-)}
+              <div className="flex justify-center gap-4 mt-8 animate-in fade-in slide-in-from-top-2 duration-300">
+                <button
+                  onClick={handleSaveInfo}
+                  disabled={infoSaving}
+                  className="px-8 py-2 bg-gold/10 border border-gold/30 text-gold text-[10px] uppercase tracking-[0.3em] hover:bg-gold hover:text-background transition-all duration-500 rounded-full disabled:opacity-50"
+                >
+                  {infoSaving ? "Saving..." : "Confirm Changes"}
+                </button>
+
+                <button
+                  onClick={handleCancelInlineEdit}
+                  className="px-8 py-2 border border-card-border text-text-sub text-[10px] uppercase tracking-[0.3em] hover:text-text-main transition-all duration-500 rounded-full"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
 
             {(infoSuccess || infoError || infoSaving) && (
               <div className="pt-4 animate-in fade-in slide-in-from-bottom-2">

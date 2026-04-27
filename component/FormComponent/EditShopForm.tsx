@@ -200,7 +200,7 @@ const [massageTypes, setMassageTypes] = useState<ShopData["massageType"]>(
       <div className="flex-1 flex flex-col overflow-y-auto bg-background transition-colors duration-500">
         
         {/* Header Section */}
-        <div className="px-10 pt-16 pb-10 border-b border-card-border bg-card/30 backdrop-blur-sm">
+        <div className="px-4 sm:px-10 pt-8 sm:pt-16 pb-6 sm:pb-10 border-b border-card-border bg-card/30 backdrop-blur-sm">
           <div className="flex items-center gap-3 mb-3">
             <div className="h-[1px] w-8 bg-gold" />
             <p className="text-[10px] tracking-[0.5em] text-gold uppercase font-bold italic">Registry Editor</p>
@@ -211,7 +211,7 @@ const [massageTypes, setMassageTypes] = useState<ShopData["massageType"]>(
           <p className="text-text-sub/60 text-[10px] tracking-[0.2em] mt-4 uppercase">Ref ID: {shop._id}</p>
         </div>
 
-        <div className="px-10 py-12 space-y-20 flex-1 max-w-4xl">
+        <div className="px-4 sm:px-10 py-6 sm:py-12 space-y-20 flex-1 max-w-4xl">
           <MobileImageDrop
             imageURL={imageURL}
             onImageURLChange={setImageURL}
@@ -245,7 +245,7 @@ const [massageTypes, setMassageTypes] = useState<ShopData["massageType"]>(
                <SectionLabel><span className="text-text-main opacity-90">Availability</span></SectionLabel>
                <div className="h-px flex-1 bg-gradient-to-r from-card-border to-transparent" />
             </div>
-            <div className="grid grid-cols-2 gap-10 text-text-main">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10 text-text-main">
               <Field label="Opening Time *" value={open} onChange={setOpen} type="time" />
               <Field label="Closing Time *" value={close} onChange={setClose} type="time" />
             </div>
@@ -259,7 +259,7 @@ const [massageTypes, setMassageTypes] = useState<ShopData["massageType"]>(
             </div>
             <div className="space-y-8 text-text-main">
               <Field label="Street Address *" value={street} onChange={setStreet} placeholder="Street, Building, Floor" />
-              <div className="grid grid-cols-2 gap-10">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10">
                 <Field label="District" value={district} onChange={setDistrict} placeholder="District" />
                 <Field label="Province" value={province} onChange={setProvince} placeholder="Bangkok" />
               </div>
@@ -306,7 +306,7 @@ const [massageTypes, setMassageTypes] = useState<ShopData["massageType"]>(
         </div>
 
         {/* ── Footer ── */}
-        <div className="sticky bottom-0 px-10 py-8 bg-background/80 backdrop-blur-xl border-t border-card-border">
+        <div className="sticky bottom-0 px-4 sm:px-10 py-4 sm:py-8 bg-background/80 backdrop-blur-xl border-t border-card-border">
           {busy && (
             <div className="flex items-center gap-6 mb-8">
               <Step active={submitStep === "saving"} done={submitStep === "uploading"} label="Authorization" />

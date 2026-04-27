@@ -73,17 +73,17 @@ export default function PaginationLinkNav({
           max={totalPages}
           value={pageInput}
           onChange={(event) => setPageInput(event.target.value)}
-          onBlur={commitPageInput}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              commitPageInput();
-            }
-          }}
           disabled={isLoading}
           className="w-20 rounded-xl border border-card-border bg-background px-3 py-2 text-center text-text-main outline-none transition focus:border-accent disabled:cursor-not-allowed disabled:text-text-sub/40"
         />
         <span>of {totalPages}</span>
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="rounded-xl border border-accent/40 px-4 py-2 text-accent transition hover:bg-accent hover:text-background disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Go
+        </button>
       </form>
       <button
         type="button"

@@ -118,7 +118,7 @@ export default function EditReservationModal({
       PaperProps={{ sx: { bgcolor: "transparent", boxShadow: "none" } }}
       transitionDuration={500}
     >
-      <div className="relative bg-background border border-accent/20 rounded-[2rem] w-[400px] overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+      <div className="relative bg-background border border-accent/20 rounded-[2rem] w-full max-w-[400px] overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
         
         {/* Header: Midnight accent Gradient */}
         <div className="h-28 bg-gradient-to-br from-accent/10 via-transparent to-transparent flex items-end p-8 border-b border-card-border/50">

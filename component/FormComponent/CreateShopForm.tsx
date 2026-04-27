@@ -163,7 +163,7 @@ export default function CreateShopForm() {
           </h1>
         </div>
 
-        <div className="px-10 py-12 space-y-16 flex-1 max-w-3xl">
+        <div className="px-4 sm:px-10 py-6 sm:py-12 space-y-16 flex-1 max-w-3xl">
           <MobileImageDrop
             imageURL={imageURL}
             onImageURLChange={setImageURL}
@@ -184,7 +184,7 @@ export default function CreateShopForm() {
           {/* Hours */}
           <section>
             <SectionLabel>Operating Hours</SectionLabel>
-            <div className="grid grid-cols-2 gap-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10">
               <Field label="Opens *" value={open} onChange={setOpen} type="time" />
               <Field label="Closes *" value={close} onChange={setClose} type="time" />
             </div>
@@ -195,7 +195,7 @@ export default function CreateShopForm() {
             <SectionLabel>Location</SectionLabel>
             <div className="space-y-8">
               <Field label="Street & No. *" value={street} onChange={setStreet} placeholder="123 Serenity Blvd" />
-              <div className="grid grid-cols-2 gap-10">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10">
                 <Field label="District" value={district} onChange={setDistrict} placeholder="Pathum Wan" />
                 <Field label="Province" value={province} onChange={setProvince} placeholder="Bangkok" />
               </div>
@@ -238,7 +238,7 @@ export default function CreateShopForm() {
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 px-10 py-6 bg-background/80 backdrop-blur-md border-t border-card-border/50">
+        <div className="sticky bottom-0 px-4 sm:px-10 py-4 sm:py-6 bg-background/80 backdrop-blur-md border-t border-card-border/50">
           {busy && (
             <div className="flex items-center gap-4 mb-4">
               <Step active={submitStep === "creating"} done={submitStep === "uploading"} label="Protocol: Creation" />
