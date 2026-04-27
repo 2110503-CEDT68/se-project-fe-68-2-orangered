@@ -1,12 +1,13 @@
 import { getBackendBaseUrl } from "@/libs/api/baseUrl";
 
 export default async function createReservations(
-  token:string, 
-  name:string, 
-  time:string, 
-  sid:string, 
+  token: string, 
+  name: string, 
+  time: string, 
+  sid: string, 
   massageType: string, 
-  massagePrice: Number){
+  massagePrice: number 
+) {
   const res = await fetch(`${getBackendBaseUrl()}/api/v1/shops/${sid}/reservations/`, {
     method: "POST",
     headers: {
@@ -17,15 +18,15 @@ export default async function createReservations(
       appDate: time,
       user: name,
       massageType: massageType,
-            massagePrice: massagePrice
+      massagePrice: massagePrice 
     })
-  })
+  });
 
-  if(!res.ok){
-    const data = await res.json().catch(() => ({}));
-    throw Error(data.message || "Failed to create reservation");
+  const result = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    throw new Error(result.message || "Failed to create reservation");
   }
 
-  const result = await res.json();
   return result;
 }

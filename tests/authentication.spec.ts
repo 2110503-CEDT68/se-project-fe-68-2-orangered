@@ -89,7 +89,7 @@ test("TC3-4: customer can edit their profile", async ({ page }) => {
 });
 
 // ─── US3-4: Admin deactivate user ─────────────────────────────────────────
-test("TC3-4: Admin deactivate user", async ({ page }) => {
+test("TC3-5: Admin deactivate user", async ({ page }) => {
   await login(page, ADMIN.email, ADMIN.password);
   await page.waitForLoadState("networkidle");
   await page.goto(`${BASE_URL}/admin/user`);
@@ -103,7 +103,7 @@ test("TC3-4: Admin deactivate user", async ({ page }) => {
   await expect(page.getByText(/User updated/)).toBeVisible();
 });
 
-test("TC3-5: Deactivated user is not able to log in", async ({ page }) => {
+test("TC3-6: Deactivated user is not able to log in", async ({ page }) => {
   await page.goto(`${BASE_URL}/signin`);
   await page.getByTestId("email-input").fill(INACTIVE_USER.email);
   await page.getByTestId("password-input").fill(INACTIVE_USER.password);
@@ -114,7 +114,7 @@ test("TC3-5: Deactivated user is not able to log in", async ({ page }) => {
 const TEST_AVATAR_URL =
   "https://i.pinimg.com/736x/93/aa/77/93aa772323aaa7e25093d29e02d82a3e.jpg";
 
-test("TC3-6: User adds profile picture via URL", async ({ page }) => {
+test("TC3-7: User adds profile picture via URL", async ({ page }) => {
   await login(page, CUSTOMER.email, CUSTOMER.password);
   await page.waitForLoadState("networkidle");
   await page.goto(`${BASE_URL}/profile`);
@@ -142,7 +142,7 @@ test("TC3-6: User adds profile picture via URL", async ({ page }) => {
 });
 
 // ─── US3-6: User agree to terms of sevices before registration ─────────────────────────────────────────
-test("TC3-6: User agree to terms of sevices before registration", async ({
+test("TC3-8: User agree to terms of sevices before registration", async ({
   page,
 }) => {
   await page.goto(`${BASE_URL}/register`);
@@ -165,7 +165,7 @@ test("TC3-6: User agree to terms of sevices before registration", async ({
   await expect(page.getByTestId("user-role")).toHaveText("user");
 });
 
-test("TC3-7: Show aleart if user doesn't agree to terms of sevices before registration", async ({
+test("TC3-9: Show alert if user doesn't agree to terms of sevices before registration", async ({
   page,
 }) => {
   await page.goto(`${BASE_URL}/register`);
@@ -183,7 +183,7 @@ test("TC3-7: Show aleart if user doesn't agree to terms of sevices before regist
 
 
 // ─── US3-7: User can register as a shop owner ─────────────────────────────────────────
-test("US3-8: User can register as a shop owner", async ({ page }) => {
+test("TC3-10: User can register as a shop owner", async ({ page }) => {
   await page.goto(`${BASE_URL}/register`);
   await page.getByLabel(/Full Name/i).fill("Shop Owner Test");
   await page.getByLabel(/Email Address/i).fill(`shop_${Date.now()}@test.com`);

@@ -80,16 +80,33 @@ export default function ReservationCard({
             </div>
 
             <div className="space-y-2">
-              <p className="text-[9px] uppercase tracking-[0.4em] text-accent/60 font-bold">Treatment</p>
-              <div className="flex flex-col gap-1">
-                <p className="text-[11px] font-medium text-text-main uppercase tracking-widest leading-none">
-                  {item.massageType || "Signature Session"}
-                </p>
-                <p className="text-[10px] font-mono text-accent opacity-80">
-                  {item.massagePrice ? `฿${item.massagePrice}` : "—"}
-                </p>
-              </div>
-            </div>
+  <p className="text-[9px] uppercase tracking-[0.4em] text-accent/60 font-bold">Treatment</p>
+  <div className="flex flex-col gap-1">
+    <div className="flex items-center gap-2">
+      <p className="text-[11px] font-medium text-text-main uppercase tracking-widest leading-none">
+        {item.massageType || "Signature Session"}
+      </p>
+      
+      {item.promotion?.title && (
+        <span className="text-[7px] px-2 py-0.5 border border-accent/30 text-accent rounded-full italic font-bold animate-pulse">
+          ✦ {item.promotion.title}
+        </span>
+      )}
+    </div>
+
+    <div className="flex items-center gap-2">
+  <p className="text-[10px] font-mono text-accent opacity-80">
+    {item.massagePrice ? `฿${item.massagePrice}` : "—"}
+  </p>
+  
+  {(item.promotion?.discountPrice ?? 0) > 0 && (
+    <p className="text-[8px] font-mono text-text-sub/40 line-through">
+      ฿{item.massagePrice + (item.promotion?.discountPrice || 0)}
+    </p>
+  )}
+</div>
+  </div>
+</div>
 
             <div className="space-y-2">
               <p className="text-[9px] uppercase tracking-[0.4em] text-text-sub font-bold">Scheduled Arrival</p>

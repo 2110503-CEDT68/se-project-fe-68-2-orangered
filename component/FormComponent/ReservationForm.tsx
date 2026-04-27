@@ -34,24 +34,18 @@ export default function ReservationForm({ shop }: { shop: ShopItem }) {
     return baseDate.hour(hours).minute(minutes).second(0).millisecond(0);
   };
 
-  const pickerStyle = {
-    "& .MuiPaper-root": { bgcolor: "#0f172a", color: "#f8fafc", border: "1px solid rgba(255,255,255,0.1)" },
-    "& .MuiPickersDay-root": { color: "#bbcadf", fontSize: "0.75rem" },
-    "& .MuiPickersDay-root.Mui-selected": { backgroundColor: "accent !important" },
-    "& .MuiClock-pin, & .MuiClockPointer-root": { backgroundColor: "accent" },
-    "& .MuiClockPointer-thumb": { borderColor: "accent" },
-    "& .MuiMultiSectionDigitalClockSection-item.Mui-selected": {
-      backgroundColor: "accent !important",
-      color: "#fff",
-    },
-  };
-
   const fieldStyle = {
-    backgroundColor: "rgba(237, 237, 237, 0.4)",
+    // ใช้สีพื้นหลังจาก Theme (จะเปลี่ยนเป็นขาวใน Light / ดำใน Dark อัตโนมัติ)
+    bgcolor: "background.paper",
     borderRadius: "1rem",
-    color: "#f8fafc",
-    "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255, 255, 255, 0.1)" },
-    "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "accent" },
+    // ใช้สีข้อความจาก Theme
+    color: "text.primary",
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "divider", // สีเส้นขอบที่ปรับตามโหมดอัตโนมัติ
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "accent",
+    },
     "& .MuiInputBase-input": {
       fontSize: "0.7rem",
       textTransform: "uppercase",
@@ -61,6 +55,25 @@ export default function ReservationForm({ shop }: { shop: ShopItem }) {
     "& .MuiSvgIcon-root": { color: "accent" },
   };
 
+  const pickerStyle = {
+    "& .MuiPaper-root": {
+      bgcolor: "background.paper",
+      color: "text.primary",
+      border: "1px solid",
+      borderColor: "divider",
+      "& .MuiPickersDay-root": { color: "#f7faff", fontSize: "0.75rem" },
+      "& .MuiPickersDay-root.Mui-selected": {
+        backgroundColor: "accent !important",
+      },
+      "& .MuiClock-pin, & .MuiClockPointer-root": { backgroundColor: "accent" },
+      "& .MuiClockPointer-thumb": { borderColor: "accent" },
+      "& .MuiMultiSectionDigitalClockSection-item.Mui-selected": {
+        backgroundColor: "accent !important",
+        color: "#fff",
+      },
+    },
+  };
+
   async function handleCreateReservation() {
     setValidationError("");
     if (!massageType || !date || !time) {
@@ -68,9 +81,18 @@ export default function ReservationForm({ shop }: { shop: ShopItem }) {
       return;
     }
     if (!session) return;
-    
-    const selectedTreatment = shop.massageType.find((t) => t.name === massageType);
-    const price = selectedTreatment?.price;
+
+    // 1. ค้นหา Service ที่เลือก
+    const selectedTreatment = shop.massageType.find(
+      (t) => t.name === massageType,
+    );
+    if (!selectedTreatment) return;
+
+    // 2. คำนวณราคาที่หักส่วนลด (ถ้ามีโปรโมชั่นที่ isActive)
+    const activePromo = selectedTreatment.promotions?.find((p) => p.isActive);
+    const finalPrice = activePromo
+      ? selectedTreatment.price - activePromo.discountPrice
+      : selectedTreatment.price;
 
     const openTime = date
       .hour(dayjs(shop.openClose.open, "HH:mm").hour())
@@ -81,9 +103,14 @@ export default function ReservationForm({ shop }: { shop: ShopItem }) {
       .minute(dayjs(shop.openClose.close, "HH:mm").minute());
 
     const selectedDateTime = date.hour(time.hour()).minute(time.minute());
-    
-    if (selectedDateTime.isBefore(openTime) || selectedDateTime.isAfter(closeTime)) {
-      setValidationError(`Operational hours: ${shop.openClose.open} - ${shop.openClose.close}`);
+
+    if (
+      selectedDateTime.isBefore(openTime) ||
+      selectedDateTime.isAfter(closeTime)
+    ) {
+      setValidationError(
+        `Operational hours: ${shop.openClose.open} - ${shop.openClose.close}`,
+      );
       return;
     }
 
@@ -94,23 +121,32 @@ export default function ReservationForm({ shop }: { shop: ShopItem }) {
         selectedDateTime.toISOString(),
         shop._id,
         massageType,
-        price!,
+        finalPrice,
       );
       setIsModalOpen(true);
     } catch (err: any) {
-      setValidationError(err.message || "A disturbance in the connection. Please try again.");
+      setValidationError(
+        err.message || "A disturbance in the connection. Please try again.",
+      );
     }
   }
 
   return (
     <>
-      <FormComponent handleSubmit={(e) => { e.preventDefault(); handleCreateReservation(); }}>
+      <FormComponent
+        handleSubmit={(e) => {
+          e.preventDefault();
+          handleCreateReservation();
+        }}
+      >
         <div className="flex flex-col gap-8 w-full">
           {/* Service Selection */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <span className="h-px w-4 bg-accent/40" />
-              <p className="text-[9px] uppercase tracking-[0.4em] text-accent font-bold">Select Service</p>
+              <p className="text-[9px] uppercase tracking-[0.4em] text-accent font-bold">
+                Select Service
+              </p>
             </div>
             <FormControl fullWidth size="small">
               <Select
@@ -118,19 +154,65 @@ export default function ReservationForm({ shop }: { shop: ShopItem }) {
                 onChange={(e) => handleTreatmentChange(e.target.value)}
                 displayEmpty
                 sx={fieldStyle}
-                MenuProps={{ PaperProps: { sx: { bgcolor: "#0f172a", backgroundImage: "none", border: "1px solid rgba(255,255,255,0.1)" } } }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      bgcolor: "#0f172a",
+                      backgroundImage: "none",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                    },
+                  },
+                }}
               >
                 <MenuItem value="" disabled>
-                  <span className="text-text-sub text-[10px] uppercase tracking-widest opacity-50">Select your treatment</span>
+                  <span className="text-text-sub text-[10px] uppercase tracking-widest opacity-50">
+                    Select your treatment
+                  </span>
                 </MenuItem>
-                {shop.massageType.map((type) => (
-                  <MenuItem key={type._id} value={type.name} sx={{ py: 1.5, "&:hover": { bgcolor: "rgba(197, 163, 87, 0.1)" } }}>
-                    <div className="flex justify-between w-full text-[10px] uppercase tracking-[0.15em] font-medium">
-                      <span className="text-text-main">{type.name}</span>
-                      <span className="text-accent">฿{type.price}</span>
-                    </div>
-                  </MenuItem>
-                ))}
+                {shop.massageType
+                  .filter((type) => type.isActive)
+                  .map((type) => {
+                    const activePromo = type.promotions?.find(
+                      (p) => p.isActive,
+                    );
+                    const hasDiscount =
+                      activePromo && activePromo.discountPrice > 0;
+                    const currentPrice = hasDiscount
+                      ? type.price - activePromo.discountPrice
+                      : type.price;
+
+                    return (
+                      <MenuItem
+                        key={type._id}
+                        value={type.name}
+                        sx={{
+                          py: 1.5,
+                          "&:hover": { bgcolor: "rgba(197, 163, 87, 0.1)" },
+                        }}
+                      >
+                        <div className="flex justify-between w-full text-[10px] uppercase tracking-[0.15em] font-medium items-center">
+                          <div className="flex flex-col">
+                            <span className="text-text-main">{type.name}</span>
+                            {hasDiscount && (
+                              <span className="text-[8px] text-accent font-bold italic tracking-tight">
+                                ✦ {activePromo.title}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex flex-col items-end">
+                            {hasDiscount && (
+                              <span className="text-[8px] text-red-500/50 line-through mb-0.5">
+                                ฿{type.price}
+                              </span>
+                            )}
+                            <span className="text-accent font-bold">
+                              ฿{currentPrice}
+                            </span>
+                          </div>
+                        </div>
+                      </MenuItem>
+                    );
+                  })}
               </Select>
             </FormControl>
           </div>
@@ -139,26 +221,42 @@ export default function ReservationForm({ shop }: { shop: ShopItem }) {
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <span className="h-px w-4 bg-accent/40" />
-              <p className="text-[9px] uppercase tracking-[0.4em] text-accent font-bold">Inscribe Time</p>
+              <p className="text-[9px] uppercase tracking-[0.4em] text-accent font-bold">
+                Inscribe Time
+              </p>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
                   value={date}
                   disablePast
-                  onChange={(newValue) => { setDate(newValue); setValidationError(""); }}
+                  onChange={(newValue) => {
+                    setDate(newValue);
+                    setValidationError("");
+                  }}
                   slotProps={{
-                    textField: { size: "small", sx: fieldStyle, placeholder: "DATE" },
-                    popper: { sx: pickerStyle }
+                    textField: {
+                      size: "small",
+                      sx: fieldStyle,
+                      placeholder: "DATE",
+                    },
+                    popper: { sx: pickerStyle },
                   }}
                 />
                 <TimePicker
                   value={time}
                   ampm={false}
-                  onChange={(newValue) => { setTime(newValue); setValidationError(""); }}
+                  onChange={(newValue) => {
+                    setTime(newValue);
+                    setValidationError("");
+                  }}
                   slotProps={{
-                    textField: { size: "small", sx: fieldStyle, placeholder: "TIME" },
-                    popper: { sx: pickerStyle }
+                    textField: {
+                      size: "small",
+                      sx: fieldStyle,
+                      placeholder: "TIME",
+                    },
+                    popper: { sx: pickerStyle },
                   }}
                 />
               </LocalizationProvider>
@@ -175,7 +273,7 @@ export default function ReservationForm({ shop }: { shop: ShopItem }) {
               </div>
             )}
             <div className="group relative">
-               <SubmitButton />
+              <SubmitButton />
             </div>
           </div>
         </div>

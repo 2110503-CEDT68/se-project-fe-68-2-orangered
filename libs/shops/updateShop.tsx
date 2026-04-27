@@ -5,6 +5,9 @@ export interface MassageType {
   description?: string;
   price: number;
   picture?: string;
+  isPackage?: boolean;
+  isActive?: boolean;
+  promotions?: any[];
 }
 
 export default async function updateShop(
@@ -44,7 +47,7 @@ export default async function updateShop(
   );
 
   if (!response.ok) {
-    throw new Error("Failed to create shop");
+    throw new Error("Failed to update shop");
   }
 
   return response.json();

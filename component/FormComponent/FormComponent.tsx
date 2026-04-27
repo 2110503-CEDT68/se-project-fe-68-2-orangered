@@ -8,7 +8,7 @@ export default function FormComponent({
   classname?: string;
 }) {
   const defaultStyle = `
-    bg-card/30 
+    bg-card/10
     backdrop-blur-md 
     flex flex-col 
     items-center 
