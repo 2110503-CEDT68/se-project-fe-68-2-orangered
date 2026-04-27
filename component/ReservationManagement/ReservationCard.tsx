@@ -47,14 +47,14 @@ export default function ReservationCard({
 
   return (
     <>
-      <div className={`group relative border rounded-[1.5rem] p-8 transition-all duration-500 ${isPastReservation ? "bg-card/10 border-amber-500/15 hover:border-amber-500/30" : "bg-card/20 border-card-border hover:bg-card/30 hover:border-accent/20"}`}>
+      <div className={`group relative border rounded-[1.5rem] p-4 sm:p-8 transition-all duration-500 ${isPastReservation ? "bg-card/10 border-amber-500/15 hover:border-amber-500/30" : "bg-card/20 border-card-border hover:bg-card/30 hover:border-accent/20"}`}>
         
         {/* Background Decorative Index */}
         <div className="absolute top-0 right-0 p-6 opacity-[0.03] select-none pointer-events-none">
           <span className="text-8xl font-serif italic text-accent">{(index + 1).toString().padStart(2, "0")}</span>
         </div>
 
-        <div className="relative z-10 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-12 items-center">
+        <div className="relative z-10 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6 sm:gap-12 items-center">
           
           {/* Main Info Section */}
           <div className={`grid grid-cols-1 ${isRoleUser ? 'lg:grid-cols-4' : 'lg:grid-cols-5'} gap-10`}>

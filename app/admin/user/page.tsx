@@ -117,7 +117,7 @@ export default function AdminUserPage() {
   }
 
   return (
-    <main className="m-10 space-y-6">
+    <main className="m-4 sm:m-10 space-y-6">
       <div className="space-y-2">
         <h1 className="text-3xl font-serif text-text-main">User Management</h1>
         <p className="text-sm uppercase tracking-[0.2em] text-text-sub">

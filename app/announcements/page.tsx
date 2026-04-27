@@ -168,7 +168,7 @@ export default function AnnouncementPage() {
             <div className="relative overflow-hidden border-b border-card-border">
                 <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-gold/5 pointer-events-none" />
                 <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
-                <div className="max-w-4xl mx-auto px-6 md:px-12 py-16">
+                <div className="max-w-4xl mx-auto px-4 md:px-12 py-10 md:py-16">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="w-8 h-8 rounded-lg bg-accent/20 border border-accent/30 flex items-center justify-center text-base">
                             📢
@@ -192,7 +192,7 @@ export default function AnnouncementPage() {
                 </div>
             </div>
 
-            <div className="max-w-4xl mx-auto px-6 md:px-12 py-12">
+            <div className="max-w-4xl mx-auto px-4 md:px-12 py-8 md:py-12">
 
                 {/* Create / Edit Form */}
                 {isAuthorized && (
@@ -204,7 +204,7 @@ export default function AnnouncementPage() {
                             {/* Top accent bar */}
                             <div className={`h-[3px] w-full bg-gradient-to-r ${editingId ? 'from-gold/60 via-gold/30 to-transparent' : 'from-accent/60 via-accent/30 to-transparent'}`} />
 
-                            <div className="p-8">
+                            <div className="p-4 sm:p-8">
                                 {/* Form header */}
                                 <div className="flex items-center gap-3 mb-8">
                                     <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm ${editingId ? 'bg-gold/15 border border-gold/30' : 'bg-accent/15 border border-accent/30'}`}>
@@ -450,7 +450,7 @@ export default function AnnouncementPage() {
                                         </div>
                                     )}
 
-                                    <div className="relative p-8">
+                                    <div className="relative p-4 sm:p-8">
                                         {/* Header row */}
                                         <div className="flex justify-between items-start gap-4 mb-4">
                                             <div className="flex-1 min-w-0">
