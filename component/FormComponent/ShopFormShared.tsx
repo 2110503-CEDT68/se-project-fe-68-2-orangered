@@ -4,8 +4,6 @@ import Image from "next/image";
 import { useRef, useCallback, useState } from "react";
 import { MassageType } from "@/libs/shops/createShop";
 
-
-
 export interface Promotion {
   title: string;
   description?: string;
@@ -93,7 +91,12 @@ export function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 // --- MassageCard (Updated with Promotion & Package Logic) ---
-export const emptyMassage = (): MassageType & { _id: string; isPackage: boolean; isActive: boolean; promotions: Promotion[] } => ({
+export const emptyMassage = (): MassageType & {
+  _id: string;
+  isPackage: boolean;
+  isActive: boolean;
+  promotions: Promotion[];
+} => ({
   _id: crypto.randomUUID(),
   name: "",
   description: "",
@@ -112,26 +115,53 @@ export function MassageCard({
   canRemove,
 }: {
   index: number;
-  item: MassageType & { _id: string; isPackage: boolean; isActive: boolean; promotions: Promotion[] };
+  item: any; // ตาม Type เดิมของคุณ
   onChange: (id: string, field: string, value: any) => void;
   onRemove: (id: string) => void;
   canRemove: boolean;
 }) {
-  const [showPromo, setShowPromo] = useState(item.promotions.length > 0);
-
+  const [localError, setLocalError] = useState("");
   const hasPromotion = item.promotions.length > 0;
+
+  const validate = (field: string, value: any) => {
+    const promo = item.promotions[0];
+    const checkPromo = { ...promo, [field]: value };
+    let error = "";
+
+    if (field === "discountPrice" && Number(value) >= item.price) {
+      error = "Discount price must be lower than the full price.";
+    } 
+    else if (new Date(checkPromo.startDate) > new Date(checkPromo.endDate)) {
+      error = "Start date cannot be later than the end date.";
+    }
+    else if (field === "title" && value.length > 50) {
+      error = "Title is too long (max 50 chars).";
+    }
+    else if (item.price <= 0 && hasPromotion) {
+      error = "Please set a valid service price before adding a promotion.";
+    }
+
+    setLocalError(error);
+    
+    updatePromoField(field as any, value);
+  };
 
   const togglePromo = () => {
     if (hasPromotion) {
       onChange(item._id, "promotions", []);
     } else {
-      onChange(item._id, "promotions", [{
-        title: "Flash Sale",
-        discountPrice: item.price > 0 ? Math.floor(item.price * 0.9) : 0,
-        startDate: new Date().toISOString().split('T')[0],
-        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        isActive: true
-      }]);
+      onChange(item._id, "promotions", [
+        {
+          title: "Flash Sale",
+          description: "", // เพิ่ม description เพื่อรองรับ AC
+          discountPrice: item.price > 0 ? Math.floor(item.price * 0.9) : 0,
+          startDate: new Date().toISOString().split("T")[0],
+          endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .split("T")[0],
+          isActive: true, // สถานะเริ่มต้นเป็น Active
+        },
+      ]);
     }
   };
 
@@ -147,22 +177,23 @@ export function MassageCard({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-             <div className="w-4 h-[1px] bg-gold/50" />
-             <span className="text-[8px] tracking-[0.4em] text-text-sub uppercase font-bold">
-               {item.isPackage ? "Bundle Package" : "Treatment"} {String(index + 1).padStart(2, '0')}
-             </span>
+            <div className="w-4 h-[1px] bg-gold/50" />
+            <span className="text-[8px] tracking-[0.4em] text-text-sub uppercase font-bold">
+              {item.isPackage ? "Bundle Package" : "Treatment"}{" "}
+              {String(index + 1).padStart(2, "0")}
+            </span>
           </div>
           {/* Status Toggles */}
           <div className="flex items-center gap-3 ml-4">
-            <button 
+            <button
               onClick={() => onChange(item._id, "isPackage", !item.isPackage)}
-              className={`text-[8px] px-2 py-0.5 border transition-all ${item.isPackage ? 'border-gold text-gold bg-gold/10' : 'border-card-border text-text-sub'}`}
+              className={`text-[8px] px-2 py-0.5 border transition-all ${item.isPackage ? "border-gold text-gold bg-gold/10" : "border-card-border text-text-sub"}`}
             >
               PACKAGE
             </button>
-            <button 
+            <button
               onClick={() => onChange(item._id, "isActive", !item.isActive)}
-              className={`text-[8px] px-2 py-0.5 border transition-all ${item.isActive ? 'border-emerald-500/50 text-emerald-400' : 'border-red-500/50 text-red-400'}`}
+              className={`text-[8px] px-2 py-0.5 border transition-all ${item.isActive ? "border-emerald-500/50 text-emerald-400" : "border-red-500/50 text-red-400"}`}
             >
               {item.isActive ? "ACTIVE" : "HIDDEN"}
             </button>
@@ -178,7 +209,7 @@ export function MassageCard({
           </button>
         )}
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <Field
           label="Service Name *"
@@ -194,7 +225,7 @@ export function MassageCard({
           type="number"
         />
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <Field
           label="Description"
@@ -210,46 +241,65 @@ export function MassageCard({
         />
       </div>
 
-      {/* Promotion Logic Area */}
       <div className="pt-2 border-t border-card-border/30">
-        <button 
-          onClick={togglePromo}
-          className="text-[9px] tracking-[0.3em] text-gold uppercase hover:underline"
-        >
-          {/* เปลี่ยนมาเช็คจาก hasPromotion */}
-          {hasPromotion ? "✕ Remove Promotion" : "+ Add Special Promotion"}
-        </button>
+        <div className="flex items-center justify-between">
+          <button
+            onClick={togglePromo}
+            className="text-[9px] tracking-[0.3em] text-gold uppercase hover:underline"
+          >
+            {hasPromotion ? "✕ Remove Promotion" : "+ Add Special Promotion"}
+          </button>
 
-        {/* แสดงส่วนกรอกข้อมูลเมื่อมีโปรโมชั่นใน Array เท่านั้น */}
+          {/* 3. เพิ่มสถานะ Active/Deactivate (AC: Shop owner selects Deactivate) */}
+          {hasPromotion && (
+            <button
+              onClick={() =>
+                updatePromoField("isActive", !item.promotions[0].isActive)
+              }
+              className={`text-[8px] px-2 py-0.5 border transition-all ${item.promotions[0].isActive ? "border-emerald-500/50 text-emerald-400" : "border-stone-500 text-stone-500"}`}
+            >
+              {item.promotions[0].isActive
+                ? "PROMO: ACTIVE"
+                : "PROMO: DEACTIVATED"}
+            </button>
+          )}
+        </div>
+
         {hasPromotion && (
-          <div className="mt-4 p-4 bg-black/20 rounded border border-gold/10 space-y-4 animate-in fade-in slide-in-from-top-2 duration-500">
+          <div className={`mt-4 p-4 bg-black/5 rounded border ${localError ? 'border-red-500/50' : 'border-gold/10'} space-y-4 transition-colors duration-300`}>
+            {/* Promotion Fields */}
             <div className="grid grid-cols-2 gap-6">
-              <Field 
-                label="Promo Title" 
-                value={item.promotions[0].title} 
-                onChange={(v) => updatePromoField("title", v)} 
+              <Field
+                label="Promo Title"
+                value={item.promotions[0].title}
+                onChange={(v) => validate("title", v)}
               />
-              <Field 
-                label="Discounted Price" 
-                value={String(item.promotions[0].discountPrice)} 
-                onChange={(v) => updatePromoField("discountPrice", Number(v))} 
+              <Field
+                label="Discounted Price"
+                value={String(item.promotions[0].discountPrice)}
+                onChange={(v) => validate("discountPrice", Number(v))}
                 type="number"
               />
             </div>
+            <Field
+              label="Promotion Description"
+              value={item.promotions[0].description ?? ""}
+              onChange={(v) => updatePromoField("description", v)}
+              placeholder="Details of the offer..."
+            />
             <div className="grid grid-cols-2 gap-6">
-              <Field 
-                label="Start Date" 
-                value={item.promotions[0].startDate.split('T')[0]} 
-                onChange={(v) => updatePromoField("startDate", v)} 
-                type="date"
-              />
-              <Field 
-                label="End Date" 
-                value={item.promotions[0].endDate.split('T')[0]} 
-                onChange={(v) => updatePromoField("endDate", v)} 
-                type="date"
-              />
+               <Field label="Start Date" type="date" value={item.promotions[0].startDate.split('T')[0]} onChange={(v) => validate("startDate", v)} />
+               <Field label="End Date" type="date" value={item.promotions[0].endDate.split('T')[0]} onChange={(v) => validate("endDate", v)} />
             </div>
+
+            {localError && (
+              <div className="flex items-center gap-2 mt-2 animate-in fade-in slide-in-from-left-1">
+                <span className="w-1 h-1 rounded-full bg-red-500" />
+                <p className="text-[9px] text-red-400 uppercase tracking-widest italic font-medium">
+                  {localError}
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -266,7 +316,7 @@ export function MassageCard({
 export function ImageDropZone({
   imageURL,
   onImageURLChange,
-  previewURL,       // object URL from a local file (used only when imageURL is empty)
+  previewURL, // object URL from a local file (used only when imageURL is empty)
   onFileChange,
   shopName,
   massageCount,
@@ -287,7 +337,7 @@ export function ImageDropZone({
       if (!file.type.startsWith("image/")) return;
       onFileChange(file);
     },
-    [onFileChange]
+    [onFileChange],
   );
 
   const onDrop = useCallback(
@@ -297,7 +347,7 @@ export function ImageDropZone({
       const file = e.dataTransfer.files[0];
       if (file) handleFile(file);
     },
-    [handleFile]
+    [handleFile],
   );
 
   // The preview source: URL wins over local file blob
@@ -330,7 +380,9 @@ export function ImageDropZone({
             {!urlMode && (
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-auto">
                 <div className="border border-white/30 px-6 py-2 backdrop-blur-sm">
-                  <p className="text-white text-xs tracking-[0.2em] uppercase">Change Photo</p>
+                  <p className="text-white text-xs tracking-[0.2em] uppercase">
+                    Change Photo
+                  </p>
                 </div>
               </div>
             )}
@@ -368,8 +420,12 @@ export function ImageDropZone({
               >
                 {isDragging ? "Drop to upload" : "Drag & drop photo"}
               </p>
-              <p className="text-[10px] text-card-border mt-1 tracking-wider">or click to browse</p>
-              <p className="text-[10px] text-card-border mt-1 tracking-wider">uploaded on submit</p>
+              <p className="text-[10px] text-card-border mt-1 tracking-wider">
+                or click to browse
+              </p>
+              <p className="text-[10px] text-card-border mt-1 tracking-wider">
+                uploaded on submit
+              </p>
             </div>
           </div>
         )}
@@ -433,9 +489,13 @@ export function ImageDropZone({
 
       {/* ── name / count preview ── */}
       <div className="bg-background px-8 py-6 border-t border-card-border">
-        <p className="text-[9px] tracking-[0.3em] text-text-sub uppercase mb-1">Shop</p>
+        <p className="text-[9px] tracking-[0.3em] text-text-sub uppercase mb-1">
+          Shop
+        </p>
         <p className="text-stone-200 text-lg font-light tracking-wider truncate">
-          {shopName || <span className="text-card-border italic">Untitled</span>}
+          {shopName || (
+            <span className="text-card-border italic">Untitled</span>
+          )}
         </p>
         {massageCount > 0 && (
           <p className="text-text-sub text-xs mt-1 tracking-wide">
@@ -502,7 +562,12 @@ export function MobileImageDrop({
           />
           {activePreview && (
             <div className="relative h-40 rounded overflow-hidden mt-2">
-              <Image src={activePreview} alt="preview" fill className="object-cover" />
+              <Image
+                src={activePreview}
+                alt="preview"
+                fill
+                className="object-cover"
+              />
               <div className="absolute top-2 left-2 bg-gold/90 text-black text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded">
                 URL
               </div>
@@ -519,13 +584,21 @@ export function MobileImageDrop({
             const file = e.dataTransfer.files[0];
             if (file?.type.startsWith("image/")) onFileChange(file);
           }}
-          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
           onDragLeave={() => setIsDragging(false)}
           onClick={() => fileInputRef.current?.click()}
         >
           {previewURL ? (
             <div className="relative h-40 rounded overflow-hidden">
-              <Image src={previewURL} alt="preview" fill className="object-cover" />
+              <Image
+                src={previewURL}
+                alt="preview"
+                fill
+                className="object-cover"
+              />
             </div>
           ) : (
             <p className="text-stone-500 text-xs tracking-widest uppercase">
@@ -552,8 +625,19 @@ export function MobileImageDrop({
 export function Spinner() {
   return (
     <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v8H4z"
+      />
     </svg>
   );
 }
