@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 
 function MdAnnouncement(props: React.SVGProps<SVGSVGElement>) {
@@ -53,9 +54,12 @@ export default function GlobalAnnouncement() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [newCount, setNewCount] = useState(0);
+  const [selectedAnn, setSelectedAnn] = useState<Announcement | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
     if (!backendUrl) return;
 
@@ -166,7 +170,11 @@ export default function GlobalAnnouncement() {
               {announcements.map((ann, index) => (
                 <div
                   key={ann._id}
-                  className="group rounded-xl border border-card-border bg-background/40 hover:bg-background/70 hover:border-accent/20 transition-all duration-300 overflow-hidden"
+                  onClick={() => {
+                    setSelectedAnn(ann);
+                    setIsOpen(false);
+                  }}
+                  className="group rounded-xl border border-card-border bg-background/40 hover:bg-background/70 hover:border-accent/20 transition-all duration-300 overflow-hidden cursor-pointer"
                   style={{ animationDelay: `${index * 40}ms` }}
                 >
                   {/* Image */}
@@ -186,8 +194,11 @@ export default function GlobalAnnouncement() {
                     {ann.shop && (
                       <Link
                         href={`/shop/${ann.shop._id}`}
-                        onClick={() => setIsOpen(false)}
-                        className="flex items-center gap-1.5 mb-2 w-fit group/shop"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsOpen(false);
+                        }}
+                        className="flex items-center gap-1.5 mb-2 w-fit group/shop relative z-10"
                       >
                         {ann.shop.picture && (
                           <img
@@ -239,6 +250,120 @@ export default function GlobalAnnouncement() {
         </div>
       )}
 
+      {/* Announcement Detail Modal */}
+      {mounted && selectedAnn && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+            {/* Backdrop */}
+            <div 
+                className="absolute inset-0 bg-black/20 backdrop-blur-md transition-opacity duration-500"
+                onClick={() => setSelectedAnn(null)}
+                style={{ animation: 'fadeIn 0.4s ease-out' }}
+            />
+            
+            {/* Modal Content */}
+            <div 
+                className="relative w-full max-w-2xl bg-card border border-card-border rounded-[2rem] shadow-[0_30px_100px_rgba(0,0,0,0.12)] overflow-hidden flex flex-col max-h-[85vh] z-10"
+                style={{ animation: 'modalIn 0.5s cubic-bezier(0.16, 1, 0.3, 1)' }}
+            >
+                {/* Decorative Top Gradient */}
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-accent/40 via-accent to-accent/40 opacity-80" />
+                
+                {/* Header/Close Button */}
+                <div className="absolute top-6 right-6 z-20">
+                    <button
+                        onClick={() => setSelectedAnn(null)}
+                        className="group w-9 h-9 flex items-center justify-center rounded-full bg-background/80 border border-card-border backdrop-blur-md text-text-sub hover:text-accent hover:border-accent/40 hover:bg-card transition-all duration-300 shadow-sm"
+                        aria-label="Close modal"
+                    >
+                        <span className="text-xl leading-none mb-0.5 group-hover:rotate-90 transition-transform duration-300">×</span>
+                    </button>
+                </div>
+
+                {/* Scrollable Content */}
+                <div className="overflow-y-auto overflow-x-hidden scrollbar-thin flex-1 relative w-full">
+                    {/* Optional subtle background element */}
+                    <div className="absolute -top-40 -right-40 w-80 h-80 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
+                    
+                    {/* Image */}
+                    {selectedAnn.imageUrl && (
+                        <div className="w-full h-56 sm:h-80 relative group">
+                            <img 
+                                src={selectedAnn.imageUrl} 
+                                alt={selectedAnn.title}
+                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-card via-card/10 to-transparent" />
+                        </div>
+                    )}
+
+                    {/* Content Padding */}
+                    <div className={`p-8 sm:p-14 relative z-10 ${!selectedAnn.imageUrl ? 'pt-16' : 'pt-0 -mt-10'}`}>
+                        {/* Shop Info */}
+                        {selectedAnn.shop && (
+                            <div className="flex items-center justify-between mb-8 bg-background/80 p-3 pr-6 rounded-full border border-card-border w-fit backdrop-blur-md shadow-sm">
+                                <div className="flex items-center gap-4">
+                                    {selectedAnn.shop.picture ? (
+                                        <img 
+                                            src={selectedAnn.shop.picture} 
+                                            alt={selectedAnn.shop.name}
+                                            className="w-10 h-10 rounded-full object-cover border border-card-border shadow-sm"
+                                        />
+                                    ) : (
+                                        <div className="w-10 h-10 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-accent text-xs font-bold shadow-sm">
+                                            {selectedAnn.shop.name.charAt(0)}
+                                        </div>
+                                    )}
+                                    <div className="flex flex-col">
+                                        <Link 
+                                            href={`/shop/${selectedAnn.shop._id}`}
+                                            onClick={() => setSelectedAnn(null)}
+                                            className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-main hover:text-accent transition-colors"
+                                        >
+                                            {selectedAnn.shop.name}
+                                        </Link>
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                            <p className="text-[9px] text-text-sub/60 uppercase tracking-widest font-medium">
+                                                {new Date(selectedAnn.createdAt).toLocaleDateString('en-US', { 
+                                                    day: '2-digit', month: 'short', year: 'numeric' 
+                                                })}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Date fallback if no shop */}
+                        {!selectedAnn.shop && (
+                            <div className="mb-6 flex items-center gap-3">
+                                <div className="h-[1px] w-8 bg-accent/40" />
+                                <p className="text-[10px] text-accent uppercase tracking-[0.3em] font-bold">
+                                    {new Date(selectedAnn.createdAt).toLocaleDateString('en-US', { 
+                                        day: '2-digit', month: 'long', year: 'numeric' 
+                                    })}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Title */}
+                        <h2 className="text-3xl sm:text-[2.75rem] font-serif tracking-tight text-text-main leading-[1.1] mb-8">
+                            {selectedAnn.title}
+                        </h2>
+
+                        {/* Text Content */}
+                        <div className="text-[15px] sm:text-[17px] text-text-sub leading-[1.8] font-light whitespace-pre-wrap break-words w-full">
+                            {selectedAnn.content}
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Footer decorative border */}
+                <div className="h-2 w-full bg-background/50 border-t border-card-border" />
+            </div>
+        </div>,
+        document.body
+      )}
+
       <style jsx global>{`
         @keyframes dropdownIn {
           from {
@@ -249,6 +374,14 @@ export default function GlobalAnnouncement() {
             opacity: 1;
             transform: translateY(0) scale(1);
           }
+        }
+        @keyframes modalIn {
+          from { opacity: 0; transform: scale(0.95) translateY(20px); }
+          to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
         }
         .scrollbar-thin::-webkit-scrollbar {
           width: 4px;
