@@ -196,12 +196,22 @@ export default function AnnouncementPage() {
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
   const [layout, setLayout] = useState<"grid" | "list">("grid");
   const [viewingPost, setViewingPost] = useState<Announcement | null>(null);
+  const [isShopDropdownOpen, setIsShopDropdownOpen] = useState(false);
+  const shopDropdownRef = useRef<HTMLDivElement>(null);
 
   const isAuthorized =
     session?.user?.role === "admin" || session?.user?.role === "shopowner";
   const isShopOwner = session?.user?.role === "shopowner";
   const API_BASE_URL = `${getBackendBaseUrl()}/api/v1/announcements`;
   const SHOPS_URL = `${getBackendBaseUrl()}/api/v1/shops`;
+
+  const canManage = (item: Announcement) => {
+    if (session?.user?.role === "admin") return true;
+    if (session?.user?.role === "shopowner") {
+      return item.shop && shops.some((s) => s._id === item.shop?._id);
+    }
+    return false;
+  };
 
   const fetchAnnouncements = async () => {
     try {
@@ -226,7 +236,9 @@ export default function AnnouncementPage() {
       const result = await res.json();
       if (result.success && result.data) {
         setShops(result.data);
-        if (result.data.length > 0) setSelectedShopId(result.data[0]._id);
+        if (result.data.length > 0 && session?.user?.role !== "admin") {
+          setSelectedShopId(result.data[0]._id);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -239,6 +251,18 @@ export default function AnnouncementPage() {
       fetchMyShops();
     }
   }, [session?.user?.token]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (shopDropdownRef.current && !shopDropdownRef.current.contains(e.target as Node)) {
+        setIsShopDropdownOpen(false);
+      }
+    };
+    if (isShopDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isShopDropdownOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -260,7 +284,7 @@ export default function AnnouncementPage() {
           content,
           imageUrl,
           imagePosition,
-          ...(isShopOwner && selectedShopId ? { shop: selectedShopId } : {}),
+          ...(selectedShopId ? { shop: selectedShopId } : {}),
         }),
       });
 
@@ -359,13 +383,15 @@ export default function AnnouncementPage() {
           <div className="mb-20">
             <form
               onSubmit={handleSubmit}
-              className="relative bg-card/60 backdrop-blur-xl border border-card-border rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 hover:border-accent/30"
+              className="relative bg-card/60 backdrop-blur-xl border border-card-border rounded-3xl shadow-2xl transition-all duration-500 hover:border-accent/30"
             >
-              <div
-                className={`h-1 w-full bg-gradient-to-r ${editingId ? "from-gold/80 via-gold/40 to-transparent" : "from-accent/80 via-accent/40 to-transparent"}`}
-              />
+              <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none z-0">
+                <div
+                  className={`h-1 w-full bg-gradient-to-r ${editingId ? "from-gold/80 via-gold/40 to-transparent" : "from-accent/80 via-accent/40 to-transparent"}`}
+                />
+              </div>
 
-              <div className="p-8 md:p-10">
+              <div className="relative z-10 p-8 md:p-10">
                 <div className="flex items-center gap-4 mb-10 pb-6 border-b border-card-border/50">
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${editingId ? "bg-gold/10 text-gold" : "bg-accent/10 text-accent"}`}
@@ -387,29 +413,91 @@ export default function AnnouncementPage() {
                 </div>
 
                 <div className="space-y-6">
-                  {/* Shop Selector */}
-                  {isShopOwner && shops.length > 1 && !editingId && (
-                    <div className="group">
-                      <label className="block text-[9px] uppercase tracking-[0.25em] text-text-sub group-focus-within:text-accent transition-colors mb-2">
-                        Target Shop *
+                  {/* Target / Shop Selector */}
+                  {isAuthorized && (session?.user?.role === "admin" || shops.length > 0) && !editingId && (
+                    <div className="group" ref={shopDropdownRef}>
+                      <label className="block text-[10px] uppercase tracking-[0.3em] text-text-sub group-focus-within:text-accent transition-colors mb-3 font-semibold">
+                        Target Audience *
                       </label>
 
                       <div className="relative">
-                        <select
-                          value={selectedShopId}
-                          onChange={(e) => setSelectedShopId(e.target.value)}
-                          className="w-full appearance-none bg-background/40 border border-card-border rounded-xl px-4 py-3 text-sm text-text-main focus:outline-none focus:border-accent/60 transition-all pr-10"
-                          required
+                        <div
+                          onClick={() => setIsShopDropdownOpen(!isShopDropdownOpen)}
+                          className={`w-full flex items-center justify-between cursor-pointer bg-background/50 border ${isShopDropdownOpen ? 'border-accent/60 shadow-md shadow-accent/5' : 'border-card-border'} rounded-2xl px-5 py-4 text-base text-text-main focus:outline-none transition-all font-serif hover:border-accent/40 shadow-sm`}
                         >
-                          {shops.map((shop) => (
-                            <option key={shop._id} value={shop._id}>
-                              {shop.name}
-                            </option>
-                          ))}
-                        </select>
-                        <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-sub/50">
-                          ▾
+                          <div className="flex items-center gap-3">
+                            <span className="text-accent/60 text-lg leading-none">❖</span>
+                            <span>{selectedShopId === "" ? "Global Broadcast (All Users)" : shops.find(s => s._id === selectedShopId)?.name || 'Select a Target'}</span>
+                          </div>
+                          <div className={`text-text-sub/50 text-xs transition-transform duration-300 ${isShopDropdownOpen ? 'rotate-180' : ''}`}>
+                            ▼
+                          </div>
                         </div>
+
+                        {/* Custom Dropdown Options */}
+                        {isShopDropdownOpen && (
+                          <div 
+                            className="absolute top-[calc(100%+8px)] left-0 w-full bg-card/95 backdrop-blur-xl border border-card-border rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] z-[60] overflow-hidden"
+                            style={{ animation: 'fadeIn 0.2s ease-out' }}
+                          >
+                            <div className="max-h-64 overflow-y-auto scrollbar-thin py-2">
+                              {session?.user?.role === "admin" && (
+                                <div
+                                  onClick={() => {
+                                    setSelectedShopId("");
+                                    setIsShopDropdownOpen(false);
+                                  }}
+                                  className={`flex items-center gap-4 px-5 py-4 cursor-pointer transition-all duration-200 border-l-2 ${selectedShopId === "" ? 'border-accent bg-accent/5' : 'border-transparent hover:bg-card-border/10 hover:pl-6'}`}
+                                >
+                                  <div className="w-9 h-9 rounded-full bg-accent/10 border border-accent/30 flex items-center justify-center text-accent text-sm shadow-sm">
+                                    🌍
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <span className={`font-serif text-base ${selectedShopId === "" ? 'text-accent' : 'text-text-main'}`}>
+                                      Global Broadcast (All Users)
+                                    </span>
+                                    {selectedShopId === "" && (
+                                      <span className="text-[9px] uppercase tracking-widest text-accent/60 font-bold mt-0.5">Currently Selected</span>
+                                    )}
+                                  </div>
+                                  {selectedShopId === "" && (
+                                    <span className="ml-auto text-accent text-lg">✓</span>
+                                  )}
+                                </div>
+                              )}
+                              
+                              {shops.map((shop) => (
+                                <div
+                                  key={shop._id}
+                                  onClick={() => {
+                                    setSelectedShopId(shop._id);
+                                    setIsShopDropdownOpen(false);
+                                  }}
+                                  className={`flex items-center gap-4 px-5 py-4 cursor-pointer transition-all duration-200 border-l-2 ${selectedShopId === shop._id ? 'border-accent bg-accent/5' : 'border-transparent hover:bg-card-border/10 hover:pl-6'}`}
+                                >
+                                  {shop.picture ? (
+                                    <img src={shop.picture} alt={shop.name} className="w-9 h-9 rounded-full object-cover border border-card-border/50 shadow-sm" />
+                                  ) : (
+                                    <div className="w-9 h-9 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-accent text-sm font-bold shadow-sm">
+                                      {shop.name.charAt(0)}
+                                    </div>
+                                  )}
+                                  <div className="flex flex-col">
+                                    <span className={`font-serif text-base ${selectedShopId === shop._id ? 'text-accent' : 'text-text-main'}`}>
+                                      {shop.name}
+                                    </span>
+                                    {selectedShopId === shop._id && (
+                                      <span className="text-[9px] uppercase tracking-widest text-accent/60 font-bold mt-0.5">Currently Selected</span>
+                                    )}
+                                  </div>
+                                  {selectedShopId === shop._id && (
+                                    <span className="ml-auto text-accent text-lg">✓</span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -724,7 +812,7 @@ export default function AnnouncementPage() {
                         ID: {item._id.slice(-8)}
                       </span>
 
-                      {isAuthorized ? (
+                      {canManage(item) ? (
                         <div className="flex gap-2 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                           <button
                             onClick={(e) => {
