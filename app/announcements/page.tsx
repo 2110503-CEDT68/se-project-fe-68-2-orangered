@@ -535,7 +535,7 @@ export default function AnnouncementPage() {
                             <div className="w-44">
                                 <CustomSelect 
                                     value={sortOrder} onChange={(val) => setSortOrder(val as 'newest' | 'oldest')}
-                                    options={[{ value: 'newest', label: 'Newest Arrival' }, { value: 'oldest', label: 'Chronological' }]}
+                                    options={[{ value: 'newest', label: 'Ascending' }, { value: 'oldest', label: 'Descending' }]}
                                     triggerClassName="bg-card border border-card-border rounded-full px-5 py-2.5 text-xs text-text-main font-semibold tracking-wide shadow-sm hover:border-accent/30"
                                     dropdownClassName="bg-card border border-card-border rounded-2xl mt-2 w-48 right-0"
                                 />
