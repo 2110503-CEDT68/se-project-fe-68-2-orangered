@@ -24,7 +24,7 @@ export default function Banner() {
 
   return (
     <div
-      className="relative w-full h-[75vh] min-h-[550px] overflow-hidden mb-16 cursor-pointer bg-background transition-colors duration-500"
+      className="relative w-full h-[60vh] sm:h-[75vh] min-h-[400px] sm:min-h-[550px] overflow-hidden mb-16 cursor-pointer bg-background transition-colors duration-500"
       onClick={() => setIndex((prev) => (prev + 1) % covers.length)}
     >
       {covers.map((src, i) => (
@@ -49,7 +49,7 @@ export default function Banner() {
       <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-transparent to-background z-10 pointer-events-none transition-colors duration-500" />
 
       {session && (
-        <div className="absolute top-12 right-12 z-30 flex flex-col items-end animate-in fade-in slide-in-from-right-4 duration-1000">
+        <div className="absolute top-4 right-4 sm:top-12 sm:right-12 z-30 flex flex-col items-end animate-in fade-in slide-in-from-right-4 duration-1000">
           <span className="text-banner-text text-[10px] font-mono uppercase tracking-[0.4em] opacity-80 font-bold">
             Welcome, {session.user?.name}
           </span>

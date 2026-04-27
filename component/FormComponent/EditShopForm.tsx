@@ -35,7 +35,12 @@ export interface ShopData {
     close: string;
   };
   picture?: string;
-  massageType: (MassageType & { _id: string })[];
+  massageType: (MassageType & { 
+    _id: string; 
+    isPackage: boolean; 
+    isActive: boolean; 
+    promotions: any[]; 
+  })[];
 }
 
 export interface EditShopFormProps {
@@ -56,9 +61,18 @@ export default function EditShopForm({ shop, onSuccess }: EditShopFormProps) {
   const [open, setOpen] = useState(shop.openClose.open);
   const [close, setClose] = useState(shop.openClose.close);
   const [imageURL, setImageURL] = useState(shop.picture ?? "");
-  const [massageTypes, setMassageTypes] = useState<(MassageType & { _id: string })[]>(
-    shop.massageType.length > 0 ? shop.massageType : [emptyMassage()]
-  );
+  
+  // จัดการ Massage Type: ใช้ข้อมูลจาก Props หรือถ้าไม่มีให้ใส่ empty อันนึง
+const [massageTypes, setMassageTypes] = useState<ShopData["massageType"]>(
+  shop.massageType && shop.massageType.length > 0 
+    ? shop.massageType.map(m => ({
+        ...m,
+        isPackage: m.isPackage ?? false,
+        isActive: m.isActive ?? true,
+        promotions: m.promotions ?? []
+      }))
+    : [emptyMassage() as any]
+);
 
   const [previewURL, setPreviewURL] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -70,12 +84,18 @@ export default function EditShopForm({ shop, onSuccess }: EditShopFormProps) {
   const handleFileChange = useCallback((file: File) => {
     setImageFile(file);
     setPreviewURL(URL.createObjectURL(file));
+    // Reset imageURL if user picks a new file
+    setImageURL("");
   }, []);
 
   const addMassage = () => setMassageTypes((p) => [...p, emptyMassage()]);
   const removeMassage = (id: string) => setMassageTypes((p) => p.filter((m) => m._id !== id));
-  const updateMassage = (id: string, field: keyof MassageType, value: string | number) =>
-    setMassageTypes((p) => p.map((m) => (m._id === id ? { ...m, [field]: value } : m)));
+  const updateMassage = (id: string, field: string, value: any) =>
+  setMassageTypes((p) =>
+    p.map((m) =>
+      m._id === id ? { ...m, [field]: value } : m
+    )
+  );
 
   async function handleSave() {
     setError("");
@@ -87,6 +107,9 @@ export default function EditShopForm({ shop, onSuccess }: EditShopFormProps) {
 
     try {
       setSubmitStep("saving");
+      
+      // Clean payload: ลบ _id ชั่วคราวหรือ _id เดิมออกก่อนส่งเข้า updateShop API 
+      // (เพื่อให้ Backend จัดการ Map ใหม่หรือ Overwrite ตามโครงสร้าง DB)
       const payload = massageTypes.map(({ _id, ...rest }) => rest);
       const pictureArg = imageURL.trim() || undefined;
 
@@ -102,6 +125,7 @@ export default function EditShopForm({ shop, onSuccess }: EditShopFormProps) {
         shopDescription || undefined
       );
 
+      // ถ้ามีไฟล์ภาพใหม่ และไม่มี imageURL (Direct link) ให้ทำการ Upload
       if (!imageURL.trim() && imageFile) {
         setSubmitStep("uploading");
         await uploadImage(session.user.token, shop._id, imageFile);
@@ -109,7 +133,7 @@ export default function EditShopForm({ shop, onSuccess }: EditShopFormProps) {
 
       setSubmitStep("done");
       onSuccess?.(shop._id);
-    } catch {
+    } catch (err) {
       setSubmitStep("error");
       setError("An unexpected error occurred during the registry update.");
     }
@@ -125,7 +149,6 @@ export default function EditShopForm({ shop, onSuccess }: EditShopFormProps) {
     error: "Retry Synchronization",
   };
 
-  // ── Success View (Luxury Mode) ──
   if (submitStep === "done") {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 animate-in fade-in duration-1000">
@@ -145,13 +168,13 @@ export default function EditShopForm({ shop, onSuccess }: EditShopFormProps) {
           <div className="grid grid-cols-1 gap-4 pt-4">
             <Link 
               href={`/shop/${shop._id}`}
-              className="py-4 bg-gold/10 border border-gold/30 text-gold text-[10px] uppercase tracking-[0.4em] hover:bg-gold hover:text-black transition-all duration-500"
+              className="py-4 bg-gold/10 border border-gold/30 text-gold text-[10px] uppercase tracking-[0.4em] hover:bg-gold hover:text-black transition-all duration-500 text-center"
             >
               View Updated Shop
             </Link>
             <Link 
               href="/shop"
-              className="py-4 border border-stone-800 text-stone-500 text-[10px] uppercase tracking-[0.4em] hover:text-white hover:border-stone-600 transition-all duration-500"
+              className="py-4 border border-stone-800 text-stone-500 text-[10px] uppercase tracking-[0.4em] hover:text-white hover:border-stone-600 transition-all duration-500 text-center"
             >
               Return to Directory
             </Link>
@@ -160,7 +183,8 @@ export default function EditShopForm({ shop, onSuccess }: EditShopFormProps) {
       </div>
     );
   }
-return (
+
+  return (
     <div className="min-h-screen bg-background flex items-stretch font-['DM_Sans',sans-serif] selection:bg-gold/30">
       {/* ── LEFT: image drop (Desktop) ── */}
       <ImageDropZone
@@ -176,7 +200,7 @@ return (
       <div className="flex-1 flex flex-col overflow-y-auto bg-background transition-colors duration-500">
         
         {/* Header Section */}
-        <div className="px-10 pt-16 pb-10 border-b border-card-border bg-card/30 backdrop-blur-sm">
+        <div className="px-4 sm:px-10 pt-8 sm:pt-16 pb-6 sm:pb-10 border-b border-card-border bg-card/30 backdrop-blur-sm">
           <div className="flex items-center gap-3 mb-3">
             <div className="h-[1px] w-8 bg-gold" />
             <p className="text-[10px] tracking-[0.5em] text-gold uppercase font-bold italic">Registry Editor</p>
@@ -187,7 +211,7 @@ return (
           <p className="text-text-sub/60 text-[10px] tracking-[0.2em] mt-4 uppercase">Ref ID: {shop._id}</p>
         </div>
 
-        <div className="px-10 py-12 space-y-20 flex-1 max-w-4xl">
+        <div className="px-4 sm:px-10 py-6 sm:py-12 space-y-20 flex-1 max-w-4xl">
           <MobileImageDrop
             imageURL={imageURL}
             onImageURLChange={setImageURL}
@@ -221,7 +245,7 @@ return (
                <SectionLabel><span className="text-text-main opacity-90">Availability</span></SectionLabel>
                <div className="h-px flex-1 bg-gradient-to-r from-card-border to-transparent" />
             </div>
-            <div className="grid grid-cols-2 gap-10 text-text-main">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10 text-text-main">
               <Field label="Opening Time *" value={open} onChange={setOpen} type="time" />
               <Field label="Closing Time *" value={close} onChange={setClose} type="time" />
             </div>
@@ -235,7 +259,7 @@ return (
             </div>
             <div className="space-y-8 text-text-main">
               <Field label="Street Address *" value={street} onChange={setStreet} placeholder="Street, Building, Floor" />
-              <div className="grid grid-cols-2 gap-10">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10">
                 <Field label="District" value={district} onChange={setDistrict} placeholder="District" />
                 <Field label="Province" value={province} onChange={setProvince} placeholder="Bangkok" />
               </div>
@@ -282,7 +306,7 @@ return (
         </div>
 
         {/* ── Footer ── */}
-        <div className="sticky bottom-0 px-10 py-8 bg-background/80 backdrop-blur-xl border-t border-card-border">
+        <div className="sticky bottom-0 px-4 sm:px-10 py-4 sm:py-8 bg-background/80 backdrop-blur-xl border-t border-card-border">
           {busy && (
             <div className="flex items-center gap-6 mb-8">
               <Step active={submitStep === "saving"} done={submitStep === "uploading"} label="Authorization" />

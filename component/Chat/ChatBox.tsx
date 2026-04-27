@@ -57,13 +57,13 @@ export default function ChatBox({ msg, editMessage, deleteMessage, uid, isFirstI
 
     const handleSave = async () => {
         if (!text.trim()) return;
-        await editMessage(msg._id, text);
         setIsEditing(false);
+        await editMessage(msg._id, text);
     };
 
     const handleDeleteConfirm = async () => {
-        await deleteMessage(msg._id);
         setShowDeletePopup(false);
+        await deleteMessage(msg._id);
     };
 
     useEffect(() => { setText(msg.text); }, [msg.text]);

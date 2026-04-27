@@ -22,8 +22,14 @@ export default function SigninPage() {
       return;
     }
 
-    if (authError === "AccessDenied" || authError === "OAuthCallback" || authError === "OAuthSignin") {
-      setError("Access to this account has been suspended due to a policy violation.");
+    if (
+      authError === "AccessDenied" ||
+      authError === "OAuthCallback" ||
+      authError === "OAuthSignin"
+    ) {
+      setError(
+        "Access to this account has been suspended due to a policy violation.",
+      );
       return;
     }
 
@@ -36,7 +42,7 @@ export default function SigninPage() {
     setLoading(true);
 
     const res = await signIn("credentials", {
-      redirect: false, 
+      redirect: false,
       email,
       password,
     });
@@ -46,18 +52,27 @@ export default function SigninPage() {
       setLoading(false);
     } else if (res?.ok) {
       router.push("/");
-      router.refresh(); 
+      router.refresh();
     }
   };
 
   const handleGoogleLogin = async () => {
     setError("");
 
-    const result = await signIn("google", { redirect: false, callbackUrl: "/" });
+    const result = await signIn("google", {
+      redirect: false,
+      callbackUrl: "/",
+    });
 
     if (result?.error) {
-      if (result.error === "AccessDenied" || result.error === "OAuthCallback" || result.error === "OAuthSignin") {
-        setError("Access to this account has been suspended due to a policy violation.");
+      if (
+        result.error === "AccessDenied" ||
+        result.error === "OAuthCallback" ||
+        result.error === "OAuthSignin"
+      ) {
+        setError(
+          "Access to this account has been suspended due to a policy violation.",
+        );
       } else {
         setError(result.error);
       }
@@ -71,7 +86,7 @@ export default function SigninPage() {
 
   return (
     // 1. ปรับสีพื้นหลังและตัวหนังสือตาม Theme
-    <main className="min-h-screen bg-background text-foreground flex flex-col items-center justify-start px-8 py-32 transition-colors duration-500">
+    <main className="min-h-screen bg-background text-foreground flex flex-col items-center justify-start px-4 sm:px-8 py-16 sm:py-32 transition-colors duration-500">
       <div className="max-w-md w-full">
         <div className="text-center mb-14">
           <h1 className="text-3xl font-serif uppercase tracking-[0.3em] text-text-main">
@@ -84,10 +99,19 @@ export default function SigninPage() {
         </div>
 
         {/* 2. ปรับ Card Style */}
-        <div className="bg-card border border-card-border rounded-2xl p-12 backdrop-blur-md shadow-2xl transition-all">
-          
+        <div className="bg-card border border-card-border rounded-2xl p-6 sm:p-12 backdrop-blur-md shadow-2xl transition-all">
           {error && (
-            <Alert severity="error" sx={{ mb: 3, backgroundColor: 'rgba(211, 47, 47, 0.1)', color: '#ef4444', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            <Alert
+              severity="error"
+              sx={{
+                mb: 3,
+                backgroundColor: "rgba(211, 47, 47, 0.1)",
+                color: "#ef4444",
+                fontSize: "10px",
+                textTransform: "uppercase",
+                letterSpacing: "0.1em",
+              }}
+            >
               {error}
             </Alert>
           )}
@@ -100,7 +124,7 @@ export default function SigninPage() {
               fullWidth
               required
               slotProps={{
-                htmlInput: { 'data-testid': 'email-input' },
+                htmlInput: { "data-testid": "email-input" },
                 inputLabel: { style: labelStyle },
               }}
               sx={inputStyles}
@@ -114,7 +138,7 @@ export default function SigninPage() {
               fullWidth
               required
               slotProps={{
-                htmlInput: { 'data-testid': 'password-input' },
+                htmlInput: { "data-testid": "password-input" },
                 inputLabel: { style: labelStyle },
               }}
               sx={inputStyles}
@@ -135,8 +159,8 @@ export default function SigninPage() {
               onClick={() => signIn("google", { callbackUrl: "/" })}
               className="w-full py-4 border cursor-pointer border-card-border hover:border-text-sub text-text-main text-[10px] uppercase tracking-[0.3em] font-semibold rounded-xl bg-surface/40 flex items-center justify-center gap-3 transition-[background-color,border-color,color] duration-150 ease-out"
             >
-              <Image 
-                src="/Decoration/googlelogo.webp" 
+              <Image
+                src="/Decoration/googlelogo.webp"
                 alt="Google Logo"
                 width={18}
                 height={18}
@@ -181,5 +205,5 @@ const inputStyles = {
   },
   "& .MuiInputLabel-root.Mui-focused": {
     color: "var(--color-accent)",
-  }
+  },
 };

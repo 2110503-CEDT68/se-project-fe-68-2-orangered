@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { ReservationItem } from "@/interface";
 import { useState } from "react";
 import ConfirmationModal from "../ui/ConfirmationModal";
-import updateReservation from "@/libs/reservation/updateReservation"; 
+import updateReservation from "@/libs/reservation/updateReservation";
 import EditReservationModal from "./EditReservationModal";
 
 export default function ReservationCard({
@@ -20,7 +20,7 @@ export default function ReservationCard({
   const { data: session } = useSession();
   const [isCancelOpen, setIsCancelOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  
+
   const isRoleUser = session?.user?.role === "user";
   const isPastReservation = new Date(item.appDate).getTime() < Date.now();
   const statusLabel = isPastReservation ? "Passed" : "Upcoming";
@@ -29,100 +29,156 @@ export default function ReservationCard({
     : "border-active/10 bg-active/10 text-active";
 
   const handleUpdate = async (newDateTime: string) => {
-  try {
-    if (!session) return;
-    
-    setIsEditOpen(false); 
+    try {
+      if (!session) return;
 
-    await updateReservation(item._id, newDateTime, session.user.token);
-    
-    setTimeout(() => {
+      setIsEditOpen(false);
+
+      await updateReservation(item._id, newDateTime, session.user.token);
+
+      setTimeout(() => {
         window.location.reload();
-    }, 300);
-
-  } catch (err) {
-    alert("An error occurred while updating the registry.");
-  }
-};
+      }, 300);
+    } catch (err) {
+      alert("An error occurred while updating the registry.");
+    }
+  };
 
   return (
     <>
-      <div className={`group relative border rounded-[1.5rem] p-8 transition-all duration-500 ${isPastReservation ? "bg-card/10 border-amber-500/15 hover:border-amber-500/30" : "bg-card/20 border-card-border hover:bg-card/30 hover:border-accent/20"}`}>
-        
+      <div
+        className={`group relative border rounded-[1.5rem] p-8 transition-all duration-500 ${isPastReservation ? "bg-card/10 border-amber-500/15 hover:border-amber-500/30" : "bg-card/20 border-card-border hover:bg-card/30 hover:border-accent/20"}`}
+      >
         {/* Background Decorative Index */}
         <div className="absolute top-0 right-0 p-6 opacity-[0.03] select-none pointer-events-none">
-          <span className="text-8xl font-serif italic text-accent">{(index + 1).toString().padStart(2, "0")}</span>
+          <span className="text-8xl font-serif italic text-accent">
+            {(index + 1).toString().padStart(2, "0")}
+          </span>
         </div>
 
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-12 items-center">
-          
           {/* Main Info Section */}
-          <div className={`grid grid-cols-1 ${isRoleUser ? 'lg:grid-cols-4' : 'lg:grid-cols-5'} gap-10`}>
-            
+          <div
+            className={`grid grid-cols-1 ${isRoleUser ? "lg:grid-cols-4" : "lg:grid-cols-5"} gap-10`}
+          >
             {!isRoleUser && (
               <div className="space-y-2">
-                <p className="text-[9px] uppercase tracking-[0.4em] text-accent/60 font-bold">Client</p>
-                <h2 className="text-lg font-serif text-text-main italic tracking-tight">{item.user.name}</h2>
+                <p className="text-[9px] uppercase tracking-[0.4em] text-accent/60 font-bold">
+                  Client
+                </p>
+                <h2 className="text-lg font-serif text-text-main italic tracking-tight">
+                  {item.user.name}
+                </h2>
               </div>
             )}
 
             <div className="space-y-2 flex flex-col ">
-              <p className="text-[9px] uppercase tracking-[0.4em] text-text-sub font-bold">Shop</p>
-              <Link 
-                href={`/shop/${item.shop._id}`} 
+              <p className="text-[9px] uppercase tracking-[0.4em] text-text-sub font-bold">
+                Shop
+              </p>
+              <Link
+                href={`/shop/${item.shop._id}`}
                 className="inline-block text-[11px] font-medium text-text-main uppercase tracking-[0.2em] hover:text-accent transition-colors duration-500 border-b border-white/5 hover:border-accent/30 pb-0.5"
               >
                 {item.shop.name}
               </Link>
-              <div className={`mt-3 inline-flex items-center justify-center rounded-full border px-3 py-1 text-[8px] font-bold uppercase tracking-[0.35em] ${statusClasses}`}>
+              <div
+                className={`mt-3 inline-flex items-center justify-center rounded-full border px-3 py-1 text-[8px] font-bold uppercase tracking-[0.35em] ${statusClasses}`}
+              >
                 {statusLabel}
               </div>
             </div>
 
             <div className="space-y-2">
-              <p className="text-[9px] uppercase tracking-[0.4em] text-accent/60 font-bold">Treatment</p>
+              <p className="text-[9px] uppercase tracking-[0.4em] text-accent/60 font-bold">
+                Treatment
+              </p>
               <div className="flex flex-col gap-1">
-                <p className="text-[11px] font-medium text-text-main uppercase tracking-widest leading-none">
-                  {item.massageType || "Signature Session"}
-                </p>
-                <p className="text-[10px] font-mono text-accent opacity-80">
-                  {item.massagePrice ? `฿${item.massagePrice}` : "—"}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-[11px] font-medium text-text-main uppercase tracking-widest leading-none">
+                    {item.massageType || "Signature Session"}
+                  </p>
+
+                  {item.promotion?.title && (
+                    <span className="text-[7px] px-2 py-0.5 border border-accent/30 text-accent rounded-full italic font-bold animate-pulse">
+                      ✦ {item.promotion.title}
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <p className="text-[10px] font-mono text-accent opacity-80">
+                    {item.massagePrice ? `฿${item.massagePrice}` : "—"}
+                  </p>
+
+                  {(item.promotion?.discountPrice ?? 0) > 0 && (
+                    <p className="text-[8px] font-mono text-text-sub/40 line-through">
+                      ฿
+                      {item.massagePrice + (item.promotion?.discountPrice || 0)}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 
             <div className="space-y-2">
-              <p className="text-[9px] uppercase tracking-[0.4em] text-text-sub font-bold">Scheduled Arrival</p>
+              <p className="text-[9px] uppercase tracking-[0.4em] text-text-sub font-bold">
+                Scheduled Arrival
+              </p>
               <div className="text-[11px] font-medium text-text-main font-mono tracking-tight">
-                 <span className="text-accent/80 italic">
-                   {new Date(item.appDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
-                 </span>
-                 <span className="mx-2 opacity-20">|</span>
-                 <span>
-                   {new Date(item.appDate).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
-                 </span>
+                <span className="text-accent/80 italic">
+                  {new Date(item.appDate).toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                  })}
+                </span>
+                <span className="mx-2 opacity-20">|</span>
+                <span>
+                  {new Date(item.appDate).toLocaleTimeString("en-GB", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
               </div>
             </div>
 
             <div className="space-y-2">
-              <p className="text-[9px] uppercase tracking-[0.4em] text-text-sub font-bold">Reference</p>
-              <p className="text-[10px] font-mono text-text-sub/60 uppercase">{item._id.slice(-8)}</p>
+              <p className="text-[9px] uppercase tracking-[0.4em] text-text-sub font-bold">
+                Reference
+              </p>
+              <p className="text-[10px] font-mono text-text-sub/60 uppercase">
+                {item._id.slice(-8)}
+              </p>
             </div>
           </div>
 
           {/* Action Buttons: Vertical Stack */}
+          {/* Action Buttons: Vertical Stack */}
           <div className="flex flex-row md:flex-col gap-6 justify-end items-end border-t md:border-t-0 border-white/5 pt-8 md:pt-0">
             {isRoleUser && isPastReservation ? (
+              // เคส User ทั่วไป: ถ้าผ่านไปแล้วให้ไปรีวิว
               <Link
                 href={`/shop/${item.shop._id}#reviews`}
                 className="group/btn relative py-1 transition-all"
               >
-                <span className="text-[9px] uppercase tracking-[0.4em] text-amber-200 hover:text-amber-100 transition-colors">
+                <span className="text-[9px] uppercase tracking-[0.4em] text-gold hover:text-gold/70 transition-colors">
                   Comment on Shop
                 </span>
                 <div className="absolute bottom-0 right-0 w-0 h-px bg-amber-300 group-hover/btn:w-full transition-all duration-500" />
               </Link>
+            ) : isPastReservation ? (
+              // เคส Admin/Owner: ถ้าผ่านไปแล้ว ให้มีแค่ปุ่มลบ (Remove from Records)
+              <button
+                onClick={() => setIsCancelOpen(true)}
+                className="group/btn relative py-1 transition-all"
+              >
+                <span className="text-[9px] uppercase tracking-[0.4em] text-text-sub/40 group-hover/btn:text-red-400 transition-colors">
+                  Remove Record
+                </span>
+                <div className="absolute bottom-0 right-0 w-0 h-px bg-red-900 group-hover/btn:w-full transition-all duration-500" />
+              </button>
             ) : (
+              // เคสปกติ (Upcoming): มีทั้งเลื่อนและยกเลิก
               <>
                 <button
                   onClick={() => setIsEditOpen(true)}
@@ -153,27 +209,27 @@ export default function ReservationCard({
       </div>
 
       {/* MODALS */}
-      {!isPastReservation && (
-        <>
-          <EditReservationModal
-            isOpen={isEditOpen}
-            onClose={() => setIsEditOpen(false)}
-            onConfirm={handleUpdate}
-            initialDate={item.appDate}
-            shop={item.shop}
-          />
+<EditReservationModal
+  isOpen={isEditOpen}
+  onClose={() => setIsEditOpen(false)}
+  onConfirm={handleUpdate}
+  initialDate={item.appDate}
+  shop={item.shop}
+ 
+/>
 
-          <ConfirmationModal
-            isOpen={isCancelOpen}
-            onClose={() => setIsCancelOpen(false)}
-            onConfirm={() => onDelete(item._id)}
-            title="Cancel Reservation"
-            message={`Confirming the removal of your appointment at ${item.shop.name}. This action will be recorded in the system archives.`}
-            confirmText="Confirm Cancellation"
-            isDanger={true}
-          />
-        </>
-      )}
+<ConfirmationModal
+  isOpen={isCancelOpen}
+  onClose={() => setIsCancelOpen(false)}
+  onConfirm={() => onDelete(item._id)}
+  title={isPastReservation ? "Remove Record" : "Cancel Reservation"}
+  message={isPastReservation 
+    ? `Are you sure you want to remove this past appointment from the archives?`
+    : `Confirming the removal of your appointment at ${item.shop.name}. This action will be recorded in the system archives.`
+  }
+  confirmText={isPastReservation ? "Remove Permanent" : "Confirm Cancellation"}
+  isDanger={true}
+/>
     </>
   );
 }

@@ -18,60 +18,74 @@
 }
 
 .light {
-  --background: #fdf8f4;      
-  --foreground: #2d1b1a;      
-  --card-bg: #ffffff;         
-  --card-border: #eee0d7;     
-  --text-main: #4a1e1b;      
-  --text-sub: #8c6a68;        
-  --accent: #c2410c;          
-  --gold: #b38b59;            
+  --background: #fdf8f4;
+  --foreground: #2d1b1a;
+  --card-bg: #ffffff;
+  --card-border: #eee0d7;
+  --text-main: #4a1e1b;
+  --text-sub: #8c6a68;
+  --accent: #c2410c;
+  --gold: #b38b59;
   --surface: #f5ece5;
   --active: oklch(43.2% 0.095 166.913);
-  --passed: oklch(47.3% 0.137 46.201);    
+  --passed: oklch(47.3% 0.137 46.201);
   --banner-text: #e1ceb7;
-    --red: #ae0c00;
+  --red: #ae0c00;
 }
 
 @theme inline {
   /* Main background of the application */
-  --color-background: var(--background); 
-  
+  --color-background: var(--background);
+
   /* Default body text (subtle, for <p> tags) */
-  --color-foreground: var(--foreground); 
-  
+  --color-foreground: var(--foreground);
+
   /* Component containers (e.g., Cards) */
-  --color-card: var(--card-bg); 
-  
+  --color-card: var(--card-bg);
+
   /* Borders for cards and containers */
-  --color-card-border: var(--card-border); 
-  
+  --color-card-border: var(--card-border);
+
   /* Primary headings (High contrast, for <h1> - <h3>) */
-  --color-text-main: var(--text-main);  
-  
+  --color-text-main: var(--text-main);
+
   /* Secondary text (Captions, dates, metadata) */
-  --color-text-sub: var(--text-sub); 
-  
+  --color-text-sub: var(--text-sub);
+
   /* Brand/Action color (Buttons, active states, effects) */
-  --color-accent: var(--accent); 
-  
+  --color-accent: var(--accent);
+
   /* Decorative gold (Premium elements) */
-  --color-gold: var(--gold); 
-  
+  --color-gold: var(--gold);
+
   /* Secondary layer surfaces (Sidebars, input fields) */
-  --color-surface: var(--surface); 
-  
+  --color-surface: var(--surface);
+
   /* Specific text color for banners (Contrast-safe) */
-  --color-banner-text: var(--banner-text); 
-  
+  --color-banner-text: var(--banner-text);
+
   /* Decorative/Warning red (Alerts, deletions) */
-  --color-red: var(--red); 
-  
+  --color-red: var(--red);
+
   /* Status: Active/Ongoing */
-  --color-active: var(--active); 
-  
+  --color-active: var(--active);
+
   /* Status: Completed/Passed */
   --color-passed: var(--passed); 
+
+  /* ------------------------------------------- */
+  /* ✨ เพิ่มตั้งค่าแอนิเมชันแสงวิ่ง (Shimmer) ที่นี่ ✨ */
+  /* ------------------------------------------- */
+  --animate-shimmer: shimmer 1.5s infinite;
+}
+
+/* ------------------------------------------- */
+/* ✨ เพิ่ม Keyframes สำหรับควบคุมแสงวิ่งที่ปุ่ม ✨ */
+/* ------------------------------------------- */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 body {

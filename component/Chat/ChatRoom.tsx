@@ -58,6 +58,7 @@ function ChatRoom({ shopId, shopName, userId, isAdmin }: ChatProps) {
   // Admin: inbox state
   const [rooms, setRooms] = useState<RoomEntry[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
+  const [mobileView, setMobileView] = useState<"list" | "chat">("list");
 
   // Compute the active room:
   // - User: private room = shopId_userId
@@ -398,14 +399,14 @@ function ChatRoom({ shopId, shopName, userId, isAdmin }: ChatProps) {
 
   if (isAdmin) {
         return (
-            <div 
-              className={`flex h-full w-full bg-background overflow-hidden font-sans relative transition-all duration-300 ${isGrayscale ? 'grayscale' : ''}`}
+            <div
+              className={`flex flex-col md:flex-row h-full w-full bg-background overflow-hidden font-sans relative transition-all duration-300 ${isGrayscale ? 'grayscale' : ''}`}
             >
               {easterEggs}
 
-              {/* Left: Customer inbox - ปรับสีให้ดูเป็น Sidebar หรูๆ */}
-              <div className="w-72 shrink-0 bg-surface/30 border-r border-card-border flex flex-col">
-                <div className="px-6 py-6 border-b border-card-border">
+              {/* Left: Customer inbox */}
+              <div className={`${mobileView === 'list' ? 'flex' : 'hidden'} md:flex w-full md:w-72 shrink-0 bg-surface/30 border-b md:border-b-0 md:border-r border-card-border flex-col md:h-full`}>
+                <div className="px-6 py-4 md:py-6 border-b border-card-border">
                   <h3 className="text-[11px] font-bold text-text-main uppercase tracking-[0.3em]">Guest Inquiries</h3>
                   <p className="text-[9px] text-accent mt-1 uppercase tracking-widest">{shopName}</p>
                 </div>
@@ -416,7 +417,7 @@ function ChatRoom({ shopId, shopName, userId, isAdmin }: ChatProps) {
                     rooms.map(entry => (
                         <button
                           key={entry.room}
-                          onClick={() => setSelectedRoom(entry.room)}
+                          onClick={() => { setSelectedRoom(entry.room); setMobileView('chat'); }}
                           className={`w-full text-left px-6 py-5 border-b border-card-border/30 transition-all duration-300 hover:bg-accent/5 ${selectedRoom === entry.room ? 'bg-accent/10 border-l-4 border-l-accent' : ''}`}
                         >
                           <div className="flex items-center gap-4">
@@ -435,7 +436,7 @@ function ChatRoom({ shopId, shopName, userId, isAdmin }: ChatProps) {
                 </div>
 
                 {/* Right: Chat panel */}
-                <div className="flex-1 flex flex-col overflow-hidden bg-card/10">
+                <div className={`${mobileView === 'chat' ? 'flex' : 'hidden'} md:flex flex-1 flex-col overflow-hidden bg-card/10`}>
                     {!selectedRoom ? (
                         <div className="flex-1 flex flex-col items-center justify-center text-center px-10">
                             <div className="w-12 h-[1px] bg-accent/30 mb-4" />
@@ -443,10 +444,22 @@ function ChatRoom({ shopId, shopName, userId, isAdmin }: ChatProps) {
                         </div>
                     ) : (
                         <>
-                            {chatHeader(
-                                `${selectedUser?.name ?? 'Guest'}`,
-                                `Concierge view · ${shopName || 'Private'}`
-                            )}
+                            <div className="bg-background px-6 py-4 text-white border-b border-card-border z-10 shrink-0 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={() => setMobileView('list')}
+                                        className="md:hidden text-text-sub hover:text-accent transition-colors mr-1 text-lg leading-none"
+                                        aria-label="Back to list"
+                                    >
+                                        ←
+                                    </button>
+                                    <div>
+                                        <h3 className="font-serif text-text-main tracking-widest uppercase text-sm">{selectedUser?.name ?? 'Guest'}</h3>
+                                        <p className="text-[10px] text-text-sub uppercase tracking-widest font-light mt-1">Concierge view · {shopName || 'Private'}</p>
+                                    </div>
+                                </div>
+                                <div className="w-2 h-2 rounded-full bg-accent shadow-[0_0_10px_rgba(212,175,55,0.6)]" />
+                            </div>
                             {messageList}
                             {inputArea}
                         </>

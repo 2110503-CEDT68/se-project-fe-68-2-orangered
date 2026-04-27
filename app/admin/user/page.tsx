@@ -1,6 +1,8 @@
-'use client'
+"use client";
 
-import AdminUserEditorCard, { EditableUser } from "@/component/Profile/AdminUserEditCard";
+import AdminUserEditorCard, {
+  EditableUser,
+} from "@/component/Profile/AdminUserEditCard";
 import getAllUser from "@/libs/admin/getAllUser";
 import restoreArchivedEmail from "@/libs/admin/restoreArchivedEmail";
 import { useSession } from "next-auth/react";
@@ -12,7 +14,6 @@ type ArchivedUser = {
   name: string;
   deletedAt?: string;
 };
-
 
 export default function AdminUserPage() {
   console.log("BACKEND_URL:", process.env.BACKEND_URL);
@@ -53,12 +54,14 @@ export default function AdminUserPage() {
 
   const handleUserSaved = (updatedUser: EditableUser) => {
     setAllUserData((prev) =>
-      prev.map((user) => (user._id === updatedUser._id ? updatedUser : user))
+      prev.map((user) => (user._id === updatedUser._id ? updatedUser : user)),
     );
   };
 
   const handleUserDeleted = (deletedUser: EditableUser) => {
-    setAllUserData((prev) => prev.filter((user) => user._id !== deletedUser._id));
+    setAllUserData((prev) =>
+      prev.filter((user) => user._id !== deletedUser._id),
+    );
     setArchivedUsers((prev) => {
       if (prev.some((entry) => entry.email === deletedUser.email)) {
         return prev;
@@ -92,9 +95,13 @@ export default function AdminUserPage() {
 
     try {
       await restoreArchivedEmail(session.user.token, archiveId);
-      setArchivedUsers((prev) => prev.filter((entry) => entry._id !== archiveId));
+      setArchivedUsers((prev) =>
+        prev.filter((entry) => entry._id !== archiveId),
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to restore archived email");
+      setError(
+        err instanceof Error ? err.message : "Failed to restore archived email",
+      );
     } finally {
       setRestoringId(null);
     }
@@ -117,7 +124,7 @@ export default function AdminUserPage() {
   }
 
   return (
-    <main className="m-10 space-y-6">
+    <main className="m-4 sm:m-10 space-y-6">
       <div className="space-y-2">
         <h1 className="text-3xl font-serif text-text-main">User Management</h1>
         <p className="text-sm uppercase tracking-[0.2em] text-text-sub">
@@ -145,18 +152,24 @@ export default function AdminUserPage() {
       </div>
 
       <section className="relative overflow-hidden rounded-3xl border border-red-400/20 bg-gradient-to-br from-red-400/10 via-card to-card p-6 shadow-xl">
-        <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-red-300/15 blur-3xl" aria-hidden="true" />
+        <div
+          className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-red-300/15 blur-3xl"
+          aria-hidden="true"
+        />
 
         <div className="relative flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-2">
-            <h2 className="text-2xl font-serif text-text-main">Archived Gmail List</h2>
+            <h2 className="text-2xl font-serif text-text-main">
+              Archived Gmail List
+            </h2>
             <p className="text-xs uppercase tracking-[0.24em] text-text-sub">
               Hard-deleted emails are blocked from registering again
             </p>
           </div>
 
           <div className="inline-flex w-fit items-center rounded-full border border-red-400/45 bg-red-200/70 px-4 py-1 text-[11px] uppercase tracking-[0.2em] text-text-main dark:border-red-300/40 dark:bg-red-500/10 dark:text-text-main">
-            {archivedUsers.length} blocked email{archivedUsers.length === 1 ? "" : "s"}
+            {archivedUsers.length} blocked email
+            {archivedUsers.length === 1 ? "" : "s"}
           </div>
         </div>
 
@@ -167,7 +180,9 @@ export default function AdminUserPage() {
                 key={user._id}
                 className="rounded-2xl border border-red-400/45 bg-red-100/70 p-4 backdrop-blur-sm transition hover:border-red-500/60 hover:bg-red-100 dark:border-red-300/30 dark:bg-red-500/[0.08] dark:hover:border-red-200/50 dark:hover:bg-red-500/[0.14]"
               >
-                <p className="break-all text-sm font-semibold text-text-main">{user.email}</p>
+                <p className="break-all text-sm font-semibold text-text-main">
+                  {user.email}
+                </p>
                 <p className="mt-2 text-[11px] uppercase tracking-[0.2em] text-text-sub">
                   {user.name}
                 </p>

@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { signIn, useSession } from "next-auth/react";
 import createShop, { MassageType } from "@/libs/shops/createShop";
 import uploadImage from "@/libs/shops/uploadImage";
+import Link from "next/link";
 
 import {
   Field,
@@ -16,6 +17,13 @@ import {
   Step,
   emptyMassage,
 } from "./ShopFormShared";
+
+type FullMassageType = MassageType & { 
+  _id: string;
+  isPackage: boolean;
+  isActive: boolean;
+  promotions: any[]; 
+};
 
 type SubmitStep = "idle" | "creating" | "uploading" | "done" | "error";
 
@@ -31,8 +39,8 @@ export default function CreateShopForm() {
   const [close, setClose] = useState("");
   const [imageURL, setImageURL] = useState("");
 
-  const [massageTypes, setMassageTypes] = useState<(MassageType & { _id: string })[]>([
-    emptyMassage(),
+  const [massageTypes, setMassageTypes] = useState<FullMassageType[]>([
+    emptyMassage() as FullMassageType,
   ]);
 
   const [previewURL, setPreviewURL] = useState("");
@@ -45,11 +53,14 @@ export default function CreateShopForm() {
   const handleFileChange = useCallback((file: File) => {
     setImageFile(file);
     setPreviewURL(URL.createObjectURL(file));
+    setImageURL(""); 
   }, []);
 
-  const addMassage = () => setMassageTypes((p) => [...p, emptyMassage()]);
+  const addMassage = () => setMassageTypes((p) => [...p, emptyMassage() as FullMassageType]);
+  
   const removeMassage = (id: string) => setMassageTypes((p) => p.filter((m) => m._id !== id));
-  const updateMassage = (id: string, field: keyof MassageType, value: string | number) =>
+  
+  const updateMassage = (id: string, field: string, value: any) =>
     setMassageTypes((p) => p.map((m) => (m._id === id ? { ...m, [field]: value } : m)));
 
   async function handleCreate() {
@@ -73,7 +84,8 @@ export default function CreateShopForm() {
 
     try {
       setSubmitStep("creating");
-      const payload = massageTypes.map(({ _id, ...rest }) => rest);
+      
+      const payload = massageTypes.map(({ _id, isPackage, isActive, promotions, ...rest }) => rest);
       const pictureArg = imageURL.trim() || undefined;
 
       const result = await createShop(
@@ -94,7 +106,7 @@ export default function CreateShopForm() {
         await uploadImage(session.user.token, shopId, imageFile);
       }
       setSubmitStep("done");
-    } catch {
+    } catch (err) {
       setSubmitStep("error");
       setError("Something went wrong. Please try again.");
     }
@@ -119,6 +131,11 @@ export default function CreateShopForm() {
             Project Registered
           </p>
           <p className="text-text-sub text-[11px] font-light tracking-[0.2em] uppercase italic">{name}</p>
+          <div className="pt-4">
+             <Link href="/shop" className="text-[9px] text-gold/60 hover:text-gold tracking-widest uppercase transition-colors">
+               Return to Directory
+             </Link>
+          </div>
         </div>
       </div>
     );
@@ -135,9 +152,9 @@ export default function CreateShopForm() {
         massageCount={massageTypes.length}
       />
 
-      <div className="flex-1 flex flex-col overflow-y-auto">
+      <div className="flex-1 flex flex-col overflow-y-auto bg-background transition-colors duration-500">
         {/* Header Section */}
-        <div className="px-10 pt-16 pb-10 border-b border-card-border/50">
+        <div className="px-10 pt-16 pb-10 border-b border-card-border/50 bg-card/10">
           <p className="text-[8px] tracking-[0.5em] text-gold uppercase mb-3 font-bold">
             ✦ New Establishment
           </p>
@@ -146,7 +163,7 @@ export default function CreateShopForm() {
           </h1>
         </div>
 
-        <div className="px-10 py-12 space-y-16 flex-1 max-w-3xl">
+        <div className="px-4 sm:px-10 py-6 sm:py-12 space-y-16 flex-1 max-w-3xl">
           <MobileImageDrop
             imageURL={imageURL}
             onImageURLChange={setImageURL}
@@ -167,7 +184,7 @@ export default function CreateShopForm() {
           {/* Hours */}
           <section>
             <SectionLabel>Operating Hours</SectionLabel>
-            <div className="grid grid-cols-2 gap-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10">
               <Field label="Opens *" value={open} onChange={setOpen} type="time" />
               <Field label="Closes *" value={close} onChange={setClose} type="time" />
             </div>
@@ -178,7 +195,7 @@ export default function CreateShopForm() {
             <SectionLabel>Location</SectionLabel>
             <div className="space-y-8">
               <Field label="Street & No. *" value={street} onChange={setStreet} placeholder="123 Serenity Blvd" />
-              <div className="grid grid-cols-2 gap-10">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10">
                 <Field label="District" value={district} onChange={setDistrict} placeholder="Pathum Wan" />
                 <Field label="Province" value={province} onChange={setProvince} placeholder="Bangkok" />
               </div>
@@ -191,14 +208,15 @@ export default function CreateShopForm() {
             <SectionLabel>Service Catalog</SectionLabel>
             <div className="space-y-4">
               {massageTypes.map((item, index) => (
-                <MassageCard
-                  key={item._id}
-                  index={index}
-                  item={item}
-                  onChange={updateMassage}
-                  onRemove={removeMassage}
-                  canRemove={massageTypes.length > 1}
-                />
+                <div key={item._id} className="bg-card/20 rounded-xl border border-card-border p-1 hover:border-gold/30 transition-all duration-500 shadow-sm">
+                  <MassageCard
+                    index={index}
+                    item={item}
+                    onChange={updateMassage}
+                    onRemove={removeMassage}
+                    canRemove={massageTypes.length > 1}
+                  />
+                </div>
               ))}
               <button
                 type="button"
@@ -220,7 +238,7 @@ export default function CreateShopForm() {
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 px-10 py-6 bg-background/80 backdrop-blur-md border-t border-card-border/50">
+        <div className="sticky bottom-0 px-4 sm:px-10 py-4 sm:py-6 bg-background/80 backdrop-blur-md border-t border-card-border/50">
           {busy && (
             <div className="flex items-center gap-4 mb-4">
               <Step active={submitStep === "creating"} done={submitStep === "uploading"} label="Protocol: Creation" />

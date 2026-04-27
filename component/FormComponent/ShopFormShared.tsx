@@ -4,6 +4,19 @@ import Image from "next/image";
 import { useRef, useCallback, useState } from "react";
 import { MassageType } from "@/libs/shops/createShop";
 
+
+
+export interface Promotion {
+  title: string;
+  description?: string;
+  discountPrice: number;
+  startDate: string;
+  endDate: string;
+  startTime?: string;
+  endTime?: string;
+  isActive: boolean;
+}
+
 // ─── Field ────────────────────────────────────────────────────────────────────
 export function Field({
   label,
@@ -38,7 +51,7 @@ export function Field({
   );
 }
 
-// ─── Textarea ─────────────────────────────────────────────────────────────────
+// --- Textarea Component ---
 export function Textarea({
   label,
   value,
@@ -68,7 +81,6 @@ export function Textarea({
   );
 }
 
-// ─── SectionLabel ─────────────────────────────────────────────────────────────
 export function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 mb-4">
@@ -80,13 +92,16 @@ export function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ─── MassageCard ──────────────────────────────────────────────────────────────
-export const emptyMassage = (): MassageType & { _id: string } => ({
+// --- MassageCard (Updated with Promotion & Package Logic) ---
+export const emptyMassage = (): MassageType & { _id: string; isPackage: boolean; isActive: boolean; promotions: Promotion[] } => ({
   _id: crypto.randomUUID(),
   name: "",
   description: "",
   price: 0,
   picture: "",
+  isPackage: false,
+  isActive: true,
+  promotions: [],
 });
 
 export function MassageCard({
@@ -97,25 +112,65 @@ export function MassageCard({
   canRemove,
 }: {
   index: number;
-  item: MassageType & { _id: string };
-  onChange: (id: string, field: keyof MassageType, value: string | number) => void;
+  item: MassageType & { _id: string; isPackage: boolean; isActive: boolean; promotions: Promotion[] };
+  onChange: (id: string, field: string, value: any) => void;
   onRemove: (id: string) => void;
   canRemove: boolean;
 }) {
+  const [showPromo, setShowPromo] = useState(item.promotions.length > 0);
+
+  const togglePromo = () => {
+    if (!showPromo && item.promotions.length === 0) {
+      // Add a default empty promotion when opening if none exists
+      onChange(item._id, "promotions", [{
+        title: "Flash Sale",
+        discountPrice: item.price > 0 ? Math.floor(item.price * 0.9) : 0,
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        isActive: true
+      }]);
+    }
+    setShowPromo(!showPromo);
+  };
+
+  const updatePromoField = (field: keyof Promotion, value: any) => {
+    const newPromos = [...item.promotions];
+    if (newPromos.length === 0) return;
+    newPromos[0] = { ...newPromos[0], [field]: value };
+    onChange(item._id, "promotions", newPromos);
+  };
+
   return (
-    <div className="group bg-card/5 p-6 rounded-sm space-y-6 hover:bg-card/10 transition-all duration-700">
+    <div className="group bg-card/5 p-6 rounded-sm space-y-6 hover:bg-card/10 transition-all duration-700 border border-transparent hover:border-gold/20">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-           <div className="w-4 h-[1px] bg-gold/50" />
-           <span className="text-[8px] tracking-[0.4em] text-text-sub uppercase font-bold">
-            Treatment {String(index + 1).padStart(2, '0')}
-           </span>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+             <div className="w-4 h-[1px] bg-gold/50" />
+             <span className="text-[8px] tracking-[0.4em] text-text-sub uppercase font-bold">
+               {item.isPackage ? "Bundle Package" : "Treatment"} {String(index + 1).padStart(2, '0')}
+             </span>
+          </div>
+          {/* Status Toggles */}
+          <div className="flex items-center gap-3 ml-4">
+            <button 
+              onClick={() => onChange(item._id, "isPackage", !item.isPackage)}
+              className={`text-[8px] px-2 py-0.5 border transition-all ${item.isPackage ? 'border-gold text-gold bg-gold/10' : 'border-card-border text-text-sub'}`}
+            >
+              PACKAGE
+            </button>
+            <button 
+              onClick={() => onChange(item._id, "isActive", !item.isActive)}
+              className={`text-[8px] px-2 py-0.5 border transition-all ${item.isActive ? 'border-emerald-500/50 text-emerald-400' : 'border-red-500/50 text-red-400'}`}
+            >
+              {item.isActive ? "ACTIVE" : "HIDDEN"}
+            </button>
+          </div>
         </div>
         {canRemove && (
           <button
             type="button"
             onClick={() => onRemove(item._id)}
-            className="opacity-67 group-hover:opacity-100 text-text-sub hover:text-red-400 transition-all duration-300 text-[9px] uppercase tracking-widest"
+            className="opacity-40 group-hover:opacity-100 text-text-sub hover:text-red-400 transition-all duration-300 text-[9px] uppercase tracking-widest"
           >
             — Remove
           </button>
@@ -126,31 +181,74 @@ export function MassageCard({
         <Field
           label="Service Name *"
           value={item.name}
-          onChange={(v: any) => onChange(item._id, "name", v)}
+          onChange={(v) => onChange(item._id, "name", v)}
           placeholder="E.g. Signature Aromatherapy"
         />
         <Field
-          label="Fare (THB) *"
+          label="Full Price (THB) *"
           value={item.price === 0 ? "" : String(item.price)}
-          onChange={(v: any) => onChange(item._id, "price", Number(v))}
+          onChange={(v) => onChange(item._id, "price", Number(v))}
           placeholder="0.00"
           type="number"
         />
       </div>
       
-      <Field
-        label="Description"
-        value={item.description ?? ""}
-        onChange={(v: any) => onChange(item._id, "description", v)}
-        placeholder="Describe the sensory experience..."
-      />
-      
-      <Field
-        label="Visual Link"
-        value={item.picture ?? ""}
-        onChange={(val: any) => onChange(item._id, "picture", val)}
-        placeholder="https://source.unsplash.com/..."
-      />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <Field
+          label="Description"
+          value={item.description ?? ""}
+          onChange={(v) => onChange(item._id, "description", v)}
+          placeholder="Describe the sensory experience..."
+        />
+        <Field
+          label="Visual Link"
+          value={item.picture ?? ""}
+          onChange={(v) => onChange(item._id, "picture", v)}
+          placeholder="https://source.unsplash.com/..."
+        />
+      </div>
+
+      {/* Promotion Logic Area */}
+      <div className="pt-2 border-t border-card-border/30">
+        <button 
+          onClick={togglePromo}
+          className="text-[9px] tracking-[0.3em] text-gold uppercase hover:underline"
+        >
+          {showPromo ? "✕ Remove Promotion" : "+ Add Special Promotion"}
+        </button>
+
+        {showPromo && item.promotions.length > 0 && (
+          <div className="mt-4 p-4 bg-black/20 rounded border border-gold/10 space-y-4 animate-in fade-in slide-in-from-top-2 duration-500">
+            <div className="grid grid-cols-2 gap-6">
+              <Field 
+                label="Promo Title" 
+                value={item.promotions[0].title} 
+                onChange={(v) => updatePromoField("title", v)} 
+              />
+              <Field 
+                label="Discounted Price" 
+                value={String(item.promotions[0].discountPrice)} 
+                onChange={(v) => updatePromoField("discountPrice", Number(v))} 
+                type="number"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-6">
+              <Field 
+                label="Start Date" 
+                value={item.promotions[0].startDate.split('T')[0]} 
+                onChange={(v) => updatePromoField("startDate", v)} 
+                type="date"
+              />
+              <Field 
+                label="End Date" 
+                value={item.promotions[0].endDate.split('T')[0]} 
+                onChange={(v) => updatePromoField("endDate", v)} 
+                type="date"
+              />
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

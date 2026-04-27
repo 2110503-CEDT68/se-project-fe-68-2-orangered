@@ -24,10 +24,9 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <main className="flex-grow p-8 space-y-12">
-        
+      <main className="flex-grow p-4 sm:p-8 space-y-12">
         <Banner />
-        
+
         <div className="max-w-7xl mx-auto space-y-8">
           <div className="flex justify-end">
             <Link href={"/shop"} className="group">
@@ -40,7 +39,6 @@ export default function Home() {
 
           <FeaturedShop shops={allShops} />
         </div>
-        
       </main>
     </div>
   );

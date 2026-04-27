@@ -16,12 +16,27 @@ export interface IUser extends Document {
   getSignedJwtToken(): string;
 }
 
+export interface Promotion {
+  _id?: string;
+  title: string;
+  description?: string;
+  discountPrice: number;
+  startDate: Date | string;
+  endDate: Date | string;
+  startTime?: string; // เช่น "10:00"
+  endTime?: string; // เช่น "14:00"
+  isActive: boolean;
+}
+
 export interface MassageType {
   name: string;
   description: string;
   price: number;
   picture?: string;
   _id?: string;
+  promotions?: Promotion[];
+  isPackage: boolean;
+  isActive: boolean;
 }
 
 export interface ShopItem {
@@ -51,7 +66,7 @@ export interface ShopItem {
   owner?: string;
   __v?: number;
 
-  reservations?:[];
+  reservations?: [];
 
   averageRating?: number;
   ratingCount?: number;
@@ -66,19 +81,19 @@ export interface RatingItem {
   review?: string;
   createdAt: string;
 }
-  
+
 export interface ShopJson {
-  success: boolean,
-  count: number,
-  pagination: PaginationMeta,
-  data: ShopItem[]
+  success: boolean;
+  count: number;
+  pagination: PaginationMeta;
+  data: ShopItem[];
 }
 
-export interface Reservations{
-  success: boolean
-  count: number
-  pagination: PaginationMeta
-  data: ReservationItem[]
+export interface Reservations {
+  success: boolean;
+  count: number;
+  pagination: PaginationMeta;
+  data: ReservationItem[];
 }
 
 export interface PaginationMeta {
@@ -113,7 +128,7 @@ interface ShopReserve {
 
 export interface ReservationItem {
   _id: string;
-  appDate: string;       
+  appDate: string;
   user: {
     _id: string;
     name: string;
@@ -121,9 +136,13 @@ export interface ReservationItem {
     tel: string;
     status?: "active" | "inactive";
   };
-  shop: ShopItem; 
-  createdAt: string;     
+  shop: ShopItem;
+  createdAt: string;
   massageType: string;
   massagePrice: number;
+  promotion?: {
+    title: string;
+    discountPrice: number;
+  };
   __v: number;
 }
