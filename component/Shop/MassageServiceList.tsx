@@ -78,6 +78,7 @@ export default function MassageServiceList({ services }: { services: MassageType
                         <p className="text-[9px] text-accent dark:text-accent-400 tracking-[0.2em] uppercase font-bold italic">
                           ✦ {activePromo.title}
                         </p>
+                        <p className="text-[14px] text-text-sub/60 tracking-[0.1em] uppercase">{activePromo.description}</p>
                         <p className="text-[8px] text-text-sub/60 tracking-[0.1em] uppercase">
                           Period: {formatDateRange(activePromo.startDate, activePromo.endDate)}
                         </p>

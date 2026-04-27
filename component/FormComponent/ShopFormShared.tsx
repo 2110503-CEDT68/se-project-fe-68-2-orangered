@@ -128,9 +128,22 @@ export function MassageCard({
     const checkPromo = { ...promo, [field]: value };
     let error = "";
 
-    if (field === "discountPrice" && Number(value) >= item.price) {
-      error = "Discount price must be lower than the full price.";
+    if (field === "discountPrice") {
+      value = Math.ceil(value * 100) / 100;
     } 
+
+    if (field === "title" && value.trim() === "") {
+      error = "Promotion title cant be empty string";
+    }
+
+    else if (field === "discountPrice" && Number(value) >= item.price) {
+      error = "Discount price must be lower than the full price.";
+    }
+
+    else if (field === "discountPrice" && Number(value) <= 0) {
+      error = "Discount price must be more than 0.";
+    } 
+
     else if (new Date(checkPromo.startDate) > new Date(checkPromo.endDate)) {
       error = "Start date cannot be later than the end date.";
     }
@@ -154,7 +167,10 @@ export function MassageCard({
         {
           title: "Flash Sale",
           description: "", // เพิ่ม description เพื่อรองรับ AC
-          discountPrice: item.price > 0 ? Math.floor(item.price * 0.9) : 0,
+          discountPrice:
+            item.price > 0
+              ? Math.ceil(item.price * 0.9 * 1000) / 1000
+              : 0,
           startDate: new Date().toISOString().split("T")[0],
           endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
             .toISOString()

@@ -87,7 +87,7 @@ export default function CreateShopForm() {
       const p = m.promotions[0];
       const start = new Date(p.startDate);
       const end = new Date(p.endDate);
-      return (p.discountPrice >= m.price) || (start > end) || (p.title.length > 50);
+      return (p.discountPrice >= m.price) || (p.discountPrice <= 0) || (start > end) || (p.title.length > 50) || (p.title.length <= 0);
     }
     return false;
   });
