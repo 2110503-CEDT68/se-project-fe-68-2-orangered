@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSession } from "next-auth/react";
 import { getBackendBaseUrl } from "@/libs/api/baseUrl";
 
@@ -20,6 +20,50 @@ interface Shop {
     picture?: string;
 }
 
+// ---------------------------------------------------------------------------
+// คอมโพเนนต์ย่อยสำหรับทำ Lazy Load ป้องกัน GIF/Image โหลดและกินสเปคเครื่อง
+// ---------------------------------------------------------------------------
+const LazyImage = ({ src, alt, className }: { src: string, alt: string, className: string }) => {
+    const [isVisible, setIsVisible] = useState(false);
+    const imgRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                // เมื่อเลื่อนมาเห็น (หรือใกล้ถึงระยะ 100px) ให้ทำการโหลดภาพ
+                if (entry.isIntersecting) {
+                    setIsVisible(true);
+                    observer.disconnect(); // โหลดเสร็จแล้วเลิกติดตามเพื่อประหยัดทรัพยากร
+                }
+            },
+            { rootMargin: '100px 0px', threshold: 0.01 }
+        );
+
+        if (imgRef.current) {
+            observer.observe(imgRef.current);
+        }
+
+        return () => observer.disconnect();
+    }, []);
+
+    return (
+        <div ref={imgRef} className="w-full h-full relative">
+            {isVisible ? (
+                <img
+                    src={src}
+                    alt={alt}
+                    className={className}
+                    loading="lazy" // สั่งให้ Browser ช่วยจัดการ Lazy load ซ้อนอีกชั้น
+                    onError={(e) => { (e.target as HTMLImageElement).parentElement!.parentElement!.style.display = 'none'; }}
+                />
+            ) : (
+                // แสดงโครงกระดูก (Skeleton) สั่นๆ รอระหว่างที่ยังเลื่อนไม่ถึง
+                <div className="absolute inset-0 bg-card-border/10 animate-pulse" />
+            )}
+        </div>
+    );
+};
+
 export default function AnnouncementPage() {
     const { data: session } = useSession();
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -38,8 +82,8 @@ export default function AnnouncementPage() {
     // State สำหรับ UI & Modal & Features
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
     const [viewingPost, setViewingPost] = useState<Announcement | null>(null);
-    const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest'); // ระบบ Sort
-    const [layout, setLayout] = useState<'list' | 'grid'>('grid'); // ระบบเลือก Layout
+    const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest'); 
+    const [layout, setLayout] = useState<'list' | 'grid'>('grid'); 
 
     const isAuthorized = session?.user?.role === 'admin' || session?.user?.role === 'shopowner';
     const isShopOwner = session?.user?.role === 'shopowner';
@@ -160,7 +204,6 @@ export default function AnnouncementPage() {
         return 'object-center';
     };
 
-    // การจัดการระบบ Sort
     const sortedAnnouncements = [...announcements].sort((a, b) => {
         const dateA = new Date(a.createdAt).getTime();
         const dateB = new Date(b.createdAt).getTime();
@@ -268,11 +311,11 @@ export default function AnnouncementPage() {
                                                     className="flex-1 bg-background/50 border border-card-border rounded-2xl px-5 py-4 text-sm text-text-main placeholder:text-text-sub/30 focus:outline-none focus:border-accent/60 transition-all font-mono"
                                                 />
                                                 {imageUrl && (
-                                                    <div className="w-14 h-14 rounded-xl border border-card-border overflow-hidden flex-shrink-0 shadow-inner">
+                                                    <div className="w-14 h-14 rounded-xl border border-card-border overflow-hidden flex-shrink-0 shadow-inner relative">
                                                         <img
                                                             src={imageUrl}
                                                             alt="preview"
-                                                            className={`w-full h-full object-cover ${getPositionClass(imagePosition)}`}
+                                                            className={`absolute inset-0 w-full h-full object-cover ${getPositionClass(imagePosition)}`}
                                                             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                                                         />
                                                     </div>
@@ -315,41 +358,41 @@ export default function AnnouncementPage() {
                                     </div>
                                 </div>
 
+                                {/* ปุ่ม Publish แบบใหม่ที่หรูหรา */}
                                 <div className="flex items-center gap-4 mt-10 pt-8 border-t border-card-border/50">
-    <button
-        type="submit"
-        disabled={isProcessing}
-        className={`relative flex items-center justify-center min-w-[180px] px-8 py-4 rounded-full text-xs uppercase tracking-[0.3em] font-bold transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden group ${
-            editingId
-            ? 'bg-gradient-to-r from-gold to-gold/80 text-white shadow-[0_0_20px_rgba(212,175,55,0.2)] hover:shadow-[0_8px_25px_rgba(212,175,55,0.4)] border border-gold/50 hover:-translate-y-0.5'
-            : 'bg-gradient-to-r from-accent to-accent/80 text-white shadow-[0_0_20px_rgba(var(--accent-rgb),0.2)] hover:shadow-[0_8px_25px_rgba(var(--accent-rgb),0.4)] border border-accent/50 hover:-translate-y-0.5'
-        }`}
-    >
-        {/* เอฟเฟกต์แสงสะท้อนวิ่งผ่านปุ่มตอน Hover */}
-        <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite] skew-x-12" />
-        
-        <span className="relative z-10 flex items-center gap-2">
-            {isProcessing ? (
-                <>
-                    <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    PROCESSING
-                </>
-            ) : (
-                editingId ? 'Authorize Update' : 'Publish Entry'
-            )}
-        </span>
-    </button>
-    
-    {editingId && (
-        <button
-            type="button"
-            onClick={resetForm}
-            className="px-8 py-4 rounded-full text-xs uppercase tracking-[0.3em] font-bold text-text-sub border border-transparent hover:border-card-border hover:bg-card-border/10 hover:text-text-main transition-all duration-300"
-        >
-            Discard
-        </button>
-    )}
-</div>
+                                    <button
+                                        type="submit"
+                                        disabled={isProcessing}
+                                        className={`relative flex items-center justify-center min-w-[180px] px-8 py-4 rounded-full text-xs uppercase tracking-[0.3em] font-bold transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden group ${
+                                            editingId
+                                            ? 'bg-gradient-to-r from-gold to-gold/80 text-white shadow-[0_0_20px_rgba(212,175,55,0.2)] hover:shadow-[0_8px_25px_rgba(212,175,55,0.4)] border border-gold/50 hover:-translate-y-0.5'
+                                            : 'bg-gradient-to-r from-accent to-accent/80 text-white shadow-[0_0_20px_rgba(var(--accent-rgb),0.2)] hover:shadow-[0_8px_25px_rgba(var(--accent-rgb),0.4)] border border-accent/50 hover:-translate-y-0.5'
+                                        }`}
+                                    >
+                                        <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite] skew-x-12" />
+                                        
+                                        <span className="relative z-10 flex items-center gap-2">
+                                            {isProcessing ? (
+                                                <>
+                                                    <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                    PROCESSING
+                                                </>
+                                            ) : (
+                                                editingId ? 'Authorize Update' : 'Publish Entry'
+                                            )}
+                                        </span>
+                                    </button>
+                                    
+                                    {editingId && (
+                                        <button
+                                            type="button"
+                                            onClick={resetForm}
+                                            className="px-8 py-4 rounded-full text-xs uppercase tracking-[0.3em] font-bold text-text-sub border border-transparent hover:border-card-border hover:bg-card-border/10 hover:text-text-main transition-all duration-300"
+                                        >
+                                            Discard
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -365,7 +408,6 @@ export default function AnnouncementPage() {
                     </div>
 
                     <div className="flex items-center gap-6">
-                        {/* Sort Dropdown */}
                         <div className="flex items-center gap-3">
                             <span className="text-[9px] uppercase tracking-[0.2em] text-text-sub/50">Order By:</span>
                             <div className="relative">
@@ -374,8 +416,8 @@ export default function AnnouncementPage() {
                                     onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
                                     className="appearance-none bg-card border border-card-border rounded-full pl-4 pr-10 py-2 text-xs text-text-main font-semibold tracking-wide focus:outline-none focus:border-accent/50 transition-all cursor-pointer shadow-sm"
                                 >
-                                    <option value="newest">Ascending</option>
-                                    <option value="oldest">Descending</option>
+                                    <option value="newest">Newest Arrival</option>
+                                    <option value="oldest">Chronological</option>
                                 </select>
                                 <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-text-sub text-[10px]">▼</div>
                             </div>
@@ -383,7 +425,6 @@ export default function AnnouncementPage() {
 
                         <div className="w-[1px] h-6 bg-card-border"></div>
 
-                        {/* Layout Toggle */}
                         <div className="flex items-center bg-card border border-card-border rounded-full p-1 shadow-sm">
                             <button 
                                 onClick={() => setLayout('grid')} 
@@ -435,16 +476,15 @@ export default function AnnouncementPage() {
                                     className={`group relative cursor-pointer bg-card/40 backdrop-blur-sm border border-card-border rounded-3xl overflow-hidden hover:shadow-2xl hover:border-accent/30 transition-all duration-500 ease-out hover:-translate-y-1 ${layout === 'list' ? 'flex flex-col md:flex-row' : 'flex flex-col'}`}
                                     style={{ animationDelay: `${index * 50}ms` }}
                                 >
-                                    {/* Image */}
+                                    {/* เรียกใช้ LazyImage แทน img ธรรมดา */}
                                     {item.imageUrl && (
                                         <div className={`relative overflow-hidden flex-shrink-0 ${layout === 'list' ? 'w-full md:w-1/3 min-h-[240px]' : 'w-full h-60'}`}>
-                                            <img
+                                            <LazyImage
                                                 src={item.imageUrl}
                                                 alt={item.title}
                                                 className={`absolute inset-0 w-full h-full object-cover ${getPositionClass(item.imagePosition)} grayscale-[15%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 ease-out`}
-                                                onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = 'none'; }}
                                             />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent opacity-80 group-hover:opacity-40 transition-opacity duration-500" />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent opacity-80 group-hover:opacity-40 transition-opacity duration-500 pointer-events-none" />
                                         </div>
                                     )}
 
@@ -551,7 +591,7 @@ export default function AnnouncementPage() {
                             </svg>
                         </button>
 
-                        {/* Modal Image */}
+                        {/* Modal Image (โหลดเลยเพราะเปิดขึ้นมาดูแล้ว) */}
                         {viewingPost.imageUrl && (
                             <div className="w-full h-80 sm:h-[450px] bg-background relative">
                                 <img
