@@ -1,12 +1,18 @@
-'use client'
+"use client";
 
 import deleteShop from "@/libs/shops/deleteShop";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import ConfirmationModal from "./ConfirmationModal";
+import ConfirmationModal from "../../ui/ConfirmationModal";
 
-export default function DeleteButton({ shopId, canManage }: { shopId: string; canManage?: boolean }) {
+export default function DeleteButton({
+  shopId,
+  canManage,
+}: {
+  shopId: string;
+  canManage?: boolean;
+}) {
   const { data: session } = useSession();
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -43,8 +49,10 @@ export default function DeleteButton({ shopId, canManage }: { shopId: string; ca
         disabled={loading}
         className="fixed bottom-10 right-10 group flex flex-col items-end gap-1 z-40"
       >
-        <div className={`px-6 py-2 bg-card/80 backdrop-blur-md border border-red-500/30 rounded-xl transition-all duration-500 
-          ${loading ? 'opacity-50 cursor-not-allowed' : 'group-hover:border-red-600 group-hover:bg-red-950/20 group-hover:shadow-[0_0_20px_rgba(220,38,38,0.15)]'}`}>
+        <div
+          className={`px-6 py-2 bg-card/80 backdrop-blur-md border border-red-500/30 rounded-xl transition-all duration-500 
+          ${loading ? "opacity-50 cursor-not-allowed" : "group-hover:border-red-600 group-hover:bg-red-950/20 group-hover:shadow-[0_0_20px_rgba(220,38,38,0.15)]"}`}
+        >
           <span className="text-[10px] uppercase tracking-[0.4em] text-red-500 group-hover:text-red-400 transition-colors font-medium">
             {loading ? "Deleting..." : "Delete Shop"}
           </span>

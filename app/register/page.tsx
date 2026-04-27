@@ -222,7 +222,7 @@ export default function RegisterPage() {
                       onClick={() => setIsTosOpen(true)}
                       className="text-accent underline hover:text-accent/80 font-bold"
                     >
-                      Terms of Service
+                      Terms of Service & Privacy Policy
                     </button>
                   </label>
                 </div>
@@ -275,7 +275,7 @@ export default function RegisterPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-in fade-in duration-300">
           <div className="bg-card border border-card-border rounded-2xl w-full max-w-lg shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col max-h-[85vh]">
             <div className="p-6 border-b border-card-border flex justify-between items-center bg-surface/20">
-              <h2 className="text-xl font-serif text-text-main tracking-tight">Terms of Service</h2>
+              <h2 className="text-xl font-serif text-text-main tracking-tight">Terms of Service & Privacy Policy</h2>
               <button onClick={() => setIsTosOpen(false)} className="text-text-sub hover:text-red-500 transition-colors p-2">
                 ✕
               </button>
