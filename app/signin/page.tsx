@@ -71,7 +71,7 @@ export default function SigninPage() {
 
   return (
     // 1. ปรับสีพื้นหลังและตัวหนังสือตาม Theme
-    <main className="min-h-screen bg-background text-foreground flex flex-col items-center justify-start px-8 py-32 transition-colors duration-500">
+    <main className="min-h-screen bg-background text-foreground flex flex-col items-center justify-start px-4 sm:px-8 py-16 sm:py-32 transition-colors duration-500">
       <div className="max-w-md w-full">
         <div className="text-center mb-14">
           <h1 className="text-3xl font-serif uppercase tracking-[0.3em] text-text-main">
@@ -84,7 +84,7 @@ export default function SigninPage() {
         </div>
 
         {/* 2. ปรับ Card Style */}
-        <div className="bg-card border border-card-border rounded-2xl p-12 backdrop-blur-md shadow-2xl transition-all">
+        <div className="bg-card border border-card-border rounded-2xl p-6 sm:p-12 backdrop-blur-md shadow-2xl transition-all">
           
           {error && (
             <Alert severity="error" sx={{ mb: 3, backgroundColor: 'rgba(211, 47, 47, 0.1)', color: '#ef4444', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>

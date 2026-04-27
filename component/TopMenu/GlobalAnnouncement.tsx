@@ -24,15 +24,32 @@ interface Announcement {
     };
 }
 
+const STORAGE_KEY = "orangered_seen_announcements";
+
+function getSeenIds(): Set<string> {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return new Set(raw ? JSON.parse(raw) : []);
+    } catch {
+        return new Set();
+    }
+}
+
+function markAllSeen(ids: string[]) {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+    } catch {}
+}
+
 export default function GlobalAnnouncement() {
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
     const [isOpen, setIsOpen] = useState(false);
-    const [hasNew, setHasNew] = useState(true);
+    const [newCount, setNewCount] = useState(0);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-        if (!backendUrl) return; // backend URL not configured
+        if (!backendUrl) return;
 
         const fetchAnnouncements = async () => {
             try {
@@ -40,9 +57,12 @@ export default function GlobalAnnouncement() {
                 if (!res.ok) return;
                 const result = await res.json();
                 if (result.success && result.data) {
-                    setAnnouncements(result.data);
+                    const data: Announcement[] = result.data;
+                    setAnnouncements(data);
+                    const seen = getSeenIds();
+                    setNewCount(data.filter(a => !seen.has(a._id)).length);
                 }
-            } catch (err) {
+            } catch {
                 // silently fail — backend might be offline
             }
         };
@@ -62,7 +82,10 @@ export default function GlobalAnnouncement() {
 
     const handleOpen = () => {
         setIsOpen(prev => !prev);
-        setHasNew(false);
+        if (newCount > 0) {
+            markAllSeen(announcements.map(a => a._id));
+            setNewCount(0);
+        }
     };
 
     if (announcements.length === 0) return null;
@@ -80,17 +103,14 @@ export default function GlobalAnnouncement() {
                     className={`text-xl transition-transform duration-300 ${isOpen ? 'scale-90' : 'group-hover:scale-110'}`}
                     style={{ display: 'inline-block' }}
                 />
-                {/* Badge */}
-                <span className={`absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full text-[9px] font-black shadow-lg transition-all duration-300 ${
-                    hasNew
-                        ? 'bg-red-500 text-white shadow-red-500/40 scale-100'
-                        : 'bg-accent/80 text-white scale-90'
-                }`}>
-                    {announcements.length > 99 ? '99+' : announcements.length}
-                </span>
-                {/* Ping animation when has new */}
-                {hasNew && (
-                    <span className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] rounded-full bg-red-500 opacity-50 animate-ping pointer-events-none" />
+                {/* Badge — only shown when there are unseen announcements */}
+                {newCount > 0 && (
+                    <>
+                        <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full text-[9px] font-black shadow-lg bg-red-500 text-white shadow-red-500/40">
+                            {newCount > 99 ? '99+' : newCount}
+                        </span>
+                        <span className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] rounded-full bg-red-500 opacity-50 animate-ping pointer-events-none" />
+                    </>
                 )}
             </button>
 

@@ -141,7 +141,7 @@ export default function ReservationForm({ shop }: { shop: ShopItem }) {
               <span className="h-px w-4 bg-accent/40" />
               <p className="text-[9px] uppercase tracking-[0.4em] text-accent font-bold">Inscribe Time</p>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 gap-4">
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
                   value={date}

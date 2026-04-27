@@ -231,11 +231,12 @@ export default function AnnouncementPage() {
         <div className="min-h-screen bg-background text-foreground transition-colors duration-500">
             {/* Hero Banner */}
             <div className="relative overflow-hidden border-b border-card-border">
-                <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-gold/5 pointer-events-none" />
-                <div className="max-w-5xl mx-auto px-6 md:px-12 py-20">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-accent/20 to-accent/5 border border-accent/20 flex items-center justify-center text-xl shadow-lg shadow-accent/5">
-                            ✨
+                <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-gold/5 pointer-events-none" />
+                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
+                <div className="max-w-4xl mx-auto px-6 md:px-12 py-16">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-8 h-8 rounded-lg bg-accent/20 border border-accent/30 flex items-center justify-center text-base">
+                            📢
                         </div>
                         <span className="text-[11px] uppercase tracking-[0.5em] text-accent font-bold">
                             Registry Center
@@ -250,7 +251,7 @@ export default function AnnouncementPage() {
                 </div>
             </div>
 
-            <div className="max-w-5xl mx-auto px-6 md:px-12 py-16">
+            <div className="max-w-4xl mx-auto px-6 md:px-12 py-12">
 
                 {/* Create / Edit Form */}
                 {isAuthorized && (
@@ -261,10 +262,11 @@ export default function AnnouncementPage() {
                         >
                             <div className={`h-1 w-full bg-gradient-to-r ${editingId ? 'from-gold/80 via-gold/40 to-transparent' : 'from-accent/80 via-accent/40 to-transparent'}`} />
 
-                            <div className="p-8 md:p-10">
-                                <div className="flex items-center gap-4 mb-10 pb-6 border-b border-card-border/50">
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${editingId ? 'bg-gold/10 text-gold' : 'bg-accent/10 text-accent'}`}>
-                                        {editingId ? '✎' : '＋'}
+                            <div className="p-8">
+                                {/* Form header */}
+                                <div className="flex items-center gap-3 mb-8">
+                                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm ${editingId ? 'bg-gold/15 border border-gold/30' : 'bg-accent/15 border border-accent/30'}`}>
+                                        {editingId ? '✏️' : '✨'}
                                     </div>
                                     <div>
                                         <h2 className={`text-xs uppercase tracking-[0.3em] font-bold ${editingId ? 'text-gold' : 'text-accent'}`}>
@@ -502,17 +504,18 @@ export default function AnnouncementPage() {
                                         </div>
                                     )}
 
-                                    {/* Content */}
-                                    <div className="relative p-8 flex flex-col flex-grow">
-                                        <div className="flex-grow">
-                                            <div className="flex items-center gap-3 mb-4 flex-wrap">
-                                                <span className="inline-flex items-center text-[9px] uppercase tracking-[0.3em] text-text-sub/60 font-mono">
-                                                    {formatDate(item.createdAt)}
-                                                </span>
-                                                {item.shop && (
-                                                    <>
-                                                        <span className="w-1 h-1 rounded-full bg-card-border" />
-                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-card-border bg-background/50 text-[9px] uppercase tracking-widest text-text-sub font-bold">
+                                    <div className="relative p-8">
+                                        {/* Header row */}
+                                        <div className="flex justify-between items-start gap-4 mb-4">
+                                            <div className="flex-1 min-w-0">
+                                                {/* Date + Shop badge */}
+                                                <div className="flex items-center gap-3 mb-3 flex-wrap">
+                                                    <span className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.3em] text-text-sub/50 font-mono">
+                                                        <span className="w-1 h-1 rounded-full bg-accent/50 inline-block" />
+                                                        {formatDate(item.createdAt)}
+                                                    </span>
+                                                    {item.shop && (
+                                                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-accent/20 bg-accent/5 text-[9px] uppercase tracking-widest text-accent font-bold">
                                                             {item.shop.picture && (
                                                                 <img 
                                                                     src={item.shop.picture} 

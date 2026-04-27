@@ -5,6 +5,7 @@ type GetAllShopsOptions = {
   limit?: number;
   sort?: string;
   ownerId?: string;
+  name?: string;
 };
 
 export default async function getAllShops(options: GetAllShopsOptions = {}) {
@@ -39,6 +40,6 @@ export default async function getAllShops(options: GetAllShopsOptions = {}) {
   }
 
   const result = await response.json();
-  
-  return result; 
+
+  return result;
 }

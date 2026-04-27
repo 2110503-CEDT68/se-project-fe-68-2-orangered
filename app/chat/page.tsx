@@ -114,7 +114,7 @@ export default function ChatPage() {
 
   if (status === "loading" || loadingShops) {
     return (
-      <main className="min-h-screen bg-background px-8 py-10 text-text-main">
+      <main className="min-h-screen bg-background px-4 sm:px-8 py-6 sm:py-10 text-text-main">
         <div className="mx-auto flex min-h-[60vh] max-w-5xl items-center justify-center rounded-3xl border border-card-border bg-card/70">
           <p className="text-[10px] uppercase tracking-[0.4em] text-text-sub animate-pulse">
             Loading chat...
@@ -126,7 +126,7 @@ export default function ChatPage() {
 
   if (!session) {
     return (
-      <main className="min-h-screen bg-background px-8 py-10 text-text-main">
+      <main className="min-h-screen bg-background px-4 sm:px-8 py-6 sm:py-10 text-text-main">
         <div className="mx-auto flex min-h-[60vh] max-w-3xl flex-col items-center justify-center rounded-3xl border border-card-border bg-card/70 px-8 text-center">
           <p className="text-[10px] uppercase tracking-[0.4em] text-accent font-bold mb-4">
             Authentication Required
@@ -151,7 +151,7 @@ export default function ChatPage() {
 
   if (session.user.role !== "shopowner") {
     return (
-      <main className="min-h-screen bg-background px-8 py-10 text-text-main">
+      <main className="min-h-screen bg-background px-4 sm:px-8 py-6 sm:py-10 text-text-main">
         <div className="mx-auto flex min-h-[60vh] max-w-3xl flex-col items-center justify-center rounded-3xl border border-card-border bg-card/70 px-8 text-center">
           <p className="text-[10px] uppercase tracking-[0.4em] text-accent font-bold mb-4">
             Shop Owner Only
@@ -176,7 +176,7 @@ export default function ChatPage() {
 
   if (error) {
     return (
-      <main className="min-h-screen bg-background px-8 py-10 text-text-main">
+      <main className="min-h-screen bg-background px-4 sm:px-8 py-6 sm:py-10 text-text-main">
         <div className="mx-auto flex min-h-[60vh] max-w-3xl flex-col items-center justify-center rounded-3xl border border-card-border bg-card/70 px-8 text-center">
           <p className="text-[10px] uppercase tracking-[0.4em] text-red-400 font-bold mb-4">
             Chat Unavailable
@@ -200,7 +200,7 @@ export default function ChatPage() {
 
   if (shops.length === 0) {
     return (
-      <main className="min-h-screen bg-background px-8 py-10 text-text-main">
+      <main className="min-h-screen bg-background px-4 sm:px-8 py-6 sm:py-10 text-text-main">
         <div className="mx-auto flex min-h-[60vh] max-w-4xl flex-col items-center justify-center rounded-3xl border border-card-border bg-card/70 px-8 text-center">
           <p className="text-[10px] uppercase tracking-[0.4em] text-accent font-bold mb-4">
             No Shop Yet
@@ -224,7 +224,7 @@ export default function ChatPage() {
   }
 
   return (
-    <main className="min-h-screen bg-background px-8 py-10 text-text-main">
+    <main className="min-h-screen bg-background px-4 sm:px-8 py-6 sm:py-10 text-text-main">
       <div className="mx-auto max-w-6xl">
         <div className="mb-10 flex flex-col gap-6 rounded-3xl border border-card-border bg-card/70 p-6 md:flex-row md:items-end md:justify-between">
           <div>
@@ -245,7 +245,7 @@ export default function ChatPage() {
             <select
               value={selectedShopId}
               onChange={(event) => handleShopChange(event.target.value)}
-              className="min-w-[260px] rounded-2xl border border-card-border bg-background px-4 py-3 text-sm text-text-main outline-none transition-colors focus:border-accent"
+              className="w-full sm:min-w-[260px] rounded-2xl border border-card-border bg-background px-4 py-3 text-sm text-text-main outline-none transition-colors focus:border-accent"
             >
               {shops.map((shop) => (
                 <option key={shop._id} value={shop._id}>
@@ -257,7 +257,7 @@ export default function ChatPage() {
         </div>
 
         {selectedShop ? (
-          <div className="h-[720px] overflow-hidden rounded-3xl border border-card-border bg-card shadow-[0_30px_80px_rgba(0,0,0,0.08)]">
+          <div className="h-[500px] sm:h-[720px] overflow-hidden rounded-3xl border border-card-border bg-card shadow-[0_30px_80px_rgba(0,0,0,0.08)]">
             <ChatRoom
               key={selectedShop._id}
               shopId={selectedShop._id}

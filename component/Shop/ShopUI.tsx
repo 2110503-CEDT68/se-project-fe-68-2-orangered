@@ -37,7 +37,7 @@ export default function ShopUI({
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-60 md:hidden" />
       </div>
 
-      <div className="p-8 md:p-12 w-full md:w-1/2 flex flex-col justify-center">
+      <div className="p-5 sm:p-8 md:p-12 w-full md:w-1/2 flex flex-col justify-center">
         <h1 className="text-3xl font-serif tracking-[0.2em] uppercase text-text-main mb-2">
           {shop.name}
         </h1>
@@ -46,9 +46,9 @@ export default function ShopUI({
         </div>
 
         <div className="space-y-4 font-mono text-sm tracking-tighter text-text-sub uppercase">
-          <div className="flex items-center gap-4 border-b border-card-border pb-2">
-            <span className="text-accent dark:text-accent font-bold w-16">TIME</span>
-            <span className="text-text-main">OPEN: {shop.openClose.open} — CLOSE: {shop.openClose.close}</span>
+          <div className="flex items-start gap-4 border-b border-card-border pb-2">
+            <span className="text-accent dark:text-accent font-bold w-16 shrink-0">TIME</span>
+            <span className="text-text-main break-all">{shop.openClose.open} — {shop.openClose.close}</span>
           </div>
           <div className="flex items-start gap-4 border-b border-card-border pb-2">
             <span className="text-accent dark:text-accent font-bold w-16">ADDR</span>
