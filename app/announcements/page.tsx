@@ -2,7 +2,25 @@
 
 import React, { useEffect, useState } from 'react';
 import { useSession } from "next-auth/react";
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
 
+function FcShop(props: React.SVGProps<SVGSVGElement>) {
+  return <svg stroke="currentColor" fill="currentColor" strokeWidth={0} viewBox="0 0 48 48" enableBackground="new 0 0 48 48" height="1em" width="1em" {...props}><rect x={5} y={19} fill="#CFD8DC" width={38} height={19} /><rect x={5} y={38} fill="#B0BEC5" width={38} height={4} /><rect x={27} y={24} fill="#455A64" width={12} height={18} /><rect x={9} y={24} fill="#E3F2FD" width={14} height={11} /><rect x={10} y={25} fill="#1E88E5" width={12} height={9} /><path fill="#90A4AE" d="M36.5,33.5c-0.3,0-0.5,0.2-0.5,0.5v2c0,0.3,0.2,0.5,0.5,0.5S37,36.3,37,36v-2C37,33.7,36.8,33.5,36.5,33.5z" /><g fill="#558B2F"><circle cx={24} cy={19} r={3} /><circle cx={36} cy={19} r={3} /><circle cx={12} cy={19} r={3} /></g><path fill="#7CB342" d="M40,6H8C6.9,6,6,6.9,6,8v3h36V8C42,6.9,41.1,6,40,6z" /><rect x={21} y={11} fill="#7CB342" width={6} height={8} /><polygon fill="#7CB342" points="37,11 32,11 33,19 39,19" /><polygon fill="#7CB342" points="11,11 16,11 15,19 9,19" /><g fill="#FFA000"><circle cx={30} cy={19} r={3} /><path d="M45,19c0,1.7-1.3,3-3,3s-3-1.3-3-3s1.3-3,3-3L45,19z" /><circle cx={18} cy={19} r={3} /><path d="M3,19c0,1.7,1.3,3,3,3s3-1.3,3-3s-1.3-3-3-3L3,19z" /></g><g fill="#FFC107"><polygon points="32,11 27,11 27,19 33,19" /><polygon points="42,11 37,11 39,19 45,19" /><polygon points="16,11 21,11 21,19 15,19" /><polygon points="6,11 11,11 9,19 3,19" /></g></svg>;
+}
+
+function GrAnnounce(props: React.SVGProps<SVGSVGElement>) {
+  return <svg stroke="currentColor" fill="currentColor" strokeWidth={0} viewBox="0 0 24 24" height="1em" width="1em" {...props}><path fill="none" stroke="currentColor" strokeWidth={2} d="M11,15 C14,15 19,19 19,19 L19,3 C19,3 14,7 11,7 C11,7 11,15 11,15 Z M5,15 L8,23 L12,23 L9,15 M19,14 C20.657,14 22,12.657 22,11 C22,9.343 20.657,8 19,8 M11,19 C11.9999997,18.9999994 14,18 14,16 M2,11 C2,7.88888889 3.7912,7 6,7 L11,7 L11,15 L6,15 C3.7912,15 2,14.1111111 2,11 Z" /></svg>;
+}
+
+function AiOutlineEdit(props: React.SVGProps<SVGSVGElement>) {
+  return <svg stroke="currentColor" fill="currentColor" strokeWidth={0} viewBox="0 0 1024 1024" height="1em" width="1em" {...props}><path d="M257.7 752c2 0 4-.2 6-.5L431.9 722c2-.4 3.9-1.3 5.3-2.8l423.9-423.9a9.96 9.96 0 0 0 0-14.1L694.9 114.9c-1.9-1.9-4.4-2.9-7.1-2.9s-5.2 1-7.1 2.9L256.8 538.8c-1.5 1.5-2.4 3.3-2.8 5.3l-29.5 168.2a33.5 33.5 0 0 0 9.4 29.8c6.6 6.4 14.9 9.9 23.8 9.9zm67.4-174.4L687.8 215l73.3 73.3-362.7 362.6-88.9 15.7 15.6-89zM880 836H144c-17.7 0-32 14.3-32 32v36c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-36c0-17.7-14.3-32-32-32z" /></svg>;
+}
+
+function MdDeleteForever(props: React.SVGProps<SVGSVGElement>) {
+  return <svg stroke="currentColor" fill="currentColor" strokeWidth={0} viewBox="0 0 24 24" height="1em" width="1em" {...props}><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4z" /></svg>;
+}
+
+//Annoucement Page
 interface Announcement {
     _id: string;
     title: string;
@@ -31,11 +49,12 @@ export default function AnnouncementPage() {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+    const [isShopDropdownOpen, setIsShopDropdownOpen] = useState(false);
 
     const isAuthorized = session?.user?.role === 'admin' || session?.user?.role === 'shopowner';
     const isShopOwner = session?.user?.role === 'shopowner';
-    const API_BASE_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/announcements`;
-    const SHOPS_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/shops`;
+    const API_BASE_URL = `${getBackendBaseUrl()}/api/v1/announcements`;
+    const SHOPS_URL = `${getBackendBaseUrl()}/api/v1/shops`;
 
   const fetchAnnouncements = async () => {
     try {
@@ -51,9 +70,11 @@ export default function AnnouncementPage() {
   };
 
     const fetchMyShops = async () => {
-        if (!session?.user?.token || !isShopOwner) return;
+        if (!session?.user?.token) return;
         try {
-            const res = await fetch(`${SHOPS_URL}/mine`, {
+            // Admin fetches all shops, Shopowner fetches only theirs
+            const url = isShopOwner ? `${SHOPS_URL}/mine` : `${SHOPS_URL}?limit=1000`;
+            const res = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${session.user.token}` }
             });
             const result = await res.json();
@@ -90,21 +111,21 @@ export default function AnnouncementPage() {
                     title,
                     content,
                     imageUrl,
-                    // ส่ง shop ไปด้วยถ้าเป็น shopowner และเลือกร้าน
-                    ...(isShopOwner && selectedShopId ? { shop: selectedShopId } : {})
+                    // Send shop for admin OR shopowner
+                    ...(selectedShopId ? { shop: selectedShopId } : {})
                 }),
             });
 
-      if (res.ok) {
-        resetForm();
-        fetchAnnouncements();
-      }
-    } catch (err) {
-      alert("เกิดข้อผิดพลาด");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+            if (res.ok) {
+                resetForm();
+                fetchAnnouncements();
+            }
+        } catch (err) {
+            alert("เกิดข้อผิดพลาด");
+        } finally {
+            setIsProcessing(false);
+        }
+    };
 
     const handleDelete = async (id: string) => {
         if (!session?.user?.token) return;
@@ -120,13 +141,13 @@ export default function AnnouncementPage() {
         } catch (err) { console.error(err); }
     };
 
-  const startEdit = (item: Announcement) => {
-    setEditingId(item._id);
-    setTitle(item.title);
-    setContent(item.content);
-    setImageUrl(item.imageUrl || "");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+    const startEdit = (item: Announcement) => {
+        setEditingId(item._id);
+        setTitle(item.title);
+        setContent(item.content);
+        setImageUrl(item.imageUrl || "");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
 
     const resetForm = () => {
         setEditingId(null);
@@ -200,28 +221,77 @@ export default function AnnouncementPage() {
                                 </div>
 
                                 <div className="space-y-6">
-                                    {/* Shop Selector (shopowner only with multiple shops) */}
-                                    {isShopOwner && shops.length > 1 && !editingId && (
-                                        <div className="group">
+                                    {/* Shop Selector (admin or shopowner with multiple shops) */}
+                                    {((isShopOwner && shops.length > 1) || !isShopOwner) && !editingId && shops.length > 0 && (
+                                        <div className="group relative z-20">
                                             <label className="block text-[9px] uppercase tracking-[0.25em] text-text-sub group-focus-within:text-accent transition-colors mb-2">
                                                 Target Shop *
                                             </label>
+                                            
                                             <div className="relative">
-                                                <select
-                                                    value={selectedShopId}
-                                                    onChange={(e) => setSelectedShopId(e.target.value)}
-                                                    className="w-full appearance-none bg-background/40 border border-card-border rounded-xl px-4 py-3 text-sm text-text-main focus:outline-none focus:border-accent/60 transition-all pr-10"
-                                                    required
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsShopDropdownOpen(!isShopDropdownOpen)}
+                                                    className={`w-full flex items-center justify-between bg-background/40 border ${isShopDropdownOpen ? 'border-accent/60' : 'border-card-border'} rounded-xl px-4 py-3 text-sm text-text-main transition-all`}
                                                 >
-                                                    {shops.map(shop => (
-                                                        <option key={shop._id} value={shop._id}>
-                                                            {shop.name}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-sub/50">
-                                                    ▾
-                                                </div>
+                                                    <div className="flex items-center gap-3">
+                                                        {selectedShopId && shops.find(s => s._id === selectedShopId)?.picture ? (
+                                                            <img 
+                                                                src={shops.find(s => s._id === selectedShopId)?.picture} 
+                                                                alt="" 
+                                                                className="w-6 h-6 rounded-full object-cover border border-card-border"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-6 h-6 rounded-full bg-card flex items-center justify-center border border-card-border">
+                                                                <FcShop className="w-4 h-4" />
+                                                            </div>
+                                                        )}
+                                                        <span>
+                                                            {selectedShopId ? shops.find(s => s._id === selectedShopId)?.name : 'Select a shop...'}
+                                                        </span>
+                                                    </div>
+                                                    <span className={`text-text-sub/50 transition-transform duration-300 ${isShopDropdownOpen ? 'rotate-180' : ''}`}>
+                                                        ▾
+                                                    </span>
+                                                </button>
+
+                                                {isShopDropdownOpen && (
+                                                    <>
+                                                        <div 
+                                                            className="fixed inset-0 z-10" 
+                                                            onClick={() => setIsShopDropdownOpen(false)}
+                                                        />
+                                                        <div className="absolute top-full left-0 w-full mt-2 bg-card border border-card-border rounded-xl shadow-2xl z-20 overflow-hidden max-h-60 overflow-y-auto">
+                                                            {shops.map(shop => (
+                                                                <button
+                                                                    key={shop._id}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setSelectedShopId(shop._id);
+                                                                        setIsShopDropdownOpen(false);
+                                                                    }}
+                                                                    className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-background/50 ${selectedShopId === shop._id ? 'bg-accent/10 text-accent' : 'text-text-sub hover:text-text-main'}`}
+                                                                >
+                                                                    {shop.picture ? (
+                                                                        <img 
+                                                                            src={shop.picture} 
+                                                                            alt="" 
+                                                                            className="w-6 h-6 rounded-full object-cover border border-card-border"
+                                                                        />
+                                                                    ) : (
+                                                                        <div className="w-6 h-6 rounded-full bg-background flex items-center justify-center border border-card-border transition-colors">
+                                                                            <FcShop className="w-4 h-4" />
+                                                                        </div>
+                                                                    )}
+                                                                    <span className="text-sm truncate">{shop.name}</span>
+                                                                    {selectedShopId === shop._id && (
+                                                                        <span className="ml-auto text-accent text-xs">✓</span>
+                                                                    )}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </>
+                                                )}
                                             </div>
                                             <p className="text-[9px] text-text-sub/40 mt-1.5 tracking-wide">
                                                 เลือกร้านที่ต้องการโพสต์ประกาศ
@@ -293,9 +363,9 @@ export default function AnnouncementPage() {
                                     <button
                                         type="submit"
                                         disabled={isProcessing}
-                                        className={`flex items-center gap-2 px-8 py-3 rounded-xl text-[10px] uppercase tracking-[0.3em] font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${editingId
-                                            ? 'bg-gold/20 border border-gold/40 text-gold hover:bg-gold/30'
-                                            : 'bg-accent/20 border border-accent/40 text-accent hover:bg-accent hover:text-white'
+                                        className={`flex items-center gap-2 px-8 py-3 rounded-xl text-[10px] uppercase tracking-[0.3em] font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5 ${editingId
+                                            ? 'bg-gold/20 border border-gold/40 text-gold hover:bg-gold/30 hover:shadow-[0_8px_16px_-6px_rgba(255,215,0,0.3)]'
+                                            : 'bg-accent/20 border border-accent/40 text-accent hover:bg-accent hover:text-white hover:shadow-[0_8px_20px_-6px_rgba(255,115,0,0.5)]'
                                             }`}
                                     >
                                         {isProcessing ? (
@@ -361,7 +431,7 @@ export default function AnnouncementPage() {
                             {announcements.map((item, index) => (
                                 <article
                                     key={item._id}
-                                    className="group relative bg-card/50 border border-card-border rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:border-accent/20 transition-all duration-500"
+                                    className="group relative bg-card/60 border border-card-border rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-accent/5 hover:border-accent/30 hover:-translate-y-2 transition-all duration-500 backdrop-blur-sm"
                                     style={{ animationDelay: `${index * 60}ms` }}
                                 >
                                     {/* Hover glow effect */}
@@ -373,7 +443,7 @@ export default function AnnouncementPage() {
                                             <img
                                                 src={item.imageUrl}
                                                 alt={item.title}
-                                                className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
+                                                className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-700 ease-out"
                                                 onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = 'none'; }}
                                             />
                                             <div className="absolute inset-0 bg-gradient-to-t from-card/90 via-card/20 to-transparent" />
@@ -399,34 +469,36 @@ export default function AnnouncementPage() {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <h2 className="text-xl font-serif font-semibold text-text-main group-hover:text-accent transition-colors duration-300 leading-snug">
+                                                <h2 className="text-xl md:text-2xl font-serif font-semibold text-text-main group-hover:text-accent transition-colors duration-300 leading-snug tracking-wide">
                                                     {item.title}
                                                 </h2>
                                             </div>
 
                                             {/* Action buttons */}
                                             {isAuthorized && (
-                                                <div className="flex gap-2 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                <div className="flex gap-2 flex-shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-500 sm:translate-x-4 sm:group-hover:translate-x-0">
                                                     <button
                                                         onClick={() => startEdit(item)}
-                                                        className="text-[9px] uppercase tracking-widest bg-gold/10 text-gold hover:bg-gold/25 px-4 py-2 rounded-lg border border-gold/20 transition-all font-bold"
+                                                        className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest bg-gold/10 text-gold hover:bg-gold/25 px-4 py-2 rounded-xl border border-gold/20 hover:border-gold/40 transition-all font-bold hover:shadow-[0_0_15px_rgba(255,215,0,0.15)]"
                                                     >
-                                                        Edit
+                                                        <AiOutlineEdit className="w-3.5 h-3.5" /> Edit
                                                     </button>
                                                     <button
                                                         onClick={() => setDeleteConfirmId(item._id)}
-                                                        className="text-[9px] uppercase tracking-widest bg-red-500/10 text-red-400 hover:bg-red-500/20 px-4 py-2 rounded-lg border border-red-500/20 transition-all font-bold"
+                                                        className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest bg-red-500/10 text-red-400 hover:bg-red-500/20 px-4 py-2 rounded-xl border border-red-500/20 hover:border-red-500/40 transition-all font-bold hover:shadow-[0_0_15px_rgba(239,68,68,0.15)]"
                                                     >
-                                                        Delete
+                                                        <MdDeleteForever className="w-3.5 h-3.5" /> Delete
                                                     </button>
                                                 </div>
                                             )}
                                         </div>
 
                                         {/* Content */}
-                                        <p className="text-text-sub text-sm leading-relaxed whitespace-pre-wrap">
-                                            {item.content}
-                                        </p>
+                                        <div className="relative pl-5 border-l-[3px] border-card-border/50 group-hover:border-accent/40 transition-colors duration-500 mt-2">
+                                            <p className="text-text-sub text-sm leading-relaxed whitespace-pre-wrap">
+                                                {item.content}
+                                            </p>
+                                        </div>
 
                                         {/* Bottom accent line */}
                                         <div className="mt-6 pt-4 border-t border-card-border/50 flex items-center justify-between">
@@ -440,7 +512,7 @@ export default function AnnouncementPage() {
                                     {/* Delete confirm overlay */}
                                     {deleteConfirmId === item._id && (
                                         <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-10 rounded-2xl">
-                                            <div className="text-3xl">🗑️</div>
+                                            <MdDeleteForever className="w-12 h-12 text-red-500/80 drop-shadow-lg" />
                                             <p className="text-sm text-text-main font-serif">Delete this announcement?</p>
                                             <p className="text-[10px] uppercase tracking-widest text-text-sub/60">This action cannot be undone</p>
                                             <div className="flex gap-3 mt-2">
