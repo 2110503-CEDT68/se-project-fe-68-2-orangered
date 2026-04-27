@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 
 function MdAnnouncement(props: React.SVGProps<SVGSVGElement>) {
@@ -28,9 +29,12 @@ export default function GlobalAnnouncement() {
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const [hasNew, setHasNew] = useState(true);
+    const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
+    const [mounted, setMounted] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        setMounted(true);
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
         if (!backendUrl) return; // backend URL not configured
 
@@ -132,7 +136,11 @@ export default function GlobalAnnouncement() {
                             {announcements.map((ann, index) => (
                                 <div
                                     key={ann._id}
-                                    className="group rounded-xl border border-card-border bg-background/40 hover:bg-background/70 hover:border-accent/20 transition-all duration-300 overflow-hidden"
+                                    onClick={() => {
+                                        setSelectedAnnouncement(ann);
+                                        setIsOpen(false);
+                                    }}
+                                    className="group rounded-xl border border-card-border bg-background/40 hover:bg-background/70 hover:border-accent/20 transition-all duration-300 overflow-hidden cursor-pointer relative"
                                     style={{ animationDelay: `${index * 40}ms` }}
                                 >
                                     {/* Image */}
@@ -152,8 +160,11 @@ export default function GlobalAnnouncement() {
                                         {ann.shop && (
                                             <Link
                                                 href={`/shop/${ann.shop._id}`}
-                                                onClick={() => setIsOpen(false)}
-                                                className="flex items-center gap-1.5 mb-2 w-fit group/shop"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setIsOpen(false);
+                                                }}
+                                                className="flex items-center gap-1.5 mb-2 w-fit group/shop relative z-10"
                                             >
                                                 {ann.shop.picture && (
                                                     <img
@@ -175,9 +186,11 @@ export default function GlobalAnnouncement() {
                                         </h3>
 
                                         {/* Content preview */}
-                                        <p className="text-[11px] text-text-sub leading-relaxed line-clamp-2">
-                                            {ann.content}
-                                        </p>
+                                        <div className="mt-1.5 opacity-80">
+                                            <p className="text-[11px] text-text-sub leading-relaxed line-clamp-2">
+                                                {ann.content}
+                                            </p>
+                                        </div>
 
                                         {/* Date */}
                                         <div className="flex items-center gap-1.5 mt-2.5">
@@ -201,10 +214,135 @@ export default function GlobalAnnouncement() {
                 </div>
             )}
 
+            {/* Beautiful Modal for Selected Announcement */}
+            {mounted && selectedAnnouncement && createPortal(
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 pointer-events-auto">
+                    {/* Backdrop */}
+                    <div 
+                        className="absolute inset-0 bg-black/50 backdrop-blur-md transition-opacity"
+                        style={{ animation: 'backdropIn 0.6s cubic-bezier(0.16, 1, 0.3, 1)' }}
+                        onClick={() => setSelectedAnnouncement(null)}
+                    />
+                    
+                    {/* Magical Glow Behind Modal */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-accent/20 blur-[120px] rounded-full pointer-events-none opacity-50 animate-pulse" style={{ animationDuration: '4s' }} />
+                    
+                    {/* Modal Content */}
+                    <div 
+                        className="relative w-full max-w-2xl bg-card border border-card-border/50 rounded-[2rem] shadow-[0_20px_100px_-20px_rgba(var(--accent-rgb),0.3)] overflow-hidden flex flex-col max-h-[90vh] backdrop-blur-2xl"
+                        style={{ animation: 'modalFloatUp 0.8s cubic-bezier(0.16, 1, 0.3, 1)' }}
+                    >
+                        {/* Elegant top accent line with shimmer */}
+                        <div className="relative h-1.5 w-full bg-card-border overflow-hidden">
+                            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-accent/80 to-transparent opacity-80" style={{ animation: 'shimmer 2.5s infinite linear' }} />
+                        </div>
+
+                        {/* Close button */}
+                        <button 
+                            onClick={() => setSelectedAnnouncement(null)}
+                            className="absolute top-5 right-5 w-10 h-10 flex items-center justify-center rounded-full bg-background/50 hover:bg-background border border-transparent hover:border-card-border text-text-sub hover:text-red-500 z-10 transition-all duration-500 hover:rotate-90 hover:scale-110 shadow-sm backdrop-blur-sm group"
+                        >
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="group-hover:stroke-2 transition-all">
+                                <path d="M13 1L1 13M1 1l12 12" />
+                            </svg>
+                        </button>
+
+                        {/* Image Header */}
+                        {selectedAnnouncement.imageUrl && (
+                            <div className="w-full h-48 sm:h-72 relative shrink-0 border-b border-card-border/50 overflow-hidden">
+                                <img 
+                                    src={selectedAnnouncement.imageUrl} 
+                                    alt={selectedAnnouncement.title}
+                                    className="w-full h-full object-cover"
+                                    style={{ animation: 'imageZoomOut 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent opacity-90" />
+                            </div>
+                        )}
+
+                        {/* Content Area */}
+                        <div className="p-8 sm:p-12 overflow-y-auto scrollbar-thin flex-1 relative bg-card/90">
+                            <div className="relative max-w-lg mx-auto">
+                                {/* Shop Info */}
+                                {selectedAnnouncement.shop && (
+                                    <div className="flex flex-col items-center text-center gap-4 mb-10" style={{ animation: 'contentSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both' }}>
+                                        {selectedAnnouncement.shop.picture && (
+                                            <div className="relative group/avatar cursor-pointer">
+                                                <div className="absolute inset-0 bg-accent rounded-full blur-md opacity-20 group-hover/avatar:opacity-60 transition-opacity duration-700 animate-pulse" />
+                                                <img 
+                                                    src={selectedAnnouncement.shop.picture} 
+                                                    alt={selectedAnnouncement.shop.name}
+                                                    className="relative w-16 h-16 rounded-full object-cover shadow-xl ring-4 ring-background transform group-hover/avatar:scale-105 transition-all duration-500"
+                                                />
+                                            </div>
+                                        )}
+                                        <div className="mt-2">
+                                            <p className="text-[9px] uppercase tracking-[0.4em] text-text-sub/50 mb-2 font-medium">Announcement From</p>
+                                            <Link 
+                                                href={`/shop/${selectedAnnouncement.shop._id}`}
+                                                onClick={() => setSelectedAnnouncement(null)}
+                                                className="text-base font-serif italic text-text-main hover:text-accent transition-colors"
+                                            >
+                                                {selectedAnnouncement.shop.name}
+                                            </Link>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Title */}
+                                <h2 className="text-3xl sm:text-4xl font-serif text-center text-text-main mb-8 leading-[1.3] tracking-wide" style={{ animation: 'contentSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both' }}>
+                                    {selectedAnnouncement.title}
+                                </h2>
+
+                                {/* Small Divider */}
+                                <div className="flex justify-center mb-8" style={{ animation: 'contentSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both' }}>
+                                    <div className="h-[1px] w-16 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
+                                </div>
+
+                                {/* Body */}
+                                <div className="text-sm sm:text-base text-text-sub leading-loose space-y-4 font-light text-center" style={{ animation: 'contentSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both' }}>
+                                    <p className="whitespace-pre-wrap">
+                                        {selectedAnnouncement.content}
+                                    </p>
+                                </div>
+
+                                {/* Date Footer */}
+                                <div className="mt-14 pt-8 border-t border-card-border/50 text-center" style={{ animation: 'contentSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both' }}>
+                                    <p className="text-[9px] uppercase tracking-[0.4em] text-text-sub/50 font-mono">
+                                        {new Date(selectedAnnouncement.createdAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+
             <style jsx global>{`
                 @keyframes dropdownIn {
                     from { opacity: 0; transform: translateY(-8px) scale(0.97); }
                     to   { opacity: 1; transform: translateY(0) scale(1); }
+                }
+                @keyframes backdropIn {
+                    from { opacity: 0; backdrop-filter: blur(0px); }
+                    to   { opacity: 1; backdrop-filter: blur(12px); }
+                }
+                @keyframes modalFloatUp {
+                    from { opacity: 0; transform: scale(0.95) translateY(30px) rotateX(-5deg); }
+                    to   { opacity: 1; transform: scale(1) translateY(0) rotateX(0deg); }
+                }
+                @keyframes contentSlideUp {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to   { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes imageZoomOut {
+                    from { opacity: 0; transform: scale(1.1); filter: blur(4px); }
+                    to   { opacity: 1; transform: scale(1); filter: blur(0px); }
+                }
+                @keyframes shimmer {
+                    0%   { transform: translateX(-100%); }
+                    100% { transform: translateX(200%); }
                 }
                 .scrollbar-thin::-webkit-scrollbar { width: 4px; }
                 .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
