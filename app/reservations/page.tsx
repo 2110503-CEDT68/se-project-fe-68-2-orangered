@@ -128,14 +128,13 @@ export default function ReservationPage() {
         </Link>
       </div>
 
-{/* <Image
+      {/* <Image
         src="/Decoration/underconstruction.jpg"
         alt="underconstruction"
         width={500}
         height={300}
         className="object-contain grayscale contrast-125 opacity-90 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-1000 ease-in-out"
       />*/}
-      
 
       <div className="max-w-6xl mx-auto">
         {/* Page Title Section */}

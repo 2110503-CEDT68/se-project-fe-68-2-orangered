@@ -23,7 +23,8 @@ export default function ShopOwnerReservationsPage() {
   const [reservations, setReservations] = useState<Reservations | null>(null);
   const [loading, setLoading] = useState(true);
   const parsedPage = Number(searchParams.get("page") ?? "1");
-  const currentPage = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+  const currentPage =
+    Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
 
   async function fetchReservations(page: number) {
     if (!session?.user?.token) return;
@@ -50,14 +51,14 @@ export default function ShopOwnerReservationsPage() {
 
   async function handleDelete(rid: string) {
     if (!session) return;
-    
+
     try {
       await deleteReservation({ token: session.user.token, rid: rid });
       const nextPage =
         reservations && reservations.data.length === 1 && currentPage > 1
           ? currentPage - 1
           : currentPage;
-      
+
       if (nextPage !== currentPage) {
         const params = new URLSearchParams(searchParams.toString());
         if (nextPage === 1) {
@@ -85,8 +86,12 @@ export default function ShopOwnerReservationsPage() {
     return (
       <div className="min-h-screen bg-background text-text-main flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-text-main mb-4">Access Denied</h1>
-          <p className="text-text-sub mb-8">Only shop owners can view this page.</p>
+          <h1 className="text-2xl font-bold text-text-main mb-4">
+            Access Denied
+          </h1>
+          <p className="text-text-sub mb-8">
+            Only shop owners can view this page.
+          </p>
           <Link href="/" className="text-accent hover:text-accent/80 underline">
             Return to Home
           </Link>
@@ -98,14 +103,15 @@ export default function ShopOwnerReservationsPage() {
   if (loading) return <ReservationLoading />;
 
   if (!reservations || reservations.data.length === 0) {
-    return <NoReservationShopOwner/>
+    return <NoReservationShopOwner />;
   }
 
   const now = Date.now();
   const activeReservationCount = reservations.data.filter(
-    (item) => new Date(item.appDate).getTime() >= now
+    (item) => new Date(item.appDate).getTime() >= now,
   ).length;
-  const passedReservationCount = reservations.data.length - activeReservationCount;
+  const passedReservationCount =
+    reservations.data.length - activeReservationCount;
 
   return (
     <div className="min-h-screen bg-background text-text-main pb-32 px-4 sm:px-8 pt-8 selection:bg-accent/30">
@@ -116,8 +122,20 @@ export default function ShopOwnerReservationsPage() {
           className="group inline-flex items-center text-[10px] uppercase tracking-[0.3em] text-text-sub hover:text-accent transition-all duration-500"
         >
           <span className="mr-3 transition-transform duration-500 group-hover:-translate-x-2 text-accent">
-            <svg width="18" height="8" viewBox="0 0 18 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M0.5 4H17.5M1 3.5L0.5 4L1 4.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+            <svg
+              width="18"
+              height="8"
+              viewBox="0 0 18 8"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M0.5 4H17.5M1 3.5L0.5 4L1 4.5"
+                stroke="currentColor"
+                strokeWidth="1"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </span>
           <span>Return to Sanctuary</span>
@@ -149,7 +167,10 @@ export default function ShopOwnerReservationsPage() {
       <div className="max-w-6xl mx-auto mb-12">
         <div className="grid grid-cols-1 gap-6">
           {reservations.data.map((item: any, index: number) => (
-            <div key={item._id} className="transition-all duration-500 hover:translate-y-[-2px]">
+            <div
+              key={item._id}
+              className="transition-all duration-500 hover:translate-y-[-2px]"
+            >
               <ReservationCard
                 item={item}
                 index={index}

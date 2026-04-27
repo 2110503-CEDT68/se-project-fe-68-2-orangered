@@ -37,6 +37,7 @@
     "@types/pusher-js": "^4.2.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "prettier": "^3.8.3",
     "tailwindcss": "^4.2.2",
     "typescript": "^5"
   }
