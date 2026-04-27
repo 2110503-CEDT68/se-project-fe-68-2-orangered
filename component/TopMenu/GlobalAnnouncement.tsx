@@ -285,7 +285,7 @@ export default function GlobalAnnouncement() {
                     </div>
                   </div>
                 </div>
-            )}
+              ))}
 
             {/* Beautiful Modal for Selected Announcement */}
             {mounted && selectedAnnouncement && createPortal(
