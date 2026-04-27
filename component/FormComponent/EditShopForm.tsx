@@ -105,6 +105,21 @@ const [massageTypes, setMassageTypes] = useState<ShopData["massageType"]>(
       return;
     }
 
+    const hasInvalidPromo = massageTypes.some(m => {
+    if (m.promotions.length > 0) {
+      const p = m.promotions[0];
+      const start = new Date(p.startDate);
+      const end = new Date(p.endDate);
+      return (p.discountPrice >= m.price) || (start > end) || (p.title.length > 50);
+    }
+    return false;
+  });
+
+  if (hasInvalidPromo) {
+    setError("Please resolve the promotion errors before updating the registry.");
+    return;
+  }
+
     try {
       setSubmitStep("saving");
       
@@ -159,7 +174,7 @@ const [massageTypes, setMassageTypes] = useState<ShopData["massageType"]>(
           </div>
           
           <div className="space-y-3">
-            <h2 className="text-white font-serif text-2xl tracking-[0.2em] uppercase">Changes Authorized</h2>
+            <h2 className="text-accent font-serif text-2xl tracking-[0.2em] uppercase">Changes Authorized</h2>
             <p className="text-stone-500 text-[10px] tracking-[0.3em] uppercase">The shop profile has been successfully updated in our registry.</p>
           </div>
 
