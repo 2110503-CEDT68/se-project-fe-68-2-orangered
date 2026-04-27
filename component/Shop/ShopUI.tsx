@@ -8,6 +8,7 @@ import ShopAnnouncement from "./ShopAnnouncement";
 
 const PLACEHOLDER_IMG = "https://i.pinimg.com/1200x/4b/35/23/4b352395a4843dd059b7eb96444433ff.jpg";
 
+
 export default function ShopUI({
   shop,
   session,
@@ -21,11 +22,15 @@ export default function ShopUI({
   const displayImage = isValidUrl ? shop.picture : PLACEHOLDER_IMG;
   const isLimitReached = session?.user.role === "user" && reservationCount >= 3;
   const slotLabel = reservationCount === 1 ? "Slot" : "Slots";
-  const isOwner = session?.user?.role === "shopowner" && shop.owner === session?.user?._id;
 
   return (
     <div className="flex flex-col md:flex-row bg-background transition-colors duration-300">
-      
+      <ShopAnnouncement
+        shopId={shop._id}
+        isOwner={isOwner}
+        token={session?.user?.token}
+      />
+
       <div className="relative w-full md:w-1/2 h-80 md:h-auto overflow-hidden">
         <Image
           src={displayImage}
@@ -53,7 +58,7 @@ export default function ShopUI({
           <div className="flex items-start gap-4 border-b border-card-border pb-2">
             <span className="text-accent dark:text-accent font-bold w-16">ADDR</span>
             <span className="leading-relaxed text-text-main">
-              {shop.address.street}, {shop.address.district}, <br /> 
+              {shop.address.street}, {shop.address.district}, <br />
               {shop.address.province} {shop.address.postalcode}
             </span>
           </div>
@@ -70,7 +75,7 @@ export default function ShopUI({
               <p className="text-[10px] uppercase tracking-[0.3em] text-text-sub mb-6">
                 Authentication Required
               </p>
-              <Link 
+              <Link
                 href="/api/auth/signin"
                 className="inline-block w-full py-3 bg-transparent border border-accent text-accent dark:text-accent text-[10px] uppercase tracking-[0.4em] hover:bg-accent/5  transition-all rounded-lg"
               >
@@ -79,16 +84,16 @@ export default function ShopUI({
             </div>
           ) : isLimitReached ? (
             <div className="group relative overflow-hidden bg-red-500/5 border border-red-500/20 rounded-xl p-8 transition-all duration-500">
-               <span className="absolute -right-4 -bottom-2 text-6xl font-bold text-red-500/5 select-none pointer-events-none uppercase italic">Limit</span>
-               <div className="relative z-10 text-center">
-                  <p className="text-[11px] uppercase tracking-[0.4em] text-red-500 font-bold mb-3">Maximum Quota Reached</p>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-text-sub leading-relaxed mb-6 max-w-[200px] mx-auto">
-                    Member sessions are capped at 3 active reservations. Passed visits move to your archive automatically.
-                  </p>
-                  <Link href="/reservations" className="inline-flex items-center gap-2 text-[9px] uppercase tracking-[0.3em] text-red-400/80 hover:text-red-500 transition-colors">
-                    Manage Appointments <span className="text-xs">→</span>
-                  </Link>
-               </div>
+              <span className="absolute -right-4 -bottom-2 text-6xl font-bold text-red-500/5 select-none pointer-events-none uppercase italic">Limit</span>
+              <div className="relative z-10 text-center">
+                <p className="text-[11px] uppercase tracking-[0.4em] text-red-500 font-bold mb-3">Maximum Quota Reached</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-text-sub leading-relaxed mb-6 max-w-[200px] mx-auto">
+                  Member sessions are capped at 3 active reservations. Passed visits move to your archive automatically.
+                </p>
+                <Link href="/reservations" className="inline-flex items-center gap-2 text-[9px] uppercase tracking-[0.3em] text-red-400/80 hover:text-red-500 transition-colors">
+                  Manage Appointments <span className="text-xs">→</span>
+                </Link>
+              </div>
             </div>
           ) : (
             <>
