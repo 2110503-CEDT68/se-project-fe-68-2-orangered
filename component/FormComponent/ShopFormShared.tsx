@@ -119,9 +119,12 @@ export function MassageCard({
 }) {
   const [showPromo, setShowPromo] = useState(item.promotions.length > 0);
 
+  const hasPromotion = item.promotions.length > 0;
+
   const togglePromo = () => {
-    if (!showPromo && item.promotions.length === 0) {
-      // Add a default empty promotion when opening if none exists
+    if (hasPromotion) {
+      onChange(item._id, "promotions", []);
+    } else {
       onChange(item._id, "promotions", [{
         title: "Flash Sale",
         discountPrice: item.price > 0 ? Math.floor(item.price * 0.9) : 0,
@@ -130,7 +133,6 @@ export function MassageCard({
         isActive: true
       }]);
     }
-    setShowPromo(!showPromo);
   };
 
   const updatePromoField = (field: keyof Promotion, value: any) => {
@@ -214,10 +216,12 @@ export function MassageCard({
           onClick={togglePromo}
           className="text-[9px] tracking-[0.3em] text-gold uppercase hover:underline"
         >
-          {showPromo ? "✕ Remove Promotion" : "+ Add Special Promotion"}
+          {/* เปลี่ยนมาเช็คจาก hasPromotion */}
+          {hasPromotion ? "✕ Remove Promotion" : "+ Add Special Promotion"}
         </button>
 
-        {showPromo && item.promotions.length > 0 && (
+        {/* แสดงส่วนกรอกข้อมูลเมื่อมีโปรโมชั่นใน Array เท่านั้น */}
+        {hasPromotion && (
           <div className="mt-4 p-4 bg-black/20 rounded border border-gold/10 space-y-4 animate-in fade-in slide-in-from-top-2 duration-500">
             <div className="grid grid-cols-2 gap-6">
               <Field 

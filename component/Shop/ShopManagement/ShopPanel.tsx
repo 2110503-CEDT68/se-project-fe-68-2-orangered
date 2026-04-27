@@ -28,6 +28,7 @@ export default async function ShopPanel({
                 openClose={shopItem.openClose}
                 avgRating={shopItem.averageRating ?? 0}
                 ratingCount={shopItem.ratingCount ?? 0}
+                hasPromotion={shopItem.massageType?.some((m: any) => m.promotions && m.promotions.length > 0)}
               />
             </Link>
           </div>
