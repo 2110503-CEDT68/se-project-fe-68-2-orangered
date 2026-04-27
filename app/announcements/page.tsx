@@ -209,12 +209,17 @@ const LinkPreview = ({ url }: { url: string }) => {
 // ---------------------------------------------------------
 // TEXT PARSER (สำหรับทำให้ลิงก์ในข้อความกดได้)
 // ---------------------------------------------------------
-const renderTextWithLinks = (text: string) => {
+const renderTextWithLinks = (text: string, hiddenUrls: string[] = []) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     const parts = text.split(urlRegex);
     
     return parts.map((part, index) => {
         if (part.match(urlRegex)) {
+            // หาก URL นี้อยู่ในหมวดที่จะแสดง Preview ด้านล่าง ให้ซ่อนข้อความลิงก์ไปเลย (return null)
+            if (hiddenUrls.includes(part)) {
+                return null;
+            }
+            
             return (
                 <a 
                     key={index} 
@@ -606,12 +611,12 @@ export default function AnnouncementPage() {
                                             </h2>
                                             
                                             {/* Render Text + Web Previews in Card View */}
-                                            <p className="text-text-sub text-sm leading-relaxed whitespace-pre-wrap line-clamp-3">
-                                                {renderTextWithLinks(item.content)}
-                                            </p>
-                                            <div className="mt-2">
-                                                {extractUrls(item.content).map(url => <LinkPreview key={url} url={url} />)}
-                                            </div>
+<p className="text-text-sub text-sm leading-relaxed whitespace-pre-wrap line-clamp-3">
+    {renderTextWithLinks(item.content, extractUrls(item.content))}
+</p>
+<div className="mt-2">
+    {extractUrls(item.content).map(url => <LinkPreview key={url} url={url} />)}
+</div>
                                         </div>
 
                                         <div className="mt-6 pt-4 border-t border-card-border/50 flex items-center justify-between">
@@ -688,15 +693,15 @@ export default function AnnouncementPage() {
                             </div>
                             
                             <div className="max-w-none">
-                                <p className="text-text-main whitespace-pre-wrap leading-[2] text-lg font-light">
-                                    {renderTextWithLinks(viewingPost.content)}
-                                </p>
-                                
-                                {/* Render Link Previews in Modal */}
-                                <div className="mt-8 space-y-4">
-                                    {extractUrls(viewingPost.content).map(url => <LinkPreview key={url} url={url} />)}
-                                </div>
-                            </div>
+    <p className="text-text-main whitespace-pre-wrap leading-[2] text-lg font-light">
+        {renderTextWithLinks(viewingPost.content, extractUrls(viewingPost.content))}
+    </p>
+    
+    {/* Render Link Previews in Modal */}
+    <div className="mt-8 space-y-4">
+        {extractUrls(viewingPost.content).map(url => <LinkPreview key={url} url={url} />)}
+    </div>
+</div>
                         </div>
                     </div>
                 </div>
