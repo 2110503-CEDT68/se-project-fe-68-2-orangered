@@ -30,7 +30,7 @@
   --active: oklch(43.2% 0.095 166.913);
   --passed: oklch(47.3% 0.137 46.201);
   --banner-text: #e1ceb7;
-    --red: #ae0c00;
+  --red: #ae0c00;
 }
 
 @theme inline {
@@ -71,7 +71,21 @@
   --color-active: var(--active);
 
   /* Status: Completed/Passed */
-  --color-passed: var(--passed);
+  --color-passed: var(--passed); 
+
+  /* ------------------------------------------- */
+  /* ✨ เพิ่มตั้งค่าแอนิเมชันแสงวิ่ง (Shimmer) ที่นี่ ✨ */
+  /* ------------------------------------------- */
+  --animate-shimmer: shimmer 1.5s infinite;
+}
+
+/* ------------------------------------------- */
+/* ✨ เพิ่ม Keyframes สำหรับควบคุมแสงวิ่งที่ปุ่ม ✨ */
+/* ------------------------------------------- */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 body {
