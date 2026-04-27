@@ -1,18 +1,6 @@
-import {test, expect, Page, Locator} from '@playwright/test';
+import { expect, Page, Locator } from '@playwright/test';
 
 const BASE_URL = process.env.TEST_BASE_URL ?? "http://localhost:3000";
-const CUSTOMER = {
-  email: process.env.TEST_CUSTOMER_EMAIL ?? "",
-  password: process.env.TEST_CUSTOMER_PASSWORD ?? "",
-};
-const SHOP_OWNER = {
-  email: process.env.TEST_SHOP_OWNER_EMAIL ?? "",
-  password: process.env.TEST_SHOP_OWNER_PASSWORD ?? "",
-};
-const ADMIN = {
-  email: process.env.TEST_ADMIN_EMAIL ?? "",
-  password: process.env.TEST_ADMIN_PASSWORD ?? "",
-};
 const SHOP_ID = process.env.TEST_SHOP_ID ?? "";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -35,14 +23,16 @@ export async function goToShop(page: Page) {
     .waitFor({ timeout: 10000 });
 }
 
-// Wait for Pusher to replace the temp ID with the real server ID before acting
+// Wait for Pusher to replace the temp ID with the real server ID before acting.
+// Must use the real ID — proceeding with a temp ID causes a race condition where
+// a late receiveMessage event un-does any optimistic delete/edit.
 export async function sendAndConfirm(page: Page, text: string) {
   await page.getByPlaceholder("Compose your message...").fill(text);
   await page.getByRole("button", { name: "Send" }).click();
   await page
     .locator('[data-msg-id]:not([data-msg-id^="temp-"])')
     .filter({ hasText: text })
-    .waitFor({ timeout: 10000 });
+    .waitFor({ timeout: 30000 });
 }
 
 // Returns the last bubble containing the text (most recently sent)
@@ -55,9 +45,9 @@ export function getBubble(page: Page, text: string): Locator {
 
 export async function readAndAgreeToTos(page: Page) {
   await page.getByRole('button', { name: 'Terms of Service' }).click();
-  
+
   const tosContent = page.locator('.custom-scrollbar');
-  
+
   await tosContent.evaluate((el:any) => {
     el.scrollTop = el.scrollHeight;
   });
