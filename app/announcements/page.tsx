@@ -4,6 +4,23 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useSession } from "next-auth/react";
 import { getBackendBaseUrl } from "@/libs/api/baseUrl";
 
+function FcShop(props: React.SVGProps<SVGSVGElement>) {
+  return <svg stroke="currentColor" fill="currentColor" strokeWidth={0} viewBox="0 0 48 48" enableBackground="new 0 0 48 48" height="1em" width="1em" {...props}><rect x={5} y={19} fill="#CFD8DC" width={38} height={19} /><rect x={5} y={38} fill="#B0BEC5" width={38} height={4} /><rect x={27} y={24} fill="#455A64" width={12} height={18} /><rect x={9} y={24} fill="#E3F2FD" width={14} height={11} /><rect x={10} y={25} fill="#1E88E5" width={12} height={9} /><path fill="#90A4AE" d="M36.5,33.5c-0.3,0-0.5,0.2-0.5,0.5v2c0,0.3,0.2,0.5,0.5,0.5S37,36.3,37,36v-2C37,33.7,36.8,33.5,36.5,33.5z" /><g fill="#558B2F"><circle cx={24} cy={19} r={3} /><circle cx={36} cy={19} r={3} /><circle cx={12} cy={19} r={3} /></g><path fill="#7CB342" d="M40,6H8C6.9,6,6,6.9,6,8v3h36V8C42,6.9,41.1,6,40,6z" /><rect x={21} y={11} fill="#7CB342" width={6} height={8} /><polygon fill="#7CB342" points="37,11 32,11 33,19 39,19" /><polygon fill="#7CB342" points="11,11 16,11 15,19 9,19" /><g fill="#FFA000"><circle cx={30} cy={19} r={3} /><path d="M45,19c0,1.7-1.3,3-3,3s-3-1.3-3-3s1.3-3,3-3L45,19z" /><circle cx={18} cy={19} r={3} /><path d="M3,19c0,1.7,1.3,3,3,3s3-1.3,3-3s-1.3-3-3-3L3,19z" /></g><g fill="#FFC107"><polygon points="32,11 27,11 27,19 33,19" /><polygon points="42,11 37,11 39,19 45,19" /><polygon points="16,11 21,11 21,19 15,19" /><polygon points="6,11 11,11 9,19 3,19" /></g></svg>;
+}
+
+function GrAnnounce(props: React.SVGProps<SVGSVGElement>) {
+  return <svg stroke="currentColor" fill="currentColor" strokeWidth={0} viewBox="0 0 24 24" height="1em" width="1em" {...props}><path fill="none" stroke="currentColor" strokeWidth={2} d="M11,15 C14,15 19,19 19,19 L19,3 C19,3 14,7 11,7 C11,7 11,15 11,15 Z M5,15 L8,23 L12,23 L9,15 M19,14 C20.657,14 22,12.657 22,11 C22,9.343 20.657,8 19,8 M11,19 C11.9999997,18.9999994 14,18 14,16 M2,11 C2,7.88888889 3.7912,7 6,7 L11,7 L11,15 L6,15 C3.7912,15 2,14.1111111 2,11 Z" /></svg>;
+}
+
+function AiOutlineEdit(props: React.SVGProps<SVGSVGElement>) {
+  return <svg stroke="currentColor" fill="currentColor" strokeWidth={0} viewBox="0 0 1024 1024" height="1em" width="1em" {...props}><path d="M257.7 752c2 0 4-.2 6-.5L431.9 722c2-.4 3.9-1.3 5.3-2.8l423.9-423.9a9.96 9.96 0 0 0 0-14.1L694.9 114.9c-1.9-1.9-4.4-2.9-7.1-2.9s-5.2 1-7.1 2.9L256.8 538.8c-1.5 1.5-2.4 3.3-2.8 5.3l-29.5 168.2a33.5 33.5 0 0 0 9.4 29.8c6.6 6.4 14.9 9.9 23.8 9.9zm67.4-174.4L687.8 215l73.3 73.3-362.7 362.6-88.9 15.7 15.6-89zM880 836H144c-17.7 0-32 14.3-32 32v36c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-36c0-17.7-14.3-32-32-32z" /></svg>;
+}
+
+function MdDeleteForever(props: React.SVGProps<SVGSVGElement>) {
+  return <svg stroke="currentColor" fill="currentColor" strokeWidth={0} viewBox="0 0 24 24" height="1em" width="1em" {...props}><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4z" /></svg>;
+}
+
+//Annoucement Page
 interface Announcement {
     _id: string;
     title: string;
@@ -81,9 +98,6 @@ export default function AnnouncementPage() {
     
     // State สำหรับ UI & Modal & Features
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-    const [viewingPost, setViewingPost] = useState<Announcement | null>(null);
-    const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest'); 
-    const [layout, setLayout] = useState<'list' | 'grid'>('grid'); 
 
     const isAuthorized = session?.user?.role === 'admin' || session?.user?.role === 'shopowner';
     const isShopOwner = session?.user?.role === 'shopowner';
@@ -104,9 +118,11 @@ export default function AnnouncementPage() {
     };
 
     const fetchMyShops = async () => {
-        if (!session?.user?.token || !isShopOwner) return;
+        if (!session?.user?.token) return;
         try {
-            const res = await fetch(`${SHOPS_URL}/mine`, {
+            // Admin fetches all shops, Shopowner fetches only theirs
+            const url = isShopOwner ? `${SHOPS_URL}/mine` : `${SHOPS_URL}?limit=1000`;
+            const res = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${session.user.token}` }
             });
             const result = await res.json();
@@ -143,7 +159,7 @@ export default function AnnouncementPage() {
                     title,
                     content,
                     imageUrl,
-                    imagePosition,
+                    // ส่ง shop ไปด้วยถ้าเป็น shopowner และเลือกร้าน
                     ...(isShopOwner && selectedShopId ? { shop: selectedShopId } : {})
                 }),
             });
@@ -174,15 +190,13 @@ export default function AnnouncementPage() {
         } catch (err) { console.error(err); }
     };
 
-    const startEdit = (item: Announcement) => {
-        setEditingId(item._id);
-        setTitle(item.title);
-        setContent(item.content);
-        setImageUrl(item.imageUrl || "");
-        setImagePosition(item.imagePosition || 'center');
-        setViewingPost(null);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-    };
+  const startEdit = (item: Announcement) => {
+    setEditingId(item._id);
+    setTitle(item.title);
+    setContent(item.content);
+    setImageUrl(item.imageUrl || "");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
     const resetForm = () => {
         setEditingId(null);
@@ -259,17 +273,19 @@ export default function AnnouncementPage() {
                                     </div>
                                 </div>
 
-                                <div className="space-y-8">
+                                <div className="space-y-6">
+                                    {/* Shop Selector (shopowner only with multiple shops) */}
                                     {isShopOwner && shops.length > 1 && !editingId && (
                                         <div className="group">
-                                            <label className="block text-[10px] uppercase tracking-[0.3em] text-text-sub group-focus-within:text-accent transition-colors mb-3 font-semibold">
-                                                Target Organization *
+                                            <label className="block text-[9px] uppercase tracking-[0.25em] text-text-sub group-focus-within:text-accent transition-colors mb-2">
+                                                Target Shop *
                                             </label>
+                                            
                                             <div className="relative">
                                                 <select
                                                     value={selectedShopId}
                                                     onChange={(e) => setSelectedShopId(e.target.value)}
-                                                    className="w-full appearance-none bg-background/50 border border-card-border rounded-2xl px-5 py-4 text-sm text-text-main focus:outline-none focus:border-accent/60 transition-all pr-10"
+                                                    className="w-full appearance-none bg-background/40 border border-card-border rounded-xl px-4 py-3 text-sm text-text-main focus:outline-none focus:border-accent/60 transition-all pr-10"
                                                     required
                                                 >
                                                     {shops.map(shop => (
@@ -278,7 +294,9 @@ export default function AnnouncementPage() {
                                                         </option>
                                                     ))}
                                                 </select>
-                                                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-text-sub/50">▼</div>
+                                                <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-sub/50">
+                                                    ▾
+                                                </div>
                                             </div>
                                         </div>
                                     )}
@@ -363,24 +381,19 @@ export default function AnnouncementPage() {
                                     <button
                                         type="submit"
                                         disabled={isProcessing}
-                                        className={`relative flex items-center justify-center min-w-[180px] px-8 py-4 rounded-full text-xs uppercase tracking-[0.3em] font-bold transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden group ${
-                                            editingId
-                                            ? 'bg-gradient-to-r from-gold to-gold/80 text-white shadow-[0_0_20px_rgba(212,175,55,0.2)] hover:shadow-[0_8px_25px_rgba(212,175,55,0.4)] border border-gold/50 hover:-translate-y-0.5'
-                                            : 'bg-gradient-to-r from-accent to-accent/80 text-white shadow-[0_0_20px_rgba(var(--accent-rgb),0.2)] hover:shadow-[0_8px_25px_rgba(var(--accent-rgb),0.4)] border border-accent/50 hover:-translate-y-0.5'
-                                        }`}
+                                        className={`flex items-center gap-2 px-8 py-3 rounded-xl text-[10px] uppercase tracking-[0.3em] font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${editingId
+                                            ? 'bg-gold/20 border border-gold/40 text-gold hover:bg-gold/30'
+                                            : 'bg-accent/20 border border-accent/40 text-accent hover:bg-accent hover:text-white'
+                                            }`}
                                     >
-                                        <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite] skew-x-12" />
-                                        
-                                        <span className="relative z-10 flex items-center gap-2">
-                                            {isProcessing ? (
-                                                <>
-                                                    <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                    PROCESSING
-                                                </>
-                                            ) : (
-                                                editingId ? 'Authorize Update' : 'Publish Entry'
-                                            )}
-                                        </span>
+                                        {isProcessing ? (
+                                            <>
+                                                <span className="inline-block w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                                                Processing...
+                                            </>
+                                        ) : (
+                                            editingId ? '✓ Save Changes' : '+ Publish Post'
+                                        )}
                                     </button>
                                     
                                     {editingId && (
@@ -472,9 +485,8 @@ export default function AnnouncementPage() {
                             {sortedAnnouncements.map((item, index) => (
                                 <article
                                     key={item._id}
-                                    onClick={() => setViewingPost(item)}
-                                    className={`group relative cursor-pointer bg-card/40 backdrop-blur-sm border border-card-border rounded-3xl overflow-hidden hover:shadow-2xl hover:border-accent/30 transition-all duration-500 ease-out hover:-translate-y-1 ${layout === 'list' ? 'flex flex-col md:flex-row' : 'flex flex-col'}`}
-                                    style={{ animationDelay: `${index * 50}ms` }}
+                                    className="group relative bg-card/50 border border-card-border rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:border-accent/20 transition-all duration-500"
+                                    style={{ animationDelay: `${index * 60}ms` }}
                                 >
                                     {/* เรียกใช้ LazyImage แทน img ธรรมดา */}
                                     {item.imageUrl && (
@@ -482,7 +494,8 @@ export default function AnnouncementPage() {
                                             <LazyImage
                                                 src={item.imageUrl}
                                                 alt={item.title}
-                                                className={`absolute inset-0 w-full h-full object-cover ${getPositionClass(item.imagePosition)} grayscale-[15%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 ease-out`}
+                                                className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
+                                                onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = 'none'; }}
                                             />
                                             <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent opacity-80 group-hover:opacity-40 transition-opacity duration-500 pointer-events-none" />
                                         </div>
@@ -504,35 +517,27 @@ export default function AnnouncementPage() {
                                                             )}
                                                             {item.shop.name}
                                                         </span>
-                                                    </>
-                                                )}
+                                                    )}
+                                                </div>
+                                                <h2 className="text-xl font-serif font-semibold text-text-main group-hover:text-accent transition-colors duration-300 leading-snug">
+                                                    {item.title}
+                                                </h2>
                                             </div>
-                                            <h2 className="text-2xl font-serif font-medium text-text-main group-hover:text-accent transition-colors duration-300 leading-tight mb-4">
-                                                {item.title}
-                                            </h2>
-                                            <p className="text-text-sub text-sm leading-relaxed whitespace-pre-wrap line-clamp-3 font-light">
-                                                {item.content}
-                                            </p>
-                                        </div>
 
-                                        <div className="mt-8 pt-6 border-t border-card-border/50 flex items-center justify-between">
-                                            <span className="text-[9px] uppercase tracking-[0.4em] text-text-sub/40 font-mono">
-                                                REF: {item._id.slice(-6)}
-                                            </span>
-                                            
-                                            {isAuthorized ? (
-                                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                            {/* Action buttons */}
+                                            {isAuthorized && (
+                                                <div className="flex gap-2 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                                     <button
-                                                        onClick={(e) => { e.stopPropagation(); startEdit(item); }}
-                                                        className="text-[9px] uppercase tracking-widest text-gold hover:bg-gold/10 px-3 py-1.5 rounded-md transition-all font-bold"
+                                                        onClick={() => startEdit(item)}
+                                                        className="text-[9px] uppercase tracking-widest bg-gold/10 text-gold hover:bg-gold/25 px-4 py-2 rounded-lg border border-gold/20 transition-all font-bold"
                                                     >
-                                                        Edit
+                                                        <AiOutlineEdit className="w-3.5 h-3.5" /> Edit
                                                     </button>
                                                     <button
-                                                        onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(item._id); }}
-                                                        className="text-[9px] uppercase tracking-widest text-red-400 hover:bg-red-500/10 px-3 py-1.5 rounded-md transition-all font-bold"
+                                                        onClick={() => setDeleteConfirmId(item._id)}
+                                                        className="text-[9px] uppercase tracking-widest bg-red-500/10 text-red-400 hover:bg-red-500/20 px-4 py-2 rounded-lg border border-red-500/20 transition-all font-bold"
                                                     >
-                                                        Delete
+                                                        <MdDeleteForever className="w-3.5 h-3.5" /> Delete
                                                     </button>
                                                 </div>
                                             ) : (
@@ -541,16 +546,27 @@ export default function AnnouncementPage() {
                                                 </span>
                                             )}
                                         </div>
+
+                                        {/* Content */}
+                                        <p className="text-text-sub text-sm leading-relaxed whitespace-pre-wrap">
+                                            {item.content}
+                                        </p>
+
+                                        {/* Bottom accent line */}
+                                        <div className="mt-6 pt-4 border-t border-card-border/50 flex items-center justify-between">
+                                            <span className="text-[8px] uppercase tracking-[0.4em] text-text-sub/30 font-mono">
+                                                ID: {item._id.slice(-8)}
+                                            </span>
+                                            <div className="h-[1px] w-12 bg-gradient-to-l from-accent/20 to-transparent" />
+                                        </div>
                                     </div>
 
                                     {/* Delete confirm overlay */}
                                     {deleteConfirmId === item._id && (
-                                        <div onClick={(e) => e.stopPropagation()} className="absolute inset-0 bg-background/95 backdrop-blur-md flex flex-col items-center justify-center gap-5 z-20">
-                                            <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center text-xl border border-red-500/20">🗑️</div>
-                                            <div className="text-center">
-                                                <p className="text-lg text-text-main font-serif mb-1">Erase this record?</p>
-                                                <p className="text-[10px] uppercase tracking-[0.2em] text-text-sub/60">This action is irreversible</p>
-                                            </div>
+                                        <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-10 rounded-2xl">
+                                            <div className="text-3xl">🗑️</div>
+                                            <p className="text-sm text-text-main font-serif">Delete this announcement?</p>
+                                            <p className="text-[10px] uppercase tracking-widest text-text-sub/60">This action cannot be undone</p>
                                             <div className="flex gap-3 mt-2">
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); handleDelete(item._id); }}

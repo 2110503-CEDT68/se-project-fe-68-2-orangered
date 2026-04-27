@@ -19,6 +19,7 @@ export default function StarPicker({
         <button
           key={i}
           type="button"
+          aria-label={`Rate ${i + 1} stars`}
           onMouseEnter={() => !disabled && setHovered(i + 1)}
           onMouseLeave={() => !disabled && setHovered(0)}
           onClick={() => !disabled && onChange(i + 1)}

@@ -117,7 +117,7 @@ export default function ReservationCard({
                 href={`/shop/${item.shop._id}#reviews`}
                 className="group/btn relative py-1 transition-all"
               >
-                <span className="text-[9px] uppercase tracking-[0.4em] text-amber-200 hover:text-amber-100 transition-colors">
+                <span className="text-[9px] uppercase tracking-[0.4em] text-gold hover:text-gold/70 transition-colors">
                   Comment on Shop
                 </span>
                 <div className="absolute bottom-0 right-0 w-0 h-px bg-amber-300 group-hover/btn:w-full transition-all duration-500" />

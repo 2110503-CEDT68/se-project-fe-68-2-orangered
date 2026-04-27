@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from "@playwright/test";
+import {test, expect, Page, Locator} from '@playwright/test';
 
 const BASE_URL = process.env.TEST_BASE_URL ?? "http://localhost:3000";
 const CUSTOMER = {
@@ -51,4 +51,18 @@ export function getBubble(page: Page, text: string): Locator {
     .locator('[class*="group/bubble"]')
     .filter({ hasText: text })
     .last();
+}
+
+export async function readAndAgreeToTos(page: Page) {
+  await page.getByRole('button', { name: 'Terms of Service' }).click();
+  
+  const tosContent = page.locator('.custom-scrollbar');
+  
+  await tosContent.evaluate((el:any) => {
+    el.scrollTop = el.scrollHeight;
+  });
+
+  const agreeBtn = page.getByRole('button', { name: 'Agree & Close' });
+  await expect(agreeBtn).toBeEnabled();
+  await agreeBtn.click();
 }

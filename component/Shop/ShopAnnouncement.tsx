@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import getAnnouncements from "@/libs/announcement/getAnnouncement";
 import deleteAnnouncement from "@/libs/announcement/deleteAnnouncement";
 import AnnouncementModal from "./Modal/AnnouncementModal";
-import AnnouncementButton from "../ui/AnnouncementButton";
+import AnnouncementButton from "./Button/AnnouncementButton";
 import ShopAnnouncementButton from "./Button/ShopAnnouncementButton";
 
 export interface Announcement {
@@ -62,37 +62,43 @@ export default function ShopAnnouncement({
   if (announcements.length === 0)
     return (
       <>
-        <ShopAnnouncementButton onOpen={() => setIsOpen(true)} length={0}/>
+        <ShopAnnouncementButton onOpen={() => setIsOpen(true)} length={0} />
         {isOpen && (
-          <AnnouncementModal onClose={() => setIsOpen(false)} announcements={announcements}>
-              <div className="relative z-10 flex flex-col items-center max-w-md w-full px-8 py-12 text-center">
-                {/* Symbol */}
-                <div className="mb-10 relative">
-                  <div className="text-2xl text-gold opacity-40 animate-pulse">✦</div>
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 border border-gold/10 rounded-full scale-150" />
+          <AnnouncementModal
+            onClose={() => setIsOpen(false)}
+            announcements={announcements}
+          >
+            <div className="relative z-10 flex flex-col items-center max-w-md w-full px-8 py-12 text-center">
+              {/* Symbol */}
+              <div className="mb-10 relative">
+                <div className="text-2xl text-gold opacity-40 animate-pulse">
+                  ✦
                 </div>
-
-                <div className="space-y-4">
-                  <h2 className="text-[11px] uppercase tracking-[0.6em] text-gold font-bold">
-                    No announcement yet
-                  </h2>
-
-                  <div className="h-px w-8 bg-gold/20 mx-auto" />
-
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-text-sub leading-loose opacity-70">
-                    The herald rests in silence. No proclamations have been issued — check back when the scrolls have been updated.
-                  </p>
-                </div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 border border-gold/10 rounded-full scale-150" />
               </div>
 
-              <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-12 opacity-20">
-                <p className="text-[8px] font-mono tracking-widest uppercase">
-                  Null_State // 000
-                </p>
-                <p className="text-[8px] font-mono tracking-widest uppercase">
-                  Announcement_Board_v1
+              <div className="space-y-4">
+                <h2 className="text-[11px] uppercase tracking-[0.6em] text-gold font-bold">
+                  No announcement yet
+                </h2>
+
+                <div className="h-px w-8 bg-gold/20 mx-auto" />
+
+                <p className="text-[10px] uppercase tracking-[0.2em] text-text-sub leading-loose opacity-70">
+                  The herald rests in silence. No proclamations have been issued
+                  — check back when the scrolls have been updated.
                 </p>
               </div>
+            </div>
+
+            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-12 opacity-20">
+              <p className="text-[8px] font-mono tracking-widest uppercase">
+                Null_State // 000
+              </p>
+              <p className="text-[8px] font-mono tracking-widest uppercase">
+                Announcement_Board_v1
+              </p>
+            </div>
           </AnnouncementModal>
         )}
       </>
@@ -103,7 +109,10 @@ export default function ShopAnnouncement({
   return (
     <>
       {/* Floating trigger button */}
-      <ShopAnnouncementButton onOpen={() => setIsOpen(true)} length={announcements.length}/>
+      <ShopAnnouncementButton
+        onOpen={() => setIsOpen(true)}
+        length={announcements.length}
+      />
 
       {/* Modal Overlay */}
       {isOpen && (
