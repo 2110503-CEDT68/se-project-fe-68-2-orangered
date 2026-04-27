@@ -23,7 +23,7 @@ jobs:
             **User:** ${{ github.actor }}
             **Commit:** ${{ github.event.head_commit.message }}
             **Link:** ${{ github.event.compare }}
-          webhookUrl: ${{ secrets.a }}
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
 
   notify_pr:
     if: github.event_name == 'pull_request'
