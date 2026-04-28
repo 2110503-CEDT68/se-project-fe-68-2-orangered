@@ -551,7 +551,7 @@ export default function AnnouncementPage() {
   // UI States
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
-  const [layout, setLayout] = useState<"grid" | "list" | "funny">("grid"); // โหมด funny ยังอยู่
+  const [layout, setLayout] = useState<"grid" | "list" | "burger" | "funny">("grid"); 
   const [viewingPost, setViewingPost] = useState<Announcement | null>(null);
 
   const isAuthorized =
@@ -979,7 +979,7 @@ export default function AnnouncementPage() {
                   <line x1="3" y1="18" x2="3.01" y2="18"></line>
                 </svg>
               </button>
-              {/* ปุ่มโหมดฮาๆ */}
+              {/* ปุ่มโหมดฮา ๆ */}
               <button
                 onClick={() => setLayout("funny")}
                 className={`p-2 rounded-full transition-all duration-300 flex items-center justify-center text-[16px] leading-none ${
@@ -991,6 +991,30 @@ export default function AnnouncementPage() {
               >
                 🤡
               </button>
+              <button
+  onClick={() => setLayout("burger")}
+  className={`p-2 rounded-full transition-all duration-300 flex items-center justify-center ${
+    layout === "burger"
+      ? "bg-background shadow-sm text-text-main"
+      : "text-text-sub/40 hover:text-text-sub"
+  }`}
+  title="Burger List View"
+>
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="3" y1="12" x2="21" y2="12"></line>
+    <line x1="3" y1="6" x2="21" y2="6"></line>
+    <line x1="3" y1="18" x2="21" y2="18"></line>
+  </svg>
+</button>
             </div>
           </div>
         </div>
@@ -1042,156 +1066,207 @@ export default function AnnouncementPage() {
               }`}
             >
               {sortedAnnouncements.map((item, index) => {
-                const urls = extractUrls(item.content);
-                return (
-                  <article
-                    key={item._id}
-                    onClick={() => setViewingPost(item)}
-                    className={`group relative overflow-hidden shadow-lg transition-all duration-500 cursor-pointer flex
-                      ${layout === 'grid' ? 'bg-card/50 border border-card-border rounded-2xl flex-col hover:shadow-2xl hover:border-accent/20' : ''}
-                      ${layout === 'list' ? 'bg-card/50 border border-card-border rounded-2xl flex-col md:flex-row hover:shadow-2xl hover:border-accent/20 items-stretch' : ''}
-                      ${layout === 'funny' ? 'bg-gradient-to-tr from-green-300/30 via-yellow-200/30 to-pink-400/30 border-4 border-dashed border-pink-500 hover:border-yellow-400 rounded-full hover:rounded-3xl flex-col even:-rotate-6 odd:rotate-6 hover:rotate-[360deg] hover:scale-110 duration-1000' : ''}
-                    `}
-                    style={{ animationDelay: `${index * 60}ms` }}
-                  >
-                    {item.imageUrl && (
-                      <div
-                        className={`relative overflow-hidden flex-shrink-0
-                          ${layout === "list" ? "w-full md:w-2/5 min-h-[240px] self-stretch flex items-stretch" : ""}
-                          ${layout === "grid" ? "w-full h-60" : ""}
-                          ${layout === "funny" ? "w-full h-48 hue-rotate-180 animate-pulse mix-blend-difference" : ""}
-                        `}
-                      >
-                        {/* ภาพจะสูงตามกล่องแม่ผ่าน h-full ถ้าแม่ถูกยืดในโหมด flex-row */}
-                        <LazyImage
-                          src={item.imageUrl}
-                          alt={item.title}
-                          className={`w-full h-full object-cover transition-all duration-700
-                            ${layout === "funny" ? "saturate-200 contrast-150" : "grayscale-[20%] group-hover:grayscale-0 group-hover:scale-105"}
-                            ${getPositionClass(item.imagePosition)}
-                          `}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent opacity-80 group-hover:opacity-40 transition-opacity duration-500 pointer-events-none" />
-                      </div>
+  const urls = extractUrls(item.content);
+  return (
+    <article
+      key={item._id}
+      onClick={() => setViewingPost(item)}
+      className={`group relative overflow-hidden transition-all duration-500 cursor-pointer flex
+        ${layout === 'grid' ? 'bg-card/50 border border-card-border rounded-2xl flex-col hover:shadow-2xl shadow-lg hover:border-accent/20' : ''}
+        ${layout === 'list' ? 'bg-card/50 border border-card-border rounded-2xl flex-col md:flex-row hover:shadow-2xl shadow-lg hover:border-accent/20 items-stretch' : ''}
+        ${layout === 'burger' ? 'bg-transparent border-b border-card-border/50 hover:bg-card/40 flex-row items-center py-4 px-4 gap-4 last:border-b-0' : ''}
+        ${layout === 'funny' ? 'bg-gradient-to-tr from-green-300/30 via-yellow-200/30 to-pink-400/30 border-4 border-dashed border-pink-500 hover:border-yellow-400 rounded-full hover:rounded-3xl flex-col even:-rotate-6 odd:rotate-6 hover:rotate-[360deg] hover:scale-110 duration-1000 shadow-lg' : ''}
+      `}
+      style={{ animationDelay: `${index * 60}ms` }}
+    >
+      {item.imageUrl && (
+        <div
+          className={`relative overflow-hidden flex-shrink-0
+            ${layout === "list" ? "w-full md:w-2/5 min-h-[240px] self-stretch flex items-stretch" : ""}
+            ${layout === "grid" ? "w-full h-60" : ""}
+            ${layout === "burger" ? "w-16 h-16 rounded-lg shadow-sm" : ""}
+            ${layout === "funny" ? "w-full h-48 hue-rotate-180 animate-pulse mix-blend-difference" : ""}
+          `}
+        >
+          {/* ภาพจะสูงตามกล่องแม่ผ่าน h-full ถ้าแม่ถูกยืดในโหมด flex-row */}
+          <LazyImage
+            src={item.imageUrl}
+            alt={item.title}
+            className={`w-full h-full object-cover transition-all duration-700
+              ${layout === "funny" ? "saturate-200 contrast-150" : "grayscale-[20%] group-hover:grayscale-0 group-hover:scale-105"}
+              ${getPositionClass(item.imagePosition)}
+            `}
+          />
+          {layout !== "burger" && (
+            <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent opacity-80 group-hover:opacity-40 transition-opacity duration-500 pointer-events-none" />
+          )}
+        </div>
+      )}
+
+      {/* Content */}
+      <div className={`relative flex flex-col flex-grow ${layout === 'list' ? 'p-8 md:w-3/5 justify-center' : layout === 'burger' ? 'justify-center min-w-0' : 'p-8'}`}>
+        <div className="flex-grow">
+          {/* แสดงวันที่และร้านแบบเต็มเฉพาะตอนที่ไม่ใช่ Burger */}
+          {layout !== 'burger' && (
+            <div className="flex items-center gap-3 mb-4 flex-wrap">
+              <span className={`inline-flex items-center uppercase tracking-[0.3em] font-mono ${layout === 'funny' ? 'text-pink-500 text-lg font-black animate-bounce' : 'text-[9px] text-text-sub/60'}`}>
+                {formatDate(item.createdAt)}
+              </span>
+              {item.shop && (
+                <>
+                  <span className="w-1 h-1 rounded-full bg-card-border" />
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border bg-background/50 uppercase tracking-widest font-bold ${layout === 'funny' ? 'text-lg text-purple-600 border-purple-500 animate-spin' : 'text-[9px] text-text-sub border-card-border'}`}>
+                    {item.shop.picture && (
+                      <img
+                        src={item.shop.picture}
+                        alt=""
+                        className="w-3.5 h-3.5 rounded-full object-cover"
+                        onError={(
+                          e: React.SyntheticEvent<HTMLImageElement>
+                        ) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
                     )}
+                    {item.shop.name}
+                  </span>
+                </>
+              )}
+            </div>
+          )}
 
-                    {/* Content */}
-                    <div className={`relative p-8 flex flex-col flex-grow ${layout === 'list' ? 'md:w-3/5 justify-center' : ''}`}>
-                      <div className="flex-grow">
-                        <div className="flex items-center gap-3 mb-4 flex-wrap">
-                          <span className={`inline-flex items-center uppercase tracking-[0.3em] font-mono ${layout === 'funny' ? 'text-pink-500 text-lg font-black animate-bounce' : 'text-[9px] text-text-sub/60'}`}>
-                            {formatDate(item.createdAt)}
-                          </span>
-                          {item.shop && (
-                            <>
-                              <span className="w-1 h-1 rounded-full bg-card-border" />
-                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border bg-background/50 uppercase tracking-widest font-bold ${layout === 'funny' ? 'text-lg text-purple-600 border-purple-500 animate-spin' : 'text-[9px] text-text-sub border-card-border'}`}>
-                                {item.shop.picture && (
-                                  <img
-                                    src={item.shop.picture}
-                                    alt=""
-                                    className="w-3.5 h-3.5 rounded-full object-cover"
-                                    onError={(
-                                      e: React.SyntheticEvent<HTMLImageElement>
-                                    ) => {
-                                      e.currentTarget.style.display = "none";
-                                    }}
-                                  />
-                                )}
-                                {item.shop.name}
-                              </span>
-                            </>
-                          )}
-                        </div>
+          <div className={`flex items-start justify-between gap-4 ${layout === 'burger' ? 'mb-1' : 'mb-3'}`}>
+            <h2 className={`font-semibold transition-colors duration-300 leading-snug
+              ${layout === 'funny' ? 'text-3xl font-[Comic_Sans_MS,cursive] text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500 drop-shadow-md animate-pulse' : 'font-serif text-text-main group-hover:text-accent'}
+              ${layout === 'burger' ? 'text-base truncate' : 'text-xl line-clamp-2'}
+            `}>
+              {item.title}
+            </h2>
+          </div>
 
-                        <div className="flex items-start justify-between gap-4 mb-3">
-                          <h2 className={`font-semibold transition-colors duration-300 leading-snug line-clamp-2
-                            ${layout === 'funny' ? 'text-3xl font-[Comic_Sans_MS,cursive] text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500 drop-shadow-md animate-pulse' : 'text-xl font-serif text-text-main group-hover:text-accent'}
-                          `}>
-                            {item.title}
-                          </h2>
-                        </div>
+          {/* แสดงข้อมูลย่อในโหมด Burger หรือแสดงเนื้อหาเต็มในโหมดอื่น */}
+          {layout === 'burger' ? (
+            <div className="flex items-center gap-2 text-[10px] text-text-sub/60 uppercase tracking-widest truncate">
+              <span>{formatDate(item.createdAt)}</span>
+              {item.shop && (
+                <>
+                  <span className="w-1 h-1 rounded-full bg-card-border flex-shrink-0" />
+                  <span className="truncate">{item.shop.name}</span>
+                </>
+              )}
+            </div>
+          ) : (
+            <p className={`leading-relaxed whitespace-pre-wrap line-clamp-3
+              ${layout === 'funny' ? 'text-lg font-mono text-green-600 font-black tracking-wider uppercase' : 'text-sm text-text-sub'}
+            `}>
+              {renderTextWithLinks(item.content, urls)}
+            </p>
+          )}
 
-                        <p className={`leading-relaxed whitespace-pre-wrap line-clamp-3
-                          ${layout === 'funny' ? 'text-lg font-mono text-green-600 font-black tracking-wider uppercase' : 'text-sm text-text-sub'}
-                        `}>
-                          {renderTextWithLinks(item.content, urls)}
-                        </p>
-                        
-                        {layout !== 'funny' && urls.map((url, i) => (
-                           <LinkPreview key={i} url={url} />
-                        ))}
-                      </div>
+          {/* ซ่อน Link Preview ในโหมด Burger */}
+          {layout !== 'funny' && layout !== 'burger' && urls.map((url, i) => (
+            <LinkPreview key={i} url={url} />
+          ))}
+        </div>
 
-                      <div className={`mt-6 pt-4 border-t flex items-center justify-between ${layout === 'funny' ? 'border-pink-500/50' : 'border-card-border/50'}`}>
-                        <span className={`uppercase tracking-[0.4em] font-mono ${layout === 'funny' ? 'text-xs text-red-500 font-bold' : 'text-[8px] text-text-sub/30'}`}>
-                          ID: {item._id.slice(-8)}
-                        </span>
+        {/* ส่วนท้ายและปุ่มจัดการ (ซ่อนในโหมด Burger) */}
+        {layout !== 'burger' && (
+          <div className={`mt-6 pt-4 border-t flex items-center justify-between ${layout === 'funny' ? 'border-pink-500/50' : 'border-card-border/50'}`}>
+            <span className={`uppercase tracking-[0.4em] font-mono ${layout === 'funny' ? 'text-xs text-red-500 font-bold' : 'text-[8px] text-text-sub/30'}`}>
+              ID: {item._id.slice(-8)}
+            </span>
 
-                        {isAuthorized && canManage(item) ? (
-                          <div className="flex gap-2 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                startEdit(item);
-                              }}
-                              className="text-[9px] uppercase tracking-widest bg-gold/10 text-gold hover:bg-gold/25 px-4 py-2 rounded-lg border border-gold/20 transition-all font-bold flex items-center gap-1"
-                            >
-                              <AiOutlineEdit className="w-3.5 h-3.5" /> Edit
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setDeleteConfirmId(item._id);
-                              }}
-                              className="text-[9px] uppercase tracking-widest bg-red-500/10 text-red-400 hover:bg-red-500/20 px-4 py-2 rounded-lg border border-red-500/20 transition-all font-bold flex items-center gap-1"
-                            >
-                              <MdDeleteForever className="w-3.5 h-3.5" /> Delete
-                            </button>
-                          </div>
-                        ) : (
-                          <span className={`text-[10px] uppercase tracking-widest font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-1 ${layout === 'funny' ? 'text-pink-600' : 'text-accent'}`}>
-                            Read Full <span className="text-lg leading-none">→</span>
-                          </span>
-                        )}
-                      </div>
-                    </div>
+            {isAuthorized && canManage(item) ? (
+              <div className="flex gap-2 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    startEdit(item);
+                  }}
+                  className="text-[9px] uppercase tracking-widest bg-gold/10 text-gold hover:bg-gold/25 px-4 py-2 rounded-lg border border-gold/20 transition-all font-bold flex items-center gap-1"
+                >
+                  <AiOutlineEdit className="w-3.5 h-3.5" /> Edit
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteConfirmId(item._id);
+                  }}
+                  className="text-[9px] uppercase tracking-widest bg-red-500/10 text-red-400 hover:bg-red-500/20 px-4 py-2 rounded-lg border border-red-500/20 transition-all font-bold flex items-center gap-1"
+                >
+                  <MdDeleteForever className="w-3.5 h-3.5" /> Delete
+                </button>
+              </div>
+            ) : (
+              <span className={`text-[10px] uppercase tracking-widest font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-1 ${layout === 'funny' ? 'text-pink-600' : 'text-accent'}`}>
+                Read Full <span className="text-lg leading-none">→</span>
+              </span>
+            )}
+          </div>
+        )}
+      </div>
 
-                    {/* Delete confirm overlay */}
-                    {deleteConfirmId === item._id && (
-                      <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-10 rounded-2xl">
-                        <div className="text-3xl">🗑️</div>
-                        <p className="text-sm text-text-main font-serif">
-                          Delete this announcement?
-                        </p>
-                        <p className="text-[10px] uppercase tracking-widest text-text-sub/60">
-                          This action cannot be undone
-                        </p>
-                        <div className="flex gap-3 mt-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(item._id);
-                            }}
-                            className="px-6 py-3 bg-red-500 text-white text-[10px] uppercase tracking-[0.3em] rounded-full font-bold shadow-lg shadow-red-500/20 hover:shadow-red-500/40 hover:-translate-y-0.5 transition-all"
-                          >
-                            Confirm
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeleteConfirmId(null);
-                            }}
-                            className="px-6 py-3 border border-card-border text-text-sub text-[10px] uppercase tracking-[0.3em] rounded-full hover:text-text-main hover:bg-card-border/30 transition-all"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </article>
-                );
-              })}
+      {/* ปุ่มจัดการขนาดเล็กด้านขวาสุด สำหรับโหมด Burger */}
+      {layout === 'burger' && isAuthorized && canManage(item) && (
+        <div className="flex gap-2 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ml-4">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              startEdit(item);
+            }}
+            className="p-2 bg-gold/10 text-gold hover:bg-gold hover:text-white rounded-lg transition-all"
+            title="Edit"
+          >
+            <AiOutlineEdit className="w-4 h-4" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setDeleteConfirmId(item._id);
+            }}
+            className="p-2 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-lg transition-all"
+            title="Delete"
+          >
+            <MdDeleteForever className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Delete confirm overlay */}
+      {deleteConfirmId === item._id && (
+        <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-10 rounded-2xl">
+          <div className="text-3xl">🗑️</div>
+          <p className="text-sm text-text-main font-serif">
+            Delete this announcement?
+          </p>
+          <p className="text-[10px] uppercase tracking-widest text-text-sub/60">
+            This action cannot be undone
+          </p>
+          <div className="flex gap-3 mt-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete(item._id);
+              }}
+              className="px-6 py-3 bg-red-500 text-white text-[10px] uppercase tracking-[0.3em] rounded-full font-bold shadow-lg shadow-red-500/20 hover:shadow-red-500/40 hover:-translate-y-0.5 transition-all"
+            >
+              Confirm
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeleteConfirmId(null);
+              }}
+              className="px-6 py-3 border border-card-border text-text-sub text-[10px] uppercase tracking-[0.3em] rounded-full hover:text-text-main hover:bg-card-border/30 transition-all"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </article>
+  );
+})}
             </div>
           )}
         </div>
