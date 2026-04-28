@@ -47,11 +47,10 @@ export default function Card({
         />
         <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
 
-        {/* ── ✦ Special Offer Badge (Enhanced) ── */}
+        {/* ── ✦ Special Offer Badge ── */}
         {hasPromotion && (
           <div className="absolute top-4 right-4 z-20">
             <div className="relative overflow-hidden backdrop-blur-md bg-accent/90 text-background px-4 py-1.5 rounded-full shadow-[0_4px_15px_rgba(197,163,87,0.4)] border border-white/20 animate-in fade-in zoom-in duration-500">
-              {/* Shine Effect: แสงวิ่งผ่านป้ายเวลา Hover */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
               
               <p className="relative text-[9px] font-bold uppercase tracking-[0.25em] flex items-center gap-2">

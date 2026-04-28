@@ -3,9 +3,13 @@
 import Image from "next/image";
 import { MassageType, Promotion } from "@/interface";
 
-export default function MassageServiceList({ services }: { services: MassageType[] }) {
+export default function MassageServiceList({
+  services,
+}: {
+  services: MassageType[];
+}) {
   // 1. กรองเฉพาะบริการที่ isActive เท่านั้น
-  const activeServices = services?.filter(s => s.isActive) || [];
+  const activeServices = services?.filter((s) => s.isActive) || [];
 
   // แก้ไขตรงนี้: ถ้าไม่มีบริการที่เปิดใช้งาน ให้แสดง Empty State แทนการคืนค่า null
   if (activeServices.length === 0) {
@@ -22,15 +26,34 @@ export default function MassageServiceList({ services }: { services: MassageType
     );
   }
 
-  // Helper สำหรับหา Promotion ที่ใช้งานอยู่
   const getActivePromo = (promotions?: Promotion[]) => {
     if (!promotions || promotions.length === 0) return null;
-    return promotions.find((p) => p.isActive) || null;
+
+    const now = new Date();
+
+    return (
+      promotions.find((p) => {
+        if (!p.isActive) return false;
+
+        const start = new Date(p.startDate);
+        const end = new Date(p.endDate);
+
+        end.setHours(23, 59, 59, 999);
+
+        return now >= start && now <= end;
+      }) || null
+    );
   };
 
   const formatDateRange = (start: Date | string, end: Date | string) => {
-    const s = new Date(start).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-    const e = new Date(end).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+    const s = new Date(start).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+    });
+    const e = new Date(end).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+    });
     return `${s} — ${e}`;
   };
 
@@ -43,16 +66,20 @@ export default function MassageServiceList({ services }: { services: MassageType
       <div className="grid grid-cols-1 gap-4">
         {activeServices.map((service, index) => {
           const activePromo = getActivePromo(service.promotions);
-          const hasDiscount = activePromo && activePromo.discountPrice > 0;
-          const finalPrice = hasDiscount ? service.price - activePromo.discountPrice : service.price;
-
+          const hasDiscount = !!activePromo;
+          const finalPrice = hasDiscount
+            ? activePromo.discountPrice
+            : service.price;
           return (
             <div
               key={service._id || index}
               className="group flex flex-row items-center border border-card-border bg-card/50 rounded-lg hover:border-accent/50 dark:hover:border-accent-500/50 transition-all duration-500 overflow-hidden min-h-[110px]"
             >
               {/* Image Section */}
-              {service.picture && (service.picture.startsWith("http") || service.picture.startsWith("/") || service.picture.startsWith("data:")) ? (
+              {service.picture &&
+              (service.picture.startsWith("http") ||
+                service.picture.startsWith("/") ||
+                service.picture.startsWith("data:")) ? (
                 <div className="relative h-32 w-0 opacity-0 group-hover:w-40 group-hover:opacity-100 transition-all duration-500 ease-in-out overflow-hidden shadow-xl">
                   <Image
                     src={service.picture}
@@ -63,24 +90,34 @@ export default function MassageServiceList({ services }: { services: MassageType
                 </div>
               ) : null}
 
-              <div className={`flex-1 p-6 transition-all duration-500 ease-in-out ${service.picture ? 'group-hover:pl-10' : ''}`}>
+              <div
+                className={`flex-1 p-6 transition-all duration-500 ease-in-out ${service.picture ? "group-hover:pl-10" : ""}`}
+              >
                 <div className="flex justify-between items-start mb-2">
                   <div className="space-y-1">
                     <h3 className="font-serif text-lg tracking-widest text-text-main uppercase transition-colors duration-300 group-hover:text-accent dark:group-hover:text-accent-400">
                       {service.name}
                       {service.isPackage && (
-                        <span className="ml-3 text-[8px] px-2 py-0.5 border border-gold/30 text-gold rounded-full italic tracking-tight font-sans uppercase">Package</span>
+                        <span className="ml-3 text-[8px] px-2 py-0.5 border border-gold/30 text-gold rounded-full italic tracking-tight font-sans uppercase">
+                          Package
+                        </span>
                       )}
                     </h3>
-                    
+
                     {activePromo && (
                       <div className="flex flex-col gap-0.5">
                         <p className="text-[9px] text-accent dark:text-accent-400 tracking-[0.2em] uppercase font-bold italic">
                           ✦ {activePromo.title}
                         </p>
-                        <p className="text-[14px] text-text-sub/60 tracking-[0.1em] uppercase">{activePromo.description}</p>
+                        <p className="text-[14px] text-text-sub/60 tracking-[0.1em] uppercase">
+                          {activePromo.description}
+                        </p>
                         <p className="text-[8px] text-text-sub/60 tracking-[0.1em] uppercase">
-                          Period: {formatDateRange(activePromo.startDate, activePromo.endDate)}
+                          Period:{" "}
+                          {formatDateRange(
+                            activePromo.startDate,
+                            activePromo.endDate,
+                          )}
                         </p>
                       </div>
                     )}

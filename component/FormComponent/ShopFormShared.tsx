@@ -122,42 +122,45 @@ export function MassageCard({
 }) {
   const [localError, setLocalError] = useState("");
   const hasPromotion = item.promotions.length > 0;
+  const promo = item.promotions[0];
+const isExpired = hasPromotion && new Date(promo.endDate) < new Date(new Date().setHours(0,0,0,0));
 
   const validate = (field: string, value: any) => {
-    const promo = item.promotions[0];
-    const checkPromo = { ...promo, [field]: value };
-    let error = "";
+  const currentPromo = item.promotions[0];
+  let error = "";
+  
+  // 1. เตรียมค่า value ใหม่ (เช่น ปัดเศษราคา)
+  let processedValue = value;
+  if (field === "discountPrice") {
+    processedValue = Math.ceil(value * 100) / 100;
+  }
 
-    if (field === "discountPrice") {
-      value = Math.ceil(value * 100) / 100;
-    } 
+  const updatedPromo = { ...currentPromo, [field]: processedValue };
 
-    if (field === "title" && value.trim() === "") {
-      error = "Promotion title cant be empty string";
-    }
+  if (field === "title" && processedValue.trim() === "") {
+    error = "Promotion title cant be empty string";
+  } else if (field === "discountPrice" && Number(processedValue) >= item.price) {
+    error = "Discount price must be lower than the full price.";
+  } else if (field === "discountPrice" && Number(processedValue) <= 0) {
+    error = "Discount price must be more than 0.";
+  } else if (new Date(updatedPromo.startDate) > new Date(updatedPromo.endDate)) {
+    error = "Start date cannot be later than the end date.";
+  } else if (item.price <= 0 && hasPromotion) {
+    error = "Please set a valid service price before adding a promotion.";
+  }
 
-    else if (field === "discountPrice" && Number(value) >= item.price) {
-      error = "Discount price must be lower than the full price.";
-    }
+  const isNowExpired = new Date(updatedPromo.endDate) < new Date(new Date().setHours(0, 0, 0, 0));
+  if (isNowExpired) {
+    error = "Promotion has already expired based on this date.";
+    updatedPromo.isActive = false;
+  }
 
-    else if (field === "discountPrice" && Number(value) <= 0) {
-      error = "Discount price must be more than 0.";
-    } 
+  setLocalError(error);
 
-    else if (new Date(checkPromo.startDate) > new Date(checkPromo.endDate)) {
-      error = "Start date cannot be later than the end date.";
-    }
-    else if (field === "title" && value.length > 50) {
-      error = "Title is too long (max 50 chars).";
-    }
-    else if (item.price <= 0 && hasPromotion) {
-      error = "Please set a valid service price before adding a promotion.";
-    }
-
-    setLocalError(error);
-    
-    updatePromoField(field as any, value);
-  };
+  // 4. ส่ง Update ทีเดียวพร้อมกันทั้งยวง
+  const newPromos = [updatedPromo];
+  onChange(item._id, "promotions", newPromos);
+};
 
   const togglePromo = () => {
     if (hasPromotion) {
@@ -266,19 +269,28 @@ export function MassageCard({
             {hasPromotion ? "✕ Remove Promotion" : "+ Add Special Promotion"}
           </button>
 
-          {/* 3. เพิ่มสถานะ Active/Deactivate (AC: Shop owner selects Deactivate) */}
+          {/* Active/Deactivate (AC: Shop owner selects Deactivate) */}
           {hasPromotion && (
-            <button
-              onClick={() =>
-                updatePromoField("isActive", !item.promotions[0].isActive)
-              }
-              className={`text-[8px] px-2 py-0.5 border transition-all ${item.promotions[0].isActive ? "border-emerald-500/50 text-emerald-400" : "border-stone-500 text-stone-500"}`}
-            >
-              {item.promotions[0].isActive
-                ? "PROMO: ACTIVE"
-                : "PROMO: DEACTIVATED"}
-            </button>
-          )}
+  <button
+    disabled={isExpired} // ถ้าหมดอายุ ห้ามกดเปลี่ยนสถานะ
+    onClick={() =>
+      updatePromoField("isActive", !item.promotions[0].isActive)
+    }
+    className={`text-[8px] px-2 py-0.5 border transition-all ${
+      isExpired 
+        ? "border-red-500/50 text-red-500 bg-red-500/5 cursor-not-allowed" // สไตล์เมื่อหมดอายุ
+        : item.promotions[0].isActive 
+          ? "border-emerald-500/50 text-emerald-400 bg-emerald-500/5" 
+          : "border-stone-500 text-stone-500 bg-stone-500/5"
+    }`}
+  >
+    {isExpired 
+      ? "PROMO: EXPIRED (LOCKED)" 
+      : item.promotions[0].isActive 
+        ? "PROMO: ACTIVE" 
+        : "PROMO: DEACTIVATED"}
+  </button>
+)}
         </div>
 
         {hasPromotion && (
