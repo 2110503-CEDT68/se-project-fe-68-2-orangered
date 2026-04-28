@@ -75,26 +75,22 @@ export default function ProfilePage() {
     setInfoSuccess(null);
 
     try {
-      const res = await fetch(
-        `${getBackendBaseUrl()}/api/v1/auth/avatar`,
-        {
-          method: "PUT",
-          headers: {
-            authorization: `Bearer ${session.user.token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ profilePictureUrl: urlInput.trim() }),
+      const res = await fetch(`${getBackendBaseUrl()}/api/v1/auth/avatar`, {
+        method: "PUT",
+        headers: {
+          authorization: `Bearer ${session.user.token}`,
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({ profilePictureUrl: urlInput.trim() }),
+      });
       const data = await res.json();
       if (data.success) {
         setProfilePicture(data.profilePicture);
         await update({ profilePicture: data.profilePicture });
         setShowUrlInput(false);
         setUrlInput("");
-        
-        setInfoSuccess("Identity Updated Successfully"); 
-        
+
+        setInfoSuccess("Identity Updated Successfully");
       } else {
         setError(data.message ?? "Failed to save");
       }
@@ -149,17 +145,14 @@ export default function ProfilePage() {
     setInfoSuccess(null);
 
     try {
-      const res = await fetch(
-        `${getBackendBaseUrl()}/api/v1/auth/me`,
-        {
-          method: "PUT",
-          headers: {
-            authorization: `Bearer ${session.user.token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
+      const res = await fetch(`${getBackendBaseUrl()}/api/v1/auth/me`, {
+        method: "PUT",
+        headers: {
+          authorization: `Bearer ${session.user.token}`,
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify(payload),
+      });
 
       const data = await res.json();
 
@@ -421,23 +414,23 @@ export default function ProfilePage() {
             </div>
 
             {isEditingInfo && (
-  <div className="flex justify-center gap-4 mt-8 animate-in fade-in slide-in-from-top-2 duration-300">
-    <button
-      onClick={handleSaveInfo}
-      disabled={infoSaving}
-      className="px-8 py-2 bg-gold/10 border border-gold/30 text-gold text-[10px] uppercase tracking-[0.3em] hover:bg-gold hover:text-background transition-all duration-500 rounded-full disabled:opacity-50"
-    >
-      {infoSaving ? "Saving..." : "Confirm Changes"}
-    </button>
-    
-    <button
-      onClick={handleCancelInlineEdit}
-      className="px-8 py-2 border border-card-border text-text-sub text-[10px] uppercase tracking-[0.3em] hover:text-text-main transition-all duration-500 rounded-full"
-    >
-      Cancel
-    </button>
-  </div>
-)}
+              <div className="flex justify-center gap-4 mt-8 animate-in fade-in slide-in-from-top-2 duration-300">
+                <button
+                  onClick={handleSaveInfo}
+                  disabled={infoSaving}
+                  className="px-8 py-2 bg-gold/10 border border-gold/30 text-gold text-[10px] uppercase tracking-[0.3em] hover:bg-gold hover:text-background transition-all duration-500 rounded-full disabled:opacity-50"
+                >
+                  {infoSaving ? "Saving..." : "Confirm Changes"}
+                </button>
+
+                <button
+                  onClick={handleCancelInlineEdit}
+                  className="px-8 py-2 border border-card-border text-text-sub text-[10px] uppercase tracking-[0.3em] hover:text-text-main transition-all duration-500 rounded-full"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
 
             {(infoSuccess || infoError || infoSaving) && (
               <div className="pt-4 animate-in fade-in slide-in-from-bottom-2">

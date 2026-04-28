@@ -35,7 +35,12 @@ export interface ShopData {
     close: string;
   };
   picture?: string;
-  massageType: (MassageType & { _id: string })[];
+  massageType: (MassageType & { 
+    _id: string; 
+    isPackage: boolean; 
+    isActive: boolean; 
+    promotions: any[]; 
+  })[];
 }
 
 export interface EditShopFormProps {
@@ -56,9 +61,18 @@ export default function EditShopForm({ shop, onSuccess }: EditShopFormProps) {
   const [open, setOpen] = useState(shop.openClose.open);
   const [close, setClose] = useState(shop.openClose.close);
   const [imageURL, setImageURL] = useState(shop.picture ?? "");
-  const [massageTypes, setMassageTypes] = useState<(MassageType & { _id: string })[]>(
-    shop.massageType.length > 0 ? shop.massageType : [emptyMassage()]
-  );
+  
+  // จัดการ Massage Type: ใช้ข้อมูลจาก Props หรือถ้าไม่มีให้ใส่ empty อันนึง
+const [massageTypes, setMassageTypes] = useState<ShopData["massageType"]>(
+  shop.massageType && shop.massageType.length > 0 
+    ? shop.massageType.map(m => ({
+        ...m,
+        isPackage: m.isPackage ?? false,
+        isActive: m.isActive ?? true,
+        promotions: m.promotions ?? []
+      }))
+    : [emptyMassage() as any]
+);
 
   const [previewURL, setPreviewURL] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -70,12 +84,18 @@ export default function EditShopForm({ shop, onSuccess }: EditShopFormProps) {
   const handleFileChange = useCallback((file: File) => {
     setImageFile(file);
     setPreviewURL(URL.createObjectURL(file));
+    // Reset imageURL if user picks a new file
+    setImageURL("");
   }, []);
 
   const addMassage = () => setMassageTypes((p) => [...p, emptyMassage()]);
   const removeMassage = (id: string) => setMassageTypes((p) => p.filter((m) => m._id !== id));
-  const updateMassage = (id: string, field: keyof MassageType, value: string | number) =>
-    setMassageTypes((p) => p.map((m) => (m._id === id ? { ...m, [field]: value } : m)));
+  const updateMassage = (id: string, field: string, value: any) =>
+  setMassageTypes((p) =>
+    p.map((m) =>
+      m._id === id ? { ...m, [field]: value } : m
+    )
+  );
 
   async function handleSave() {
     setError("");
@@ -85,8 +105,26 @@ export default function EditShopForm({ shop, onSuccess }: EditShopFormProps) {
       return;
     }
 
+    const hasInvalidPromo = massageTypes.some(m => {
+    if (m.promotions.length > 0) {
+      const p = m.promotions[0];
+      const start = new Date(p.startDate);
+      const end = new Date(p.endDate);
+      return (p.discountPrice >= m.price) || (start > end) || (p.title.length > 50);
+    }
+    return false;
+  });
+
+  if (hasInvalidPromo) {
+    setError("Please resolve the promotion errors before updating the registry.");
+    return;
+  }
+
     try {
       setSubmitStep("saving");
+      
+      // Clean payload: ลบ _id ชั่วคราวหรือ _id เดิมออกก่อนส่งเข้า updateShop API 
+      // (เพื่อให้ Backend จัดการ Map ใหม่หรือ Overwrite ตามโครงสร้าง DB)
       const payload = massageTypes.map(({ _id, ...rest }) => rest);
       const pictureArg = imageURL.trim() || undefined;
 
@@ -102,6 +140,7 @@ export default function EditShopForm({ shop, onSuccess }: EditShopFormProps) {
         shopDescription || undefined
       );
 
+      // ถ้ามีไฟล์ภาพใหม่ และไม่มี imageURL (Direct link) ให้ทำการ Upload
       if (!imageURL.trim() && imageFile) {
         setSubmitStep("uploading");
         await uploadImage(session.user.token, shop._id, imageFile);
@@ -109,7 +148,7 @@ export default function EditShopForm({ shop, onSuccess }: EditShopFormProps) {
 
       setSubmitStep("done");
       onSuccess?.(shop._id);
-    } catch {
+    } catch (err) {
       setSubmitStep("error");
       setError("An unexpected error occurred during the registry update.");
     }
@@ -125,7 +164,6 @@ export default function EditShopForm({ shop, onSuccess }: EditShopFormProps) {
     error: "Retry Synchronization",
   };
 
-  // ── Success View (Luxury Mode) ──
   if (submitStep === "done") {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 animate-in fade-in duration-1000">
@@ -136,7 +174,7 @@ export default function EditShopForm({ shop, onSuccess }: EditShopFormProps) {
           </div>
           
           <div className="space-y-3">
-            <h2 className="text-white font-serif text-2xl tracking-[0.2em] uppercase">Changes Authorized</h2>
+            <h2 className="text-accent font-serif text-2xl tracking-[0.2em] uppercase">Changes Authorized</h2>
             <p className="text-stone-500 text-[10px] tracking-[0.3em] uppercase">The shop profile has been successfully updated in our registry.</p>
           </div>
 
@@ -145,13 +183,13 @@ export default function EditShopForm({ shop, onSuccess }: EditShopFormProps) {
           <div className="grid grid-cols-1 gap-4 pt-4">
             <Link 
               href={`/shop/${shop._id}`}
-              className="py-4 bg-gold/10 border border-gold/30 text-gold text-[10px] uppercase tracking-[0.4em] hover:bg-gold hover:text-black transition-all duration-500"
+              className="py-4 bg-gold/10 border border-gold/30 text-gold text-[10px] uppercase tracking-[0.4em] hover:bg-gold hover:text-black transition-all duration-500 text-center"
             >
               View Updated Shop
             </Link>
             <Link 
               href="/shop"
-              className="py-4 border border-stone-800 text-stone-500 text-[10px] uppercase tracking-[0.4em] hover:text-white hover:border-stone-600 transition-all duration-500"
+              className="py-4 border border-stone-800 text-stone-500 text-[10px] uppercase tracking-[0.4em] hover:text-white hover:border-stone-600 transition-all duration-500 text-center"
             >
               Return to Directory
             </Link>
@@ -160,7 +198,8 @@ export default function EditShopForm({ shop, onSuccess }: EditShopFormProps) {
       </div>
     );
   }
-return (
+
+  return (
     <div className="min-h-screen bg-background flex items-stretch font-['DM_Sans',sans-serif] selection:bg-gold/30">
       {/* ── LEFT: image drop (Desktop) ── */}
       <ImageDropZone

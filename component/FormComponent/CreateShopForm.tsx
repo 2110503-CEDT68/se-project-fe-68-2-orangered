@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { signIn, useSession } from "next-auth/react";
 import createShop, { MassageType } from "@/libs/shops/createShop";
 import uploadImage from "@/libs/shops/uploadImage";
+import Link from "next/link";
 
 import {
   Field,
@@ -16,6 +17,13 @@ import {
   Step,
   emptyMassage,
 } from "./ShopFormShared";
+
+type FullMassageType = MassageType & { 
+  _id: string;
+  isPackage: boolean;
+  isActive: boolean;
+  promotions: any[]; 
+};
 
 type SubmitStep = "idle" | "creating" | "uploading" | "done" | "error";
 
@@ -31,8 +39,8 @@ export default function CreateShopForm() {
   const [close, setClose] = useState("");
   const [imageURL, setImageURL] = useState("");
 
-  const [massageTypes, setMassageTypes] = useState<(MassageType & { _id: string })[]>([
-    emptyMassage(),
+  const [massageTypes, setMassageTypes] = useState<FullMassageType[]>([
+    emptyMassage() as FullMassageType,
   ]);
 
   const [previewURL, setPreviewURL] = useState("");
@@ -45,11 +53,14 @@ export default function CreateShopForm() {
   const handleFileChange = useCallback((file: File) => {
     setImageFile(file);
     setPreviewURL(URL.createObjectURL(file));
+    setImageURL(""); 
   }, []);
 
-  const addMassage = () => setMassageTypes((p) => [...p, emptyMassage()]);
+  const addMassage = () => setMassageTypes((p) => [...p, emptyMassage() as FullMassageType]);
+  
   const removeMassage = (id: string) => setMassageTypes((p) => p.filter((m) => m._id !== id));
-  const updateMassage = (id: string, field: keyof MassageType, value: string | number) =>
+  
+  const updateMassage = (id: string, field: string, value: any) =>
     setMassageTypes((p) => p.map((m) => (m._id === id ? { ...m, [field]: value } : m)));
 
   async function handleCreate() {
@@ -71,9 +82,25 @@ export default function CreateShopForm() {
       return;
     }
 
+    const hasInvalidPromo = massageTypes.some(m => {
+    if (m.promotions.length > 0) {
+      const p = m.promotions[0];
+      const start = new Date(p.startDate);
+      const end = new Date(p.endDate);
+      return (p.discountPrice >= m.price) || (p.discountPrice <= 0) || (start > end) || (p.title.length > 50) || (p.title.length <= 0);
+    }
+    return false;
+  });
+
+  if (hasInvalidPromo) {
+    setError("Please resolve the promotion errors before updating the registry.");
+    return;
+  }
+
     try {
       setSubmitStep("creating");
-      const payload = massageTypes.map(({ _id, ...rest }) => rest);
+      
+      const payload = massageTypes.map(({ _id, isPackage, isActive, promotions, ...rest }) => rest);
       const pictureArg = imageURL.trim() || undefined;
 
       const result = await createShop(
@@ -94,7 +121,7 @@ export default function CreateShopForm() {
         await uploadImage(session.user.token, shopId, imageFile);
       }
       setSubmitStep("done");
-    } catch {
+    } catch (err) {
       setSubmitStep("error");
       setError("Something went wrong. Please try again.");
     }
@@ -119,6 +146,11 @@ export default function CreateShopForm() {
             Project Registered
           </p>
           <p className="text-text-sub text-[11px] font-light tracking-[0.2em] uppercase italic">{name}</p>
+          <div className="pt-4">
+             <Link href="/shop" className="text-[9px] text-gold/60 hover:text-gold tracking-widest uppercase transition-colors">
+               Return to Directory
+             </Link>
+          </div>
         </div>
       </div>
     );
@@ -135,9 +167,9 @@ export default function CreateShopForm() {
         massageCount={massageTypes.length}
       />
 
-      <div className="flex-1 flex flex-col overflow-y-auto">
+      <div className="flex-1 flex flex-col overflow-y-auto bg-background transition-colors duration-500">
         {/* Header Section */}
-        <div className="px-4 sm:px-10 pt-8 sm:pt-16 pb-6 sm:pb-10 border-b border-card-border/50">
+        <div className="px-10 pt-16 pb-10 border-b border-card-border/50 bg-card/10">
           <p className="text-[8px] tracking-[0.5em] text-gold uppercase mb-3 font-bold">
             ✦ New Establishment
           </p>
@@ -191,14 +223,15 @@ export default function CreateShopForm() {
             <SectionLabel>Service Catalog</SectionLabel>
             <div className="space-y-4">
               {massageTypes.map((item, index) => (
-                <MassageCard
-                  key={item._id}
-                  index={index}
-                  item={item}
-                  onChange={updateMassage}
-                  onRemove={removeMassage}
-                  canRemove={massageTypes.length > 1}
-                />
+                <div key={item._id} className="bg-card/20 rounded-xl border border-card-border p-1 hover:border-gold/30 transition-all duration-500 shadow-sm">
+                  <MassageCard
+                    index={index}
+                    item={item}
+                    onChange={updateMassage}
+                    onRemove={removeMassage}
+                    canRemove={massageTypes.length > 1}
+                  />
+                </div>
               ))}
               <button
                 type="button"

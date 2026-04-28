@@ -17,7 +17,7 @@ export default function RegisterPage() {
     password: "",
     role: "user",
   });
-  
+
   const [error, setError] = useState<string>("");
   const [errors, setErrors] = useState({
     name: "",
@@ -47,12 +47,15 @@ export default function RegisterPage() {
     };
 
     if (!formData.name.trim()) newErrors.name = "Full name is required";
-    if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Please enter a valid email address";
-    if (!/^\d{10}$/.test(formData.tel)) newErrors.tel = "Telephone must be exactly 10 digits";
-    if (formData.password.length < 6) newErrors.password = "Password must be at least 6 characters";
+    if (!/\S+@\S+\.\S+/.test(formData.email))
+      newErrors.email = "Please enter a valid email address";
+    if (!/^\d{10}$/.test(formData.tel))
+      newErrors.tel = "Telephone must be exactly 10 digits";
+    if (formData.password.length < 6)
+      newErrors.password = "Password must be at least 6 characters";
 
     setErrors(newErrors);
-    return Object.values(newErrors).some(e => e !== "");
+    return Object.values(newErrors).some((e) => e !== "");
   };
 
   const handleScrollTos = (e: React.UIEvent<HTMLDivElement>) => {
@@ -65,7 +68,7 @@ export default function RegisterPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setTosError(""); 
+    setTosError("");
 
     if (!isAgreed) {
       setTosError("* Please read and accept the Terms of Service to continue");
@@ -90,8 +93,8 @@ export default function RegisterPage() {
           email: formData.email,
           password: formData.password,
         });
-        
-        if (result?.error) {          
+
+        if (result?.error) {
           setError(data.msg);
           router.push("/api/auth/signin");
         } else {
@@ -111,15 +114,33 @@ export default function RegisterPage() {
       <main className="min-h-screen bg-background text-foreground flex flex-col items-center justify-start px-4 sm:px-8 py-16 sm:py-32 transition-colors duration-500 relative z-0">
         <div className="max-w-md w-full">
           <div className="text-center mb-10">
-            <h1 className="text-3xl font-serif uppercase tracking-widest text-text-main">Create Account</h1>
-            <p className="text-[10px] text-text-sub uppercase tracking-[0.3em] mt-2">Begin your wellness journey</p>
+            <h1 className="text-3xl font-serif uppercase tracking-widest text-text-main">
+              Create Account
+            </h1>
+            <p className="text-[10px] text-text-sub uppercase tracking-[0.3em] mt-2">
+              Begin your wellness journey
+            </p>
             <div className="h-[1px] w-12 bg-accent/30 mx-auto mt-6" />
           </div>
 
           <div className="bg-card border border-card-border rounded-2xl p-6 sm:p-12 backdrop-blur-sm shadow-2xl transition-colors">
-            <form onSubmit={handleRegister} className="flex flex-col gap-10" noValidate>
+            <form
+              onSubmit={handleRegister}
+              className="flex flex-col gap-10"
+              noValidate
+            >
               {error && (
-                <Alert severity="error" sx={{ mb: 3, backgroundColor: 'rgba(211, 47, 47, 0.1)', color: '#ef4444', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                <Alert
+                  severity="error"
+                  sx={{
+                    mb: 3,
+                    backgroundColor: "rgba(211, 47, 47, 0.1)",
+                    color: "#ef4444",
+                    fontSize: "10px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.1em",
+                  }}
+                >
                   {error}
                 </Alert>
               )}
@@ -131,7 +152,9 @@ export default function RegisterPage() {
                 required
                 error={!!errors.name}
                 helperText={errors.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 InputLabelProps={{ style: labelStyle }}
                 sx={inputStyles}
               />
@@ -144,7 +167,9 @@ export default function RegisterPage() {
                 type="email"
                 error={!!errors.email}
                 helperText={errors.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 InputLabelProps={{ style: labelStyle }}
                 sx={inputStyles}
               />
@@ -157,7 +182,9 @@ export default function RegisterPage() {
                 error={!!errors.tel}
                 helperText={errors.tel}
                 type="tel"
-                onChange={(e) => setFormData({ ...formData, tel: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, tel: e.target.value })
+                }
                 InputLabelProps={{ style: labelStyle }}
                 sx={inputStyles}
               />
@@ -170,7 +197,9 @@ export default function RegisterPage() {
                 required
                 error={!!errors.password}
                 helperText={errors.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
                 InputLabelProps={{ style: labelStyle }}
                 sx={inputStyles}
               />
@@ -215,7 +244,10 @@ export default function RegisterPage() {
                     onChange={(e) => setIsAgreed(e.target.checked)}
                     className="w-4 h-4 cursor-pointer accent-accent"
                   />
-                  <label htmlFor="tos-checkbox" className="text-[11px] text-text-sub tracking-wider">
+                  <label
+                    htmlFor="tos-checkbox"
+                    className="text-[11px] text-text-sub tracking-wider"
+                  >
                     I accept the{" "}
                     <button
                       type="button"
@@ -244,26 +276,32 @@ export default function RegisterPage() {
               >
                 Create Account
               </button>
-        
+
               <button
                 type="button"
-                onClick={() => signIn("google", { callbackUrl: "/", role: formData.role })}
+                onClick={() =>
+                  signIn("google", { callbackUrl: "/", role: formData.role })
+                }
                 className="w-full py-4 border border-card-border hover:border-text-sub text-text-main text-[10px] uppercase tracking-[0.3em] font-semibold rounded-xl transition-all bg-surface/40 flex items-center justify-center gap-3 shadow-sm hover:shadow-md"
               >
-                <Image 
-                  src="/Decoration/googlelogo.webp" 
+                <Image
+                  src="/Decoration/googlelogo.webp"
                   alt="Google"
-                  width={18} 
+                  width={18}
                   height={18}
-                  className="opacity-90" 
+                  className="opacity-90"
                 />
                 <span>Continue with Google</span>
               </button>
             </form>
 
             <div className="mt-10 text-center border-t border-card-border/50 pt-8">
-              <Link href="/api/auth/signin" className="text-[9px] uppercase tracking-widest text-text-sub hover:text-accent transition-colors">
-                Already a member? <span className="text-accent ml-1 font-bold">Sign In</span>
+              <Link
+                href="/api/auth/signin"
+                className="text-[9px] uppercase tracking-widest text-text-sub hover:text-accent transition-colors"
+              >
+                Already a member?{" "}
+                <span className="text-accent ml-1 font-bold">Sign In</span>
               </Link>
             </div>
           </div>
@@ -275,12 +313,17 @@ export default function RegisterPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-in fade-in duration-300">
           <div className="bg-card border border-card-border rounded-2xl w-full max-w-lg shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col max-h-[85vh]">
             <div className="p-6 border-b border-card-border flex justify-between items-center bg-surface/20">
-              <h2 className="text-xl font-serif text-text-main tracking-tight">Terms of Service & Privacy Policy</h2>
-              <button onClick={() => setIsTosOpen(false)} className="text-text-sub hover:text-red-500 transition-colors p-2">
+              <h2 className="text-xl font-serif text-text-main tracking-tight">
+                Terms of Service & Privacy Policy
+              </h2>
+              <button
+                onClick={() => setIsTosOpen(false)}
+                className="text-text-sub hover:text-red-500 transition-colors p-2"
+              >
                 ✕
               </button>
             </div>
-            
+
             <div
               className="p-8 overflow-y-auto flex-1 text-sm text-text-sub custom-scrollbar"
               onScroll={handleScrollTos}
@@ -289,8 +332,12 @@ export default function RegisterPage() {
             </div>
 
             <div className="p-6 border-t border-card-border flex justify-between items-center bg-surface/50 rounded-b-2xl">
-              <span className={`text-[10px] uppercase tracking-widest font-semibold transition-colors duration-500 ${hasReadTos ? "text-green-500" : "text-red-400"}`}>
-                {!hasReadTos ? "Scroll to the end to agree" : "Terms have been verified"}
+              <span
+                className={`text-[10px] uppercase tracking-widest font-semibold transition-colors duration-500 ${hasReadTos ? "text-green-500" : "text-red-400"}`}
+              >
+                {!hasReadTos
+                  ? "Scroll to the end to agree"
+                  : "Terms have been verified"}
               </span>
               <button
                 type="button"
@@ -298,11 +345,11 @@ export default function RegisterPage() {
                 onClick={() => {
                   setIsAgreed(true);
                   setIsTosOpen(false);
-                  setTosError(""); 
+                  setTosError("");
                 }}
                 className={`px-8 py-2 text-[10px] uppercase tracking-widest font-bold rounded-lg transition-all ${
-                  hasReadTos 
-                    ? "bg-accent text-white hover:opacity-90 shadow-lg shadow-accent/20" 
+                  hasReadTos
+                    ? "bg-accent text-white hover:opacity-90 shadow-lg shadow-accent/20"
                     : "bg-surface text-text-sub border border-card-border cursor-not-allowed opacity-30"
                 }`}
               >
@@ -325,7 +372,7 @@ const labelStyle = {
 const inputStyles = {
   "& .MuiOutlinedInput-root": {
     color: "var(--color-text-main)",
-    backgroundColor: "var(--color-surface)", 
+    backgroundColor: "var(--color-surface)",
     borderRadius: "12px",
     fontSize: "14px",
     "& fieldset": { borderColor: "var(--color-card-border)" },
@@ -334,5 +381,5 @@ const inputStyles = {
   },
   "& .MuiInputLabel-root.Mui-focused": {
     color: "var(--color-accent)",
-  }
+  },
 };

@@ -5,6 +5,9 @@ export interface MassageType {
   description?: string;
   price: number;
   picture?: string;
+  isPackage?: boolean;
+  isActive?: boolean;
+  promotions?: any[];
 }
 
 export default async function createShop(
