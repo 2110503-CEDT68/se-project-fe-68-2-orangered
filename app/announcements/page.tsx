@@ -122,6 +122,100 @@ interface Shop {
   picture?: string;
 }
 
+// ---------------------------------------------------------
+// CUSTOM SELECT COMPONENT
+// ---------------------------------------------------------
+interface CustomSelectProps {
+  value: string;
+  onChange: (val: string) => void;
+  options: { value: string; label: string }[];
+  placeholder?: string;
+  className?: string;
+  triggerClassName?: string;
+  dropdownClassName?: string;
+}
+
+const CustomSelect: React.FC<CustomSelectProps> = ({
+  value,
+  onChange,
+  options,
+  placeholder = "Select an option",
+  className = "",
+  triggerClassName = "bg-background/50 border border-card-border rounded-2xl px-5 py-4 text-sm text-text-main hover:border-accent/40",
+  dropdownClassName = "bg-card border border-card-border rounded-2xl mt-2",
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find((opt) => opt.value === value);
+
+  return (
+    <div className={`relative ${className}`} ref={containerRef}>
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full flex justify-between items-center cursor-pointer transition-all focus-within:border-accent/60 focus-within:ring-1 focus-within:ring-accent/20 ${triggerClassName}`}
+      >
+        <span className={selectedOption ? "text-text-main" : "text-text-sub/50"}>
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={`text-text-sub/50 transition-transform duration-300 ${
+            isOpen ? "rotate-180 text-accent" : ""
+          }`}
+        >
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
+
+      {isOpen && (
+        <div
+          className={`absolute z-50 w-full shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 ${dropdownClassName}`}
+        >
+          <div className="max-h-60 overflow-y-auto custom-scrollbar">
+            {options.map((opt) => (
+              <div
+                key={opt.value}
+                onClick={() => {
+                  onChange(opt.value);
+                  setIsOpen(false);
+                }}
+                className={`px-5 py-3 text-sm cursor-pointer transition-colors ${
+                  value === opt.value
+                    ? "bg-accent/10 text-accent font-medium border-l-2 border-accent"
+                    : "text-text-main hover:bg-background border-l-2 border-transparent"
+                }`}
+              >
+                {opt.label}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const LazyImage = ({
   src,
   alt,
@@ -142,7 +236,7 @@ const LazyImage = ({
           observer.disconnect();
         }
       },
-      { rootMargin: "100px 0px", threshold: 0.01 },
+      { rootMargin: "100px 0px", threshold: 0.01 }
     );
 
     if (imgRef.current) {
@@ -162,8 +256,7 @@ const LazyImage = ({
           loading="lazy"
           onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
             if (e.currentTarget.parentElement?.parentElement) {
-              e.currentTarget.parentElement.parentElement.style.display =
-                "none";
+              e.currentTarget.parentElement.parentElement.style.display = "none";
             }
           }}
         />
@@ -171,6 +264,238 @@ const LazyImage = ({
         <div className="absolute inset-0 bg-card-border/10 animate-pulse" />
       )}
     </div>
+  );
+};
+
+// ---------------------------------------------------------
+// MEDIA LOGIC
+// ---------------------------------------------------------
+function getMediaDetails(url: string | undefined) {
+  if (!url) return { type: "none", url: "", embedUrl: "", thumbnail: "" };
+
+  if (url.includes("youtube.com/watch") || url.includes("youtu.be/")) {
+    let videoId = "";
+    try {
+      if (url.includes("youtu.be/"))
+        videoId = url.split("youtu.be/")[1]?.split("?")[0];
+      else videoId = new URLSearchParams(new URL(url).search).get("v") || "";
+    } catch (e) {}
+    return {
+      type: "youtube",
+      url,
+      embedUrl: `https://www.youtube.com/embed/${videoId}?autoplay=0`,
+      thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+    };
+  }
+
+  if (url.includes("drive.google.com/file/d/")) {
+    const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    const fileId = match ? match[1] : null;
+    return {
+      type: "gdrive",
+      url,
+      embedUrl: fileId
+        ? `https://drive.google.com/file/d/${fileId}/preview`
+        : url,
+      thumbnail: "",
+    };
+  }
+
+  return { type: "image", url, embedUrl: "", thumbnail: "" };
+}
+
+// ---------------------------------------------------------
+// URL PREVIEW COMPONENT
+// ---------------------------------------------------------
+const LinkPreview = ({ url }: { url: string }) => {
+  const [meta, setMeta] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  const media = getMediaDetails(url);
+
+  useEffect(() => {
+    if (media.type === "youtube" || media.type === "gdrive") {
+      setLoading(false);
+      return;
+    }
+
+    fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === "success") setMeta(data.data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [url, media.type]);
+
+  if (media.type === "youtube") {
+    return (
+      <div className="mt-4 w-full aspect-video rounded-xl overflow-hidden border border-card-border/50 shadow-sm bg-black/5 hover:border-accent/30 transition-all cursor-pointer">
+        <iframe
+          src={media.embedUrl}
+          className="w-full h-full"
+          allowFullScreen
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        />
+      </div>
+    );
+  }
+
+  if (media.type === "gdrive") {
+    return (
+      <div className="mt-4 w-full aspect-video rounded-xl overflow-hidden border border-card-border/50 shadow-sm bg-card-border/10">
+        <iframe src={media.embedUrl} className="w-full h-full" frameBorder="0" />
+      </div>
+    );
+  }
+
+  if (loading)
+    return (
+      <div className="mt-3 h-24 w-full bg-card-border/10 animate-pulse rounded-xl" />
+    );
+  if (!meta || (!meta.title && !meta.description)) return null;
+
+  let domain = "";
+  try {
+    domain = new URL(url).hostname.replace("www.", "");
+  } catch (e) {}
+
+  return (
+    <div
+      onClick={(e) => {
+        e.stopPropagation();
+        window.open(url, "_blank");
+      }}
+      className="mt-4 flex border border-card-border/50 rounded-xl overflow-hidden hover:bg-card-border/20 hover:border-accent/30 transition-all cursor-pointer group h-24 sm:h-28 bg-card/30 shadow-sm"
+    >
+      {meta.image?.url && (
+        <div className="w-24 sm:w-32 shrink-0 overflow-hidden bg-background/50 border-r border-card-border/50">
+          <img
+            src={meta.image.url}
+            alt={meta.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        </div>
+      )}
+      <div className="p-3 sm:p-4 flex flex-col justify-center min-w-0 flex-1">
+        <h4 className="text-text-main text-sm font-semibold truncate mb-1 group-hover:text-accent transition-colors">
+          {meta.title || domain}
+        </h4>
+        <p className="text-text-sub text-xs line-clamp-2 leading-relaxed font-light">
+          {meta.description}
+        </p>
+        <div className="flex items-center gap-2 mt-auto pt-2">
+          {meta.logo?.url && (
+            <img src={meta.logo.url} className="w-3 h-3 rounded-sm" alt="logo" />
+          )}
+          <span className="text-[9px] text-text-sub/60 uppercase tracking-widest truncate">
+            {meta.publisher || domain}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ---------------------------------------------------------
+// TEXT PARSER
+// ---------------------------------------------------------
+const renderTextWithLinks = (text: string, hiddenUrls: string[] = []) => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+
+  return parts.map((part, index) => {
+    if (part.match(urlRegex)) {
+      if (hiddenUrls.includes(part)) {
+        return null;
+      }
+      return (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-accent hover:underline break-all"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+};
+
+const extractUrls = (text: string) => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const matches = text.match(urlRegex) || [];
+  return Array.from(new Set(matches)).slice(0, 2);
+};
+
+// ---------------------------------------------------------
+// MEDIA RENDERER
+// ---------------------------------------------------------
+interface MediaRendererProps {
+  url: string;
+  alt?: string;
+  isInteractive?: boolean;
+  className?: string;
+  positionClass?: string;
+}
+
+const MediaRenderer: React.FC<MediaRendererProps> = ({
+  url,
+  alt = "media preview",
+  isInteractive = false,
+  className = "",
+  positionClass = "",
+}) => {
+  const media = getMediaDetails(url);
+
+  if (media.type === "youtube") {
+    if (isInteractive) {
+      return (
+        <iframe
+          src={media.embedUrl}
+          className={className}
+          allowFullScreen
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        />
+      );
+    }
+    return (
+      <img
+        src={media.thumbnail}
+        alt={alt}
+        className={`${className} ${positionClass}`}
+      />
+    );
+  }
+
+  if (media.type === "gdrive") {
+    if (isInteractive) {
+      return (
+        <iframe src={media.embedUrl} className={className} frameBorder="0" />
+      );
+    }
+    return (
+      <div
+        className={`flex items-center justify-center bg-card-border/20 text-text-sub/50 ${className}`}
+      >
+        <div className="flex flex-col items-center gap-2">
+          <span className="text-3xl">📁</span>
+          <span className="text-[10px] uppercase tracking-widest font-bold">
+            Drive File
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <img src={url} alt={alt} className={`${className} ${positionClass}`} />
   );
 };
 
@@ -191,13 +516,11 @@ export default function AnnouncementPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // UI & Feature States (แก้ไขปัญหา Cannot find name)
+  // UI States
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
   const [layout, setLayout] = useState<"grid" | "list">("grid");
   const [viewingPost, setViewingPost] = useState<Announcement | null>(null);
-  const [isShopDropdownOpen, setIsShopDropdownOpen] = useState(false);
-  const shopDropdownRef = useRef<HTMLDivElement>(null);
 
   const isAuthorized =
     session?.user?.role === "admin" || session?.user?.role === "shopowner";
@@ -236,9 +559,7 @@ export default function AnnouncementPage() {
       const result = await res.json();
       if (result.success && result.data) {
         setShops(result.data);
-        if (result.data.length > 0 && session?.user?.role !== "admin") {
-          setSelectedShopId(result.data[0]._id);
-        }
+        if (result.data.length > 0) setSelectedShopId(result.data[0]._id);
       }
     } catch (err) {
       console.error(err);
@@ -251,18 +572,6 @@ export default function AnnouncementPage() {
       fetchMyShops();
     }
   }, [session?.user?.token]);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (shopDropdownRef.current && !shopDropdownRef.current.contains(e.target as Node)) {
-        setIsShopDropdownOpen(false);
-      }
-    };
-    if (isShopDropdownOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isShopDropdownOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -284,7 +593,7 @@ export default function AnnouncementPage() {
           content,
           imageUrl,
           imagePosition,
-          ...(selectedShopId ? { shop: selectedShopId } : {}),
+          ...(isShopOwner && selectedShopId ? { shop: selectedShopId } : {}),
         }),
       });
 
@@ -355,10 +664,10 @@ export default function AnnouncementPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-500">
-      {/* Hero Banner */}
       <div className="relative overflow-hidden border-b border-card-border">
-        <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-gold/5 pointer-events-none" />
-        <div className="max-w-5xl mx-auto px-6 md:px-12 py-20">
+        <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-gold/5 pointer-events-none" />
+        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
+        <div className="max-w-5xl mx-auto px-6 md:px-12 py-16 md:py-20">
           <div className="flex items-center gap-4 mb-6">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-accent/20 to-accent/5 border border-accent/20 flex items-center justify-center text-xl shadow-lg shadow-accent/5">
               ✨
@@ -371,36 +680,42 @@ export default function AnnouncementPage() {
             Official Broadcasts
           </h1>
           <p className="text-text-sub text-base tracking-wide max-w-lg font-light">
-            Manage and broadcast your official communications and updates with
-            uncompromising elegance.
+            Manage and broadcast your official communications and updates with uncompromising elegance.
           </p>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 md:px-12 py-16">
-        {/* Create / Edit Form */}
+      <div className="max-w-5xl mx-auto px-6 md:px-12 py-12 md:py-16">
         {isAuthorized && (
           <div className="mb-20">
             <form
               onSubmit={handleSubmit}
-              className="relative bg-card/60 backdrop-blur-xl border border-card-border rounded-3xl shadow-2xl transition-all duration-500 hover:border-accent/30"
+              className="relative bg-card/60 backdrop-blur-xl border border-card-border rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 hover:border-accent/30"
             >
-              <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none z-0">
-                <div
-                  className={`h-1 w-full bg-gradient-to-r ${editingId ? "from-gold/80 via-gold/40 to-transparent" : "from-accent/80 via-accent/40 to-transparent"}`}
-                />
-              </div>
+              <div
+                className={`h-1 w-full bg-gradient-to-r ${
+                  editingId
+                    ? "from-gold/80 via-gold/40 to-transparent"
+                    : "from-accent/80 via-accent/40 to-transparent"
+                }`}
+              />
 
-              <div className="relative z-10 p-8 md:p-10">
+              <div className="p-6 md:p-10">
                 <div className="flex items-center gap-4 mb-10 pb-6 border-b border-card-border/50">
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${editingId ? "bg-gold/10 text-gold" : "bg-accent/10 text-accent"}`}
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow-inner ${
+                      editingId
+                        ? "bg-gold/15 border border-gold/30 text-gold"
+                        : "bg-accent/15 border border-accent/30 text-accent"
+                    }`}
                   >
-                    {editingId ? "✎" : "＋"}
+                    {editingId ? "✏️" : "✨"}
                   </div>
                   <div>
                     <h2
-                      className={`text-xs uppercase tracking-[0.3em] font-bold ${editingId ? "text-gold" : "text-accent"}`}
+                      className={`text-xs uppercase tracking-[0.3em] font-bold ${
+                        editingId ? "text-gold" : "text-accent"
+                      }`}
                     >
                       {editingId ? "Modify Record" : "Draft New Entry"}
                     </h2>
@@ -413,92 +728,20 @@ export default function AnnouncementPage() {
                 </div>
 
                 <div className="space-y-6">
-                  {/* Target / Shop Selector */}
-                  {isAuthorized && (session?.user?.role === "admin" || shops.length > 0) && !editingId && (
-                    <div className="group" ref={shopDropdownRef}>
-                      <label className="block text-[10px] uppercase tracking-[0.3em] text-text-sub group-focus-within:text-accent transition-colors mb-3 font-semibold">
-                        Target Audience *
+                  {isShopOwner && shops.length > 1 && !editingId && (
+                    <div className="group">
+                      <label className="block text-[10px] uppercase tracking-[0.25em] text-text-sub group-focus-within:text-accent transition-colors mb-2 font-semibold">
+                        Target Shop *
                       </label>
-
-                      <div className="relative">
-                        <div
-                          onClick={() => setIsShopDropdownOpen(!isShopDropdownOpen)}
-                          className={`w-full flex items-center justify-between cursor-pointer bg-background/50 border ${isShopDropdownOpen ? 'border-accent/60 shadow-md shadow-accent/5' : 'border-card-border'} rounded-2xl px-5 py-4 text-base text-text-main focus:outline-none transition-all font-serif hover:border-accent/40 shadow-sm`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className="text-accent/60 text-lg leading-none">❖</span>
-                            <span>{selectedShopId === "" ? "Global Broadcast (All Users)" : shops.find(s => s._id === selectedShopId)?.name || 'Select a Target'}</span>
-                          </div>
-                          <div className={`text-text-sub/50 text-xs transition-transform duration-300 ${isShopDropdownOpen ? 'rotate-180' : ''}`}>
-                            ▼
-                          </div>
-                        </div>
-
-                        {/* Custom Dropdown Options */}
-                        {isShopDropdownOpen && (
-                          <div 
-                            className="absolute top-[calc(100%+8px)] left-0 w-full bg-card/95 backdrop-blur-xl border border-card-border rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] z-[60] overflow-hidden"
-                            style={{ animation: 'fadeIn 0.2s ease-out' }}
-                          >
-                            <div className="max-h-64 overflow-y-auto scrollbar-thin py-2">
-                              {session?.user?.role === "admin" && (
-                                <div
-                                  onClick={() => {
-                                    setSelectedShopId("");
-                                    setIsShopDropdownOpen(false);
-                                  }}
-                                  className={`flex items-center gap-4 px-5 py-4 cursor-pointer transition-all duration-200 border-l-2 ${selectedShopId === "" ? 'border-accent bg-accent/5' : 'border-transparent hover:bg-card-border/10 hover:pl-6'}`}
-                                >
-                                  <div className="w-9 h-9 rounded-full bg-accent/10 border border-accent/30 flex items-center justify-center text-accent text-sm shadow-sm">
-                                    🌍
-                                  </div>
-                                  <div className="flex flex-col">
-                                    <span className={`font-serif text-base ${selectedShopId === "" ? 'text-accent' : 'text-text-main'}`}>
-                                      Global Broadcast (All Users)
-                                    </span>
-                                    {selectedShopId === "" && (
-                                      <span className="text-[9px] uppercase tracking-widest text-accent/60 font-bold mt-0.5">Currently Selected</span>
-                                    )}
-                                  </div>
-                                  {selectedShopId === "" && (
-                                    <span className="ml-auto text-accent text-lg">✓</span>
-                                  )}
-                                </div>
-                              )}
-                              
-                              {shops.map((shop) => (
-                                <div
-                                  key={shop._id}
-                                  onClick={() => {
-                                    setSelectedShopId(shop._id);
-                                    setIsShopDropdownOpen(false);
-                                  }}
-                                  className={`flex items-center gap-4 px-5 py-4 cursor-pointer transition-all duration-200 border-l-2 ${selectedShopId === shop._id ? 'border-accent bg-accent/5' : 'border-transparent hover:bg-card-border/10 hover:pl-6'}`}
-                                >
-                                  {shop.picture ? (
-                                    <img src={shop.picture} alt={shop.name} className="w-9 h-9 rounded-full object-cover border border-card-border/50 shadow-sm" />
-                                  ) : (
-                                    <div className="w-9 h-9 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-accent text-sm font-bold shadow-sm">
-                                      {shop.name.charAt(0)}
-                                    </div>
-                                  )}
-                                  <div className="flex flex-col">
-                                    <span className={`font-serif text-base ${selectedShopId === shop._id ? 'text-accent' : 'text-text-main'}`}>
-                                      {shop.name}
-                                    </span>
-                                    {selectedShopId === shop._id && (
-                                      <span className="text-[9px] uppercase tracking-widest text-accent/60 font-bold mt-0.5">Currently Selected</span>
-                                    )}
-                                  </div>
-                                  {selectedShopId === shop._id && (
-                                    <span className="ml-auto text-accent text-lg">✓</span>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                      <CustomSelect
+                        value={selectedShopId}
+                        onChange={setSelectedShopId}
+                        options={shops.map((shop) => ({
+                          value: shop._id,
+                          label: shop.name,
+                        }))}
+                        placeholder="Select a Shop..."
+                      />
                     </div>
                   )}
 
@@ -511,7 +754,7 @@ export default function AnnouncementPage() {
                       placeholder="Enter announcement headline..."
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
-                      className="w-full bg-background/50 border border-card-border rounded-2xl px-5 py-4 text-base text-text-main placeholder:text-text-sub/30 focus:outline-none focus:border-accent/60 focus:bg-background transition-all font-serif"
+                      className="w-full bg-background/50 border border-card-border rounded-2xl px-5 py-4 text-base text-text-main placeholder:text-text-sub/30 focus:outline-none focus:border-accent/60 focus:ring-1 focus:ring-accent/20 focus:bg-background transition-all font-serif"
                       required
                     />
                   </div>
@@ -520,29 +763,26 @@ export default function AnnouncementPage() {
                     <div className="col-span-1 md:col-span-8 group">
                       <label className="block text-[10px] uppercase tracking-[0.3em] text-text-sub group-focus-within:text-accent transition-colors mb-3 font-semibold">
                         Visual Asset (URL){" "}
-                        <span className="text-text-sub/30 tracking-normal capitalize font-normal">
-                          — Optional
+                        <span className="text-text-sub/40 tracking-normal capitalize font-normal">
+                          — Image, YouTube, Google Drive
                         </span>
                       </label>
                       <div className="flex gap-4">
                         <input
                           type="url"
-                          placeholder="https://example.com/image.jpg"
+                          placeholder="https://example.com/image.jpg หรือลิงก์ Youtube/GDrive"
                           value={imageUrl}
                           onChange={(e) => setImageUrl(e.target.value)}
-                          className="flex-1 bg-background/50 border border-card-border rounded-2xl px-5 py-4 text-sm text-text-main placeholder:text-text-sub/30 focus:outline-none focus:border-accent/60 transition-all font-mono"
+                          className="flex-1 bg-background/50 border border-card-border rounded-2xl px-5 py-4 text-sm text-text-main placeholder:text-text-sub/30 focus:outline-none focus:border-accent/60 focus:ring-1 focus:ring-accent/20 transition-all font-mono"
                         />
                         {imageUrl && (
-                          <div className="w-14 h-14 rounded-xl border border-card-border overflow-hidden flex-shrink-0 shadow-inner relative">
-                            <img
-                              src={imageUrl}
+                          <div className="w-14 h-14 rounded-xl border border-card-border overflow-hidden flex-shrink-0 shadow-inner relative bg-background/50">
+                            <MediaRenderer
+                              url={imageUrl}
                               alt="preview"
-                              className={`absolute inset-0 w-full h-full object-cover ${getPositionClass(imagePosition)}`}
-                              onError={(
-                                e: React.SyntheticEvent<HTMLImageElement>,
-                              ) => {
-                                e.currentTarget.style.display = "none";
-                              }}
+                              className={`absolute inset-0 w-full h-full object-cover ${getPositionClass(
+                                imagePosition
+                              )}`}
                             />
                           </div>
                         )}
@@ -552,20 +792,15 @@ export default function AnnouncementPage() {
                       <label className="block text-[10px] uppercase tracking-[0.3em] text-text-sub group-focus-within:text-accent transition-colors mb-3 font-semibold">
                         Focus Point
                       </label>
-                      <div className="relative">
-                        <select
-                          value={imagePosition}
-                          onChange={(e) => setImagePosition(e.target.value)}
-                          className="w-full appearance-none bg-background/50 border border-card-border rounded-2xl px-5 py-4 text-sm text-text-main focus:outline-none focus:border-accent/60 transition-all pr-10"
-                        >
-                          <option value="top">Top Aligned</option>
-                          <option value="center">Center Centered</option>
-                          <option value="bottom">Bottom Aligned</option>
-                        </select>
-                        <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-text-sub/50">
-                          ▼
-                        </div>
-                      </div>
+                      <CustomSelect
+                        value={imagePosition}
+                        onChange={setImagePosition}
+                        options={[
+                          { value: "top", label: "Top Aligned" },
+                          { value: "center", label: "Center Centered" },
+                          { value: "bottom", label: "Bottom Aligned" },
+                        ]}
+                      />
                     </div>
                   </div>
 
@@ -574,10 +809,10 @@ export default function AnnouncementPage() {
                       Detailed Brief *
                     </label>
                     <textarea
-                      placeholder="Compose your message here..."
+                      placeholder="Compose your message here... You can paste website links directly and they will generate previews."
                       value={content}
                       onChange={(e) => setContent(e.target.value)}
-                      className="w-full bg-background/50 border border-card-border rounded-2xl px-5 py-4 h-48 text-sm text-text-main placeholder:text-text-sub/30 focus:outline-none focus:border-accent/60 focus:bg-background transition-all resize-none leading-relaxed font-light"
+                      className="w-full bg-background/50 border border-card-border rounded-2xl px-5 py-4 h-48 text-sm text-text-main placeholder:text-text-sub/30 focus:outline-none focus:border-accent/60 focus:ring-1 focus:ring-accent/20 focus:bg-background transition-all resize-none leading-relaxed font-light custom-scrollbar"
                       required
                     />
                     <div className="flex justify-end mt-2">
@@ -592,9 +827,9 @@ export default function AnnouncementPage() {
                   <button
                     type="submit"
                     disabled={isProcessing}
-                    className={`flex items-center gap-2 px-8 py-3 rounded-xl text-[10px] uppercase tracking-[0.3em] font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
+                    className={`flex items-center gap-2 px-8 py-3 rounded-xl text-[10px] uppercase tracking-[0.3em] font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md ${
                       editingId
-                        ? "bg-gold/20 border border-gold/40 text-gold hover:bg-gold/30"
+                        ? "bg-gold/20 border border-gold/40 text-gold hover:bg-gold hover:text-white"
                         : "bg-accent/20 border border-accent/40 text-accent hover:bg-accent hover:text-white"
                     }`}
                   >
@@ -614,7 +849,7 @@ export default function AnnouncementPage() {
                     <button
                       type="button"
                       onClick={resetForm}
-                      className="px-8 py-4 rounded-full text-xs uppercase tracking-[0.3em] font-bold text-text-sub border border-transparent hover:border-card-border hover:bg-card-border/10 hover:text-text-main transition-all duration-300"
+                      className="px-8 py-3 rounded-xl text-xs uppercase tracking-[0.3em] font-bold text-text-sub border border-transparent hover:border-card-border hover:bg-card-border/10 hover:text-text-main transition-all duration-300"
                     >
                       Discard
                     </button>
@@ -641,20 +876,19 @@ export default function AnnouncementPage() {
               <span className="text-[9px] uppercase tracking-[0.2em] text-text-sub/50">
                 Order By:
               </span>
-              <div className="relative">
-                <select
+              <div className="w-44">
+                <CustomSelect
                   value={sortOrder}
-                  onChange={(e) =>
-                    setSortOrder(e.target.value as "newest" | "oldest")
+                  onChange={(val) =>
+                    setSortOrder(val as "newest" | "oldest")
                   }
-                  className="appearance-none bg-card border border-card-border rounded-full pl-4 pr-10 py-2 text-xs text-text-main font-semibold tracking-wide focus:outline-none focus:border-accent/50 transition-all cursor-pointer shadow-sm"
-                >
-                  <option value="newest">Newest Arrival</option>
-                  <option value="oldest">Chronological</option>
-                </select>
-                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-text-sub text-[10px]">
-                  ▼
-                </div>
+                  options={[
+                    { value: "newest", label: "Newest Arrival" },
+                    { value: "oldest", label: "Chronological" },
+                  ]}
+                  triggerClassName="bg-card border border-card-border rounded-full px-5 py-2.5 text-xs text-text-main font-semibold tracking-wide shadow-sm hover:border-accent/30"
+                  dropdownClassName="bg-card border border-card-border rounded-2xl mt-2 w-48 right-0"
+                />
               </div>
             </div>
 
@@ -663,7 +897,11 @@ export default function AnnouncementPage() {
             <div className="flex items-center bg-card border border-card-border rounded-full p-1 shadow-sm">
               <button
                 onClick={() => setLayout("grid")}
-                className={`p-2 rounded-full transition-all duration-300 flex items-center justify-center ${layout === "grid" ? "bg-background shadow-sm text-text-main" : "text-text-sub/40 hover:text-text-sub"}`}
+                className={`p-2 rounded-full transition-all duration-300 flex items-center justify-center ${
+                  layout === "grid"
+                    ? "bg-background shadow-sm text-text-main"
+                    : "text-text-sub/40 hover:text-text-sub"
+                }`}
                 title="Grid View"
               >
                 <svg
@@ -684,7 +922,11 @@ export default function AnnouncementPage() {
               </button>
               <button
                 onClick={() => setLayout("list")}
-                className={`p-2 rounded-full transition-all duration-300 flex items-center justify-center ${layout === "list" ? "bg-background shadow-sm text-text-main" : "text-text-sub/40 hover:text-text-sub"}`}
+                className={`p-2 rounded-full transition-all duration-300 flex items-center justify-center ${
+                  layout === "list"
+                    ? "bg-background shadow-sm text-text-main"
+                    : "text-text-sub/40 hover:text-text-sub"
+                }`}
                 title="List View"
               >
                 <svg
@@ -713,7 +955,9 @@ export default function AnnouncementPage() {
         <div>
           {loading ? (
             <div
-              className={`grid gap-6 ${layout === "grid" ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"}`}
+              className={`grid gap-6 ${
+                layout === "grid" ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"
+              }`}
             >
               {[1, 2, 3, 4].map((i) => (
                 <div
@@ -745,137 +989,151 @@ export default function AnnouncementPage() {
             </div>
           ) : (
             <div
-              className={`grid gap-8 ${layout === "grid" ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"}`}
+              className={`grid gap-8 ${
+                layout === "grid" ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"
+              }`}
             >
-              {sortedAnnouncements.map((item, index) => (
-                <article
-                  key={item._id}
-                  onClick={() => setViewingPost(item)}
-                  className="group relative bg-card/50 border border-card-border rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:border-accent/20 transition-all duration-500 cursor-pointer"
-                  style={{ animationDelay: `${index * 60}ms` }}
-                >
-                  {item.imageUrl && (
-                    <div
-                      className={`relative overflow-hidden flex-shrink-0 ${layout === "list" ? "w-full md:w-1/3 min-h-[240px]" : "w-full h-60"}`}
-                    >
-                      <LazyImage
-                        src={item.imageUrl}
-                        alt={item.title}
-                        className={`w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 ${getPositionClass(item.imagePosition)}`}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent opacity-80 group-hover:opacity-40 transition-opacity duration-500 pointer-events-none" />
-                    </div>
-                  )}
+              {sortedAnnouncements.map((item, index) => {
+                const urls = extractUrls(item.content);
+                return (
+                  <article
+                    key={item._id}
+                    onClick={() => setViewingPost(item)}
+                    className="group relative bg-card/50 border border-card-border rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:border-accent/20 transition-all duration-500 cursor-pointer flex flex-col"
+                    style={{ animationDelay: `${index * 60}ms` }}
+                  >
+                    {item.imageUrl && (
+                      <div
+                        className={`relative overflow-hidden flex-shrink-0 ${
+                          layout === "list"
+                            ? "w-full md:w-1/3 min-h-[240px]"
+                            : "w-full h-60"
+                        }`}
+                      >
+                        <LazyImage
+                          src={item.imageUrl}
+                          alt={item.title}
+                          className={`w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 ${getPositionClass(
+                            item.imagePosition
+                          )}`}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent opacity-80 group-hover:opacity-40 transition-opacity duration-500 pointer-events-none" />
+                      </div>
+                    )}
 
-                  {/* Content */}
-                  <div className="relative p-8 flex flex-col flex-grow">
-                    <div className="flex-grow">
-                      <div className="flex items-center gap-3 mb-4 flex-wrap">
-                        <span className="inline-flex items-center text-[9px] uppercase tracking-[0.3em] text-text-sub/60 font-mono">
-                          {formatDate(item.createdAt)}
+                    {/* Content */}
+                    <div className="relative p-8 flex flex-col flex-grow">
+                      <div className="flex-grow">
+                        <div className="flex items-center gap-3 mb-4 flex-wrap">
+                          <span className="inline-flex items-center text-[9px] uppercase tracking-[0.3em] text-text-sub/60 font-mono">
+                            {formatDate(item.createdAt)}
+                          </span>
+                          {item.shop && (
+                            <>
+                              <span className="w-1 h-1 rounded-full bg-card-border" />
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-card-border bg-background/50 text-[9px] uppercase tracking-widest text-text-sub font-bold">
+                                {item.shop.picture && (
+                                  <img
+                                    src={item.shop.picture}
+                                    alt=""
+                                    className="w-3.5 h-3.5 rounded-full object-cover"
+                                    onError={(
+                                      e: React.SyntheticEvent<HTMLImageElement>
+                                    ) => {
+                                      e.currentTarget.style.display = "none";
+                                    }}
+                                  />
+                                )}
+                                {item.shop.name}
+                              </span>
+                            </>
+                          )}
+                        </div>
+
+                        <div className="flex items-start justify-between gap-4 mb-3">
+                          <h2 className="text-xl font-serif font-semibold text-text-main group-hover:text-accent transition-colors duration-300 leading-snug line-clamp-2">
+                            {item.title}
+                          </h2>
+                        </div>
+
+                        <p className="text-text-sub text-sm leading-relaxed whitespace-pre-wrap line-clamp-3">
+                          {renderTextWithLinks(item.content, urls)}
+                        </p>
+                        
+                        {urls.map((url, i) => (
+                           <LinkPreview key={i} url={url} />
+                        ))}
+                      </div>
+
+                      <div className="mt-6 pt-4 border-t border-card-border/50 flex items-center justify-between">
+                        <span className="text-[8px] uppercase tracking-[0.4em] text-text-sub/30 font-mono">
+                          ID: {item._id.slice(-8)}
                         </span>
-                        {item.shop && (
-                          <>
-                            <span className="w-1 h-1 rounded-full bg-card-border" />
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-card-border bg-background/50 text-[9px] uppercase tracking-widest text-text-sub font-bold">
-                              {item.shop.picture && (
-                                <img
-                                  src={item.shop.picture}
-                                  alt=""
-                                  className="w-3.5 h-3.5 rounded-full object-cover"
-                                  onError={(
-                                    e: React.SyntheticEvent<HTMLImageElement>,
-                                  ) => {
-                                    e.currentTarget.style.display = "none";
-                                  }}
-                                />
-                              )}
-                              {item.shop.name}
-                            </span>
-                          </>
+
+                        {isAuthorized && canManage(item) ? (
+                          <div className="flex gap-2 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                startEdit(item);
+                              }}
+                              className="text-[9px] uppercase tracking-widest bg-gold/10 text-gold hover:bg-gold/25 px-4 py-2 rounded-lg border border-gold/20 transition-all font-bold flex items-center gap-1"
+                            >
+                              <AiOutlineEdit className="w-3.5 h-3.5" /> Edit
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteConfirmId(item._id);
+                              }}
+                              className="text-[9px] uppercase tracking-widest bg-red-500/10 text-red-400 hover:bg-red-500/20 px-4 py-2 rounded-lg border border-red-500/20 transition-all font-bold flex items-center gap-1"
+                            >
+                              <MdDeleteForever className="w-3.5 h-3.5" /> Delete
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] uppercase tracking-widest text-accent font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-1">
+                            Read Full <span className="text-lg leading-none">→</span>
+                          </span>
                         )}
                       </div>
-
-                      <div className="flex items-start justify-between gap-4 mb-3">
-                        <h2 className="text-xl font-serif font-semibold text-text-main group-hover:text-accent transition-colors duration-300 leading-snug line-clamp-2">
-                          {item.title}
-                        </h2>
-                      </div>
-
-                      <p className="text-text-sub text-sm leading-relaxed whitespace-pre-wrap line-clamp-3">
-                        {item.content}
-                      </p>
                     </div>
 
-                    <div className="mt-6 pt-4 border-t border-card-border/50 flex items-center justify-between">
-                      <span className="text-[8px] uppercase tracking-[0.4em] text-text-sub/30 font-mono">
-                        ID: {item._id.slice(-8)}
-                      </span>
-
-                      {canManage(item) ? (
-                        <div className="flex gap-2 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    {/* Delete confirm overlay */}
+                    {deleteConfirmId === item._id && (
+                      <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-10 rounded-2xl">
+                        <div className="text-3xl">🗑️</div>
+                        <p className="text-sm text-text-main font-serif">
+                          Delete this announcement?
+                        </p>
+                        <p className="text-[10px] uppercase tracking-widest text-text-sub/60">
+                          This action cannot be undone
+                        </p>
+                        <div className="flex gap-3 mt-2">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              startEdit(item);
+                              handleDelete(item._id);
                             }}
-                            className="text-[9px] uppercase tracking-widest bg-gold/10 text-gold hover:bg-gold/25 px-4 py-2 rounded-lg border border-gold/20 transition-all font-bold flex items-center gap-1"
+                            className="px-6 py-3 bg-red-500 text-white text-[10px] uppercase tracking-[0.3em] rounded-full font-bold shadow-lg shadow-red-500/20 hover:shadow-red-500/40 hover:-translate-y-0.5 transition-all"
                           >
-                            <AiOutlineEdit className="w-3.5 h-3.5" /> Edit
+                            Confirm
                           </button>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setDeleteConfirmId(item._id);
+                              setDeleteConfirmId(null);
                             }}
-                            className="text-[9px] uppercase tracking-widest bg-red-500/10 text-red-400 hover:bg-red-500/20 px-4 py-2 rounded-lg border border-red-500/20 transition-all font-bold flex items-center gap-1"
+                            className="px-6 py-3 border border-card-border text-text-sub text-[10px] uppercase tracking-[0.3em] rounded-full hover:text-text-main hover:bg-card-border/30 transition-all"
                           >
-                            <MdDeleteForever className="w-3.5 h-3.5" /> Delete
+                            Cancel
                           </button>
                         </div>
-                      ) : (
-                        <span className="text-[10px] uppercase tracking-widest text-accent font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-1">
-                          Read Full{" "}
-                          <span className="text-lg leading-none">→</span>
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Delete confirm overlay */}
-                  {deleteConfirmId === item._id && (
-                    <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-10 rounded-2xl">
-                      <div className="text-3xl">🗑️</div>
-                      <p className="text-sm text-text-main font-serif">
-                        Delete this announcement?
-                      </p>
-                      <p className="text-[10px] uppercase tracking-widest text-text-sub/60">
-                        This action cannot be undone
-                      </p>
-                      <div className="flex gap-3 mt-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(item._id);
-                          }}
-                          className="px-6 py-3 bg-red-500 text-white text-[10px] uppercase tracking-[0.3em] rounded-full font-bold shadow-lg shadow-red-500/20 hover:shadow-red-500/40 hover:-translate-y-0.5 transition-all"
-                        >
-                          Confirm
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeleteConfirmId(null);
-                          }}
-                          className="px-6 py-3 border border-card-border text-text-sub text-[10px] uppercase tracking-[0.3em] rounded-full hover:text-text-main hover:bg-card-border/30 transition-all"
-                        >
-                          Cancel
-                        </button>
                       </div>
-                    </div>
-                  )}
-                </article>
-              ))}
+                    )}
+                  </article>
+                );
+              })}
             </div>
           )}
         </div>
@@ -913,20 +1171,22 @@ export default function AnnouncementPage() {
 
             {viewingPost.imageUrl && (
               <div className="w-full h-80 sm:h-[450px] bg-background relative">
-                <img
-                  src={viewingPost.imageUrl}
+                <MediaRenderer
+                  url={viewingPost.imageUrl}
                   alt={viewingPost.title}
-                  className={`w-full h-full object-cover ${getPositionClass(viewingPost.imagePosition)}`}
-                  onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-                    e.currentTarget.style.display = "none";
-                  }}
+                  isInteractive={true}
+                  className={`w-full h-full object-cover ${getPositionClass(
+                    viewingPost.imagePosition
+                  )}`}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent h-full w-full pointer-events-none opacity-90"></div>
               </div>
             )}
 
             <div
-              className={`px-8 md:px-16 pb-16 relative z-10 ${viewingPost.imageUrl ? "-mt-32" : "pt-16"}`}
+              className={`px-8 md:px-16 pb-16 relative z-10 ${
+                viewingPost.imageUrl ? "-mt-32" : "pt-16"
+              }`}
             >
               <div className="mb-10 text-center md:text-left">
                 <div className="flex items-center justify-center md:justify-start gap-3 mb-6 flex-wrap">
@@ -943,7 +1203,7 @@ export default function AnnouncementPage() {
                             alt=""
                             className="w-4 h-4 rounded-full object-cover"
                             onError={(
-                              e: React.SyntheticEvent<HTMLImageElement>,
+                              e: React.SyntheticEvent<HTMLImageElement>
                             ) => {
                               e.currentTarget.style.display = "none";
                             }}
@@ -965,8 +1225,11 @@ export default function AnnouncementPage() {
 
               <div className="max-w-none">
                 <p className="text-text-main whitespace-pre-wrap leading-[2] text-lg font-light">
-                  {viewingPost.content}
+                  {renderTextWithLinks(viewingPost.content)}
                 </p>
+                {extractUrls(viewingPost.content).map((url, i) => (
+                  <LinkPreview key={`modal-${i}`} url={url} />
+                ))}
               </div>
             </div>
           </div>
