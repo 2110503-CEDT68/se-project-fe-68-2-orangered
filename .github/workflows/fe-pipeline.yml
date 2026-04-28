@@ -66,34 +66,41 @@ jobs:
       - name: Start Backend
         run: |
           cd backend
-          # Run seeder with env vars
-          MONGO_URI=mongodb://localhost:27017/test \
-          TEST_CUSTOMER_EMAIL="${{ secrets.TEST_CUSTOMER_EMAIL || 'johannnnnnnn@ex.com' }}" \
-          TEST_CUSTOMER_PASSWORD="${{ secrets.TEST_CUSTOMER_PASSWORD || 'mypassword' }}" \
-          TEST_SHOP_OWNER_EMAIL="${{ secrets.TEST_SHOP_OWNER_EMAIL || 'muhaha@gmail.com' }}" \
-          TEST_SHOP_OWNER_PASSWORD="${{ secrets.TEST_SHOP_OWNER_PASSWORD || '123456' }}" \
-          TEST_SHOP_ID="${{ secrets.TEST_SHOP_ID || '69e09583325ac59ae03654c6' }}" \
-          TEST_ADMIN_EMAIL="${{ secrets.TEST_ADMIN_EMAIL || 'adminkeith@example.com' }}" \
-          TEST_ADMIN_PASSWORD="${{ secrets.TEST_ADMIN_PASSWORD || 'mypassword' }}" \
+          # Run seeder with env vars to ensure IDs match
+          export MONGO_URI=mongodb://localhost:27017/test
+          export TEST_CUSTOMER_EMAIL="${{ secrets.TEST_CUSTOMER_EMAIL || 'johannnnnnnn@ex.com' }}"
+          export TEST_CUSTOMER_PASSWORD="${{ secrets.TEST_CUSTOMER_PASSWORD || 'mypassword' }}"
+          export TEST_SHOP_OWNER_EMAIL="${{ secrets.TEST_SHOP_OWNER_EMAIL || 'muhaha@gmail.com' }}"
+          export TEST_SHOP_OWNER_PASSWORD="${{ secrets.TEST_SHOP_OWNER_PASSWORD || '123456' }}"
+          export TEST_SHOP_ID="${{ secrets.TEST_SHOP_ID || '69e09583325ac59ae03654c6' }}"
+          
           node seed-ci.js
           
           # Start server
-          PORT=5000 MONGO_URI=mongodb://localhost:27017/test JWT_SECRET=testsecret JWT_EXPIRE=30d node server.js &
-          # Wait for backend
+          PORT=5000 JWT_SECRET=testsecret JWT_EXPIRE=30d node server.js > be.log 2>&1 &
+          
+          # Wait for backend to be healthy
           for i in {1..30}; do
-            curl -s http://localhost:5000/api/v1/shops && break
-            echo "Waiting for backend..."
+            if curl -s http://localhost:5000/api/v1/shops > /dev/null; then
+              echo "Backend is UP"
+              break
+            fi
+            echo "Waiting for backend ($i/30)..."
             sleep 2
           done
 
       - name: Start Frontend
         run: |
           cd frontend
-          NEXT_PUBLIC_BACKEND_URL=http://localhost:5000 BACKEND_URL=http://localhost:5000 NEXTAUTH_SECRET=testsecret NEXTAUTH_URL=http://localhost:3000 npm run start &
-          # Wait for frontend
+          NEXT_PUBLIC_BACKEND_URL=http://localhost:5000 BACKEND_URL=http://localhost:5000 NEXTAUTH_SECRET=testsecret NEXTAUTH_URL=http://localhost:3000 npm run start > fe.log 2>&1 &
+          
+          # Wait for frontend to be healthy
           for i in {1..30}; do
-            curl -s http://localhost:3000 && break
-            echo "Waiting for frontend..."
+            if curl -s http://localhost:3000 > /dev/null; then
+              echo "Frontend is UP"
+              break
+            fi
+            echo "Waiting for frontend ($i/30)..."
             sleep 2
           done
 
@@ -110,6 +117,14 @@ jobs:
           TEST_SHOP_ID: ${{ secrets.TEST_SHOP_ID || '69e09583325ac59ae03654c6' }}
           TEST_ADMIN_EMAIL: ${{ secrets.TEST_ADMIN_EMAIL || 'adminkeith@example.com' }}
           TEST_ADMIN_PASSWORD: ${{ secrets.TEST_ADMIN_PASSWORD || 'mypassword' }}
+
+      - name: Print Logs on Failure
+        if: failure()
+        run: |
+          echo "--- BACKEND LOGS ---"
+          cat backend/be.log || true
+          echo "--- FRONTEND LOGS ---"
+          cat frontend/fe.log || true
 
       - name: Upload Playwright report
         if: always()
