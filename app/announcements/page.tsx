@@ -190,6 +190,7 @@ export default function AnnouncementPage() {
   const [selectedShopId, setSelectedShopId] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // UI & Feature States (แก้ไขปัญหา Cannot find name)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -236,7 +237,7 @@ export default function AnnouncementPage() {
       const result = await res.json();
       if (result.success && result.data) {
         setShops(result.data);
-        if (result.data.length > 0 && session?.user?.role !== "admin") {
+        if (result.data.length > 0 && !selectedShopId) {
           setSelectedShopId(result.data[0]._id);
         }
       }
@@ -267,6 +268,7 @@ export default function AnnouncementPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!session?.user?.token) return alert("Unauthorized");
+    setSubmitError(null);
 
     setIsProcessing(true);
     const method = editingId ? "PUT" : "POST";
@@ -287,13 +289,18 @@ export default function AnnouncementPage() {
           ...(selectedShopId ? { shop: selectedShopId } : {}),
         }),
       });
+      const result = await res.json().catch(() => null);
 
       if (res.ok) {
         resetForm();
         fetchAnnouncements();
+      } else {
+        setSubmitError(
+          result?.message || "Unable to publish this announcement.",
+        );
       }
     } catch (err) {
-      alert("เกิดข้อผิดพลาด");
+      setSubmitError("Unable to publish this announcement.");
     } finally {
       setIsProcessing(false);
     }
@@ -331,6 +338,7 @@ export default function AnnouncementPage() {
     setContent("");
     setImageUrl("");
     setImagePosition("center");
+    setSubmitError(null);
   };
 
   const formatDate = (dateStr: string) => {
@@ -587,6 +595,12 @@ export default function AnnouncementPage() {
                     </div>
                   </div>
                 </div>
+
+                {submitError && (
+                  <p className="mt-6 rounded-2xl border border-red-500/20 bg-red-500/8 px-4 py-3 text-sm text-red-300">
+                    {submitError}
+                  </p>
+                )}
 
                 <div className="flex items-center gap-4 mt-10 pt-8 border-t border-card-border/50">
                   <button
