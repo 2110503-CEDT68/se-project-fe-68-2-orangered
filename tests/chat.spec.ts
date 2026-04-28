@@ -116,7 +116,7 @@ test('US2-3: shop owner can click a room to see customer messages', async ({ pag
   await goToShop(page);
 
   const roomBtn = page.locator('button').filter({ hasText: 'Active Conversation' }).first();
-  await expect(roomBtn).toBeVisible();
+  await roomBtn.waitFor({ state: 'visible', timeout: 30000 });
   await roomBtn.click();
 
   // Admin view: wait for Pusher to be ready for the selected room

@@ -39,6 +39,8 @@ test("TC1-2: User can view other customer reviews but not edit them", async ({ p
   await login(page, CUSTOMER.email, CUSTOMER.password);
   await page.goto(`${BASE_URL}/shop/${SHOP_ID}`);
 
+  await page.waitForLoadState('networkidle');
+
   const reviewList = page.locator('#reviews');
   await expect(reviewList).toBeVisible();
 
@@ -52,6 +54,8 @@ test("TC1-2: User can view other customer reviews but not edit them", async ({ p
 test("TC1-3: User can edit their own review", async ({ page }) => {
   await login(page, CUSTOMER.email, CUSTOMER.password);
   await page.goto(`${BASE_URL}/shop/${SHOP_ID}`);
+
+  await page.waitForLoadState('networkidle');
 
   const myReview = page.locator('div.relative').filter({ hasText: /Verified Author/i }).first();
   
@@ -69,6 +73,8 @@ test("TC1-3: User can edit their own review", async ({ page }) => {
 test("TC1-4: User can delete their own review", async ({ page }) => {
   await login(page, CUSTOMER.email, CUSTOMER.password);
   await page.goto(`${BASE_URL}/shop/${SHOP_ID}`);
+
+  await page.waitForLoadState('networkidle');
 
   const myReview = page.locator('div.relative').filter({ hasText: /Verified Author/i }).first();
   await myReview.getByTitle(/Delete review/i).click();

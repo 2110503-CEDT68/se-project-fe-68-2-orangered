@@ -16,7 +16,6 @@ type ArchivedUser = {
 };
 
 export default function AdminUserPage() {
-  console.log("BACKEND_URL:", process.env.BACKEND_URL);
   const { data: session, status } = useSession();
   const [allUserData, setAllUserData] = useState<EditableUser[]>([]);
   const [archivedUsers, setArchivedUsers] = useState<ArchivedUser[]>([]);

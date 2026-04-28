@@ -6,30 +6,30 @@ const SHOP_ID = process.env.TEST_SHOP_ID ?? "";
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 export async function login(page: Page, email: string, password: string) {
-  await page.goto(`${BASE_URL}/signin`);
+  await page.goto(`${BASE_URL}/signin`, { waitUntil: "domcontentloaded" });
   await page.getByTestId("email-input").fill(email);
   await page.getByTestId("password-input").fill(password);
   await page.getByRole("button", { name: "Log In" }).click();
   
   // Escape special characters in BASE_URL for RegExp
   const escapedBaseUrl = BASE_URL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  await page.waitForURL(new RegExp(`^${escapedBaseUrl}/?$`), { timeout: 45000 });
+  await page.waitForURL(new RegExp(`^${escapedBaseUrl}/?$`), { timeout: 15000 });
 }
 
 export async function goToShop(page: Page) {
-  await page.goto(`${BASE_URL}/shop/${SHOP_ID}`);
+  await page.goto(`${BASE_URL}/shop/${SHOP_ID}`, { waitUntil: "domcontentloaded" });
   // Works for both roles: customer sees textarea, shop owner sees sidebar first
   await page
     .getByPlaceholder("Compose your message...")
     .or(page.getByText("Guest Inquiries"))
     .first()
-    .waitFor({ timeout: 10000 });
+    .waitFor({ timeout: 30000 });
   // Wait for Pusher channel subscription if the chat interface is visible.
   // We use a try-catch to avoid failing navigation if Pusher is just slow,
   // as downstream actions have their own retry/timeout logic.
   const textarea = page.getByPlaceholder("Compose your message...");
   if (await textarea.isVisible()) {
-    await page.locator('[data-pusher-ready="true"]').waitFor({ timeout: 7000 }).catch(() => {});
+    await page.locator('[data-pusher-ready="true"]').waitFor({ timeout: 15000 }).catch(() => {});
   }
 }
 

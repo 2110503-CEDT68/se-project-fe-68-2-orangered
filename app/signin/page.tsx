@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image"; // เพิ่ม Import Image
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
+import { getBackendBaseUrl } from "@/libs/api/baseUrl";
 
 export default function SigninPage() {
   const router = useRouter();
@@ -41,18 +42,54 @@ export default function SigninPage() {
     setError("");
     setLoading(true);
 
-    const res = await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
-    });
+    try {
+      const loginResponse = await fetch(
+        `${getBackendBaseUrl()}/api/v1/auth/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, password }),
+        },
+      );
 
-    if (res?.error) {
-      setError(res.error);
+      const raw = await loginResponse.text();
+      let data: { msg?: string; message?: string } = {};
+
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        data = { msg: raw || "Failed to login" };
+      }
+
+      if (!loginResponse.ok) {
+        setError(data.msg || data.message || "Failed to login");
+        return;
+      }
+
+      const res = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
+
+      if (res?.error) {
+        setError(res.error);
+        return;
+      }
+
+      if (res?.ok) {
+        router.push("/");
+        router.refresh();
+        return;
+      }
+
+      setError("Failed to login");
+    } catch {
+      setError("Failed to login");
+    } finally {
       setLoading(false);
-    } else if (res?.ok) {
-      router.push("/");
-      router.refresh();
     }
   };
 

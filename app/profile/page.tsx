@@ -273,7 +273,7 @@ export default function ProfilePage() {
                 <div className="relative w-full h-full rounded-full overflow-hidden border border-card-border bg-surface">
                   {profilePicture ? (
                     <Image
-                      src={session.user?.profilePicture!}
+                      src={profilePicture}
                       alt="Profile"
                       fill
                       className="object-cover"
