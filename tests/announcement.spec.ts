@@ -25,15 +25,16 @@ const createdAnnouncementTitles: string[] = [];
 test.describe.configure({ mode: "serial" });
 
 async function selectAnnouncementShop(page: Page) {
-  const shopSection = page.locator("div").filter({ hasText: "Target Shop *" }).first();
+  const shopLabel = page.getByText("Target Audience *").first();
   try {
-    // Wait briefly for shop selector to render after shops are fetched
-    await shopSection.waitFor({ state: "visible", timeout: 5000 });
+    // Wait briefly for shop selector to render after shops are fetched.
+    await shopLabel.waitFor({ state: "visible", timeout: 5000 });
   } catch {
     return;
   }
 
-  const dropdownTrigger = shopSection.getByRole("button").first();
+  const shopSection = shopLabel.locator("xpath=ancestor::div[contains(@class, 'group')][1]");
+  const dropdownTrigger = shopSection.locator("div.relative > div").first();
   await dropdownTrigger.click();
 
   const anyOption = page.locator("[data-shop-id]").first();
@@ -62,10 +63,10 @@ async function selectAnnouncementShop(page: Page) {
 }
 
 async function createAnnouncement(page: Page, title: string, content: string) {
-  await expect(page.getByPlaceholder("Enter announcement title...")).toBeVisible({ timeout: 10000 });
+  await expect(page.getByPlaceholder("Enter announcement headline...")).toBeVisible({ timeout: 10000 });
   await selectAnnouncementShop(page);
-  await page.getByPlaceholder("Enter announcement title...").fill(title);
-  await page.getByPlaceholder("Write your announcement details here...").fill(content);
+  await page.getByPlaceholder("Enter announcement headline...").fill(title);
+  await page.getByPlaceholder("Compose your message here...").fill(content);
   await page.getByRole("button", { name: "+ Publish Post" }).click();
   createdAnnouncementTitles.push(title);
 }
@@ -81,8 +82,7 @@ test('US4-1: Shop owner create a new announcement', async ({ page }) => {
   const content = 'for create test';
 
   await login(page, SHOP_OWNER.email, SHOP_OWNER.password);
-  await goToShop(page);
-  await page.getByRole('link', { name: 'Announcement' }).click();
+  await page.goto(`${BASE_URL}/announcements`);
 
   await createAnnouncement(page, title, content);
 
@@ -100,8 +100,7 @@ test('US4-2: Shop owner want to view all announcements', async ({ page }) => {
   const titleTwo = `us4-2-b-${Date.now()}`;
 
   await login(page, SHOP_OWNER.email, SHOP_OWNER.password);
-  await goToShop(page);
-  await page.getByRole('button', { name: 'Announcements — Manage Posts —' }).click();
+  await page.goto(`${BASE_URL}/announcements`);
 
   await createAnnouncement(page, titleOne, "first post for view-all test");
   await expect(page.getByRole("heading", { name: titleOne })).toBeVisible();
@@ -120,7 +119,7 @@ test('US4-3: Shop owner want to edit an existing announcement', async ({ page })
   expect(updatedContent).not.toBe(originalContent);
 
   await login(page, SHOP_OWNER.email, SHOP_OWNER.password);
-  await page.getByRole('link', { name: 'Announcement' }).click();
+  await page.goto(`${BASE_URL}/announcements`);
   await createAnnouncement(page, originalTitle, originalContent);
 
   await expect(page.getByRole("heading", { name: originalTitle })).toBeVisible();
@@ -129,8 +128,8 @@ test('US4-3: Shop owner want to edit an existing announcement', async ({ page })
   const announcementCard = page.getByRole("article").filter({ has: page.getByRole("heading", { name: originalTitle }) }).first();
   await announcementCard.getByRole("button", { name: "Edit" }).click();
 
-  const titleField = page.getByPlaceholder("Enter announcement title...");
-  const contentField = page.getByPlaceholder("Write your announcement details here...");
+  const titleField = page.getByPlaceholder("Enter announcement headline...");
+  const contentField = page.getByPlaceholder("Compose your message here...");
   await expect(titleField).toHaveValue(originalTitle);
   await expect(contentField).toHaveValue(originalContent);
 
@@ -189,7 +188,7 @@ test('US4-4: Shop owner deletes announcement created in this test', async ({ pag
 
     await card.hover();
     await card.getByRole("button", { name: "Delete" }).click();
-    await page.getByRole("button", { name: "Confirm Delete" }).click();
+    await page.getByRole("button", { name: "Confirm" }).click();
     await expect(page.getByRole("heading", { name: createdTitle })).toHaveCount(0, { timeout: 10000 });
   }
 
@@ -227,8 +226,8 @@ test('US4-8: Admin can edit an announcement', async ({ page }) => {
   const announcementCard = page.getByRole('article').filter({ has: page.getByRole('heading', { name: originalTitle }) }).first();
   await announcementCard.getByRole('button', { name: 'Edit' }).click();
 
-  const titleField = page.getByPlaceholder('Enter announcement title...');
-  const contentField = page.getByPlaceholder('Write your announcement details here...');
+  const titleField = page.getByPlaceholder('Enter announcement headline...');
+  const contentField = page.getByPlaceholder('Compose your message here...');
 
   await expect(titleField).toHaveValue(originalTitle);
   await expect(contentField).toHaveValue(originalContent);
@@ -274,7 +273,7 @@ test('US4-9: Admin deletes announcements created in this test', async ({ page })
     await expect(deleteButton).toBeVisible();
     await deleteButton.click();
 
-    const confirmButton = page.getByRole('button', { name: 'Confirm Delete' });
+    const confirmButton = page.getByRole('button', { name: 'Confirm' });
     await expect(confirmButton).toBeVisible();
     await confirmButton.click();
 
