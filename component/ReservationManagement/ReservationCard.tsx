@@ -153,10 +153,8 @@ export default function ReservationCard({
           </div>
 
           {/* Action Buttons: Vertical Stack */}
-          {/* Action Buttons: Vertical Stack */}
           <div className="flex flex-row md:flex-col gap-6 justify-end items-end border-t md:border-t-0 border-white/5 pt-8 md:pt-0">
             {isRoleUser && isPastReservation ? (
-              // เคส User ทั่วไป: ถ้าผ่านไปแล้วให้ไปรีวิว
               <Link
                 href={`/shop/${item.shop._id}#reviews`}
                 className="group/btn relative py-1 transition-all"
