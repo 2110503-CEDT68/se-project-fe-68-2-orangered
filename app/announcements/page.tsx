@@ -237,7 +237,11 @@ export default function AnnouncementPage() {
       const result = await res.json();
       if (result.success && result.data) {
         setShops(result.data);
-        if (result.data.length > 0 && !selectedShopId) {
+        if (
+          result.data.length > 0 &&
+          !selectedShopId &&
+          session?.user?.role === "shopowner"
+        ) {
           setSelectedShopId(result.data[0]._id);
         }
       }
