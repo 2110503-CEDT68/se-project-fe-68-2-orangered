@@ -37,7 +37,7 @@ export default function NoReservationShopOwner() {
         <div className="mt-12 w-full flex flex-col gap-3">
           {/* Primary CTA */}
           <Link
-            href="/owner/promote"
+            href="/announcements"
             className="group relative w-full px-8 py-5 overflow-hidden rounded-full border border-gold/30 transition-all duration-500 hover:border-gold/60 flex items-center justify-between"
           >
             <div className="absolute inset-0 bg-gold/5 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
@@ -51,7 +51,7 @@ export default function NoReservationShopOwner() {
 
           {/* Secondary CTA */}
           <Link
-            href="/owner/offers"
+            href="/shops"
             className="group relative w-full px-8 py-5 overflow-hidden rounded-full border border-gold/15 transition-all duration-500 hover:border-gold/40 flex items-center justify-between"
           >
             <div className="absolute inset-0 bg-gold/[0.03] translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
@@ -65,7 +65,7 @@ export default function NoReservationShopOwner() {
 
           {/* Tertiary CTA */}
           <Link
-            href="/owner/settings"
+            href="/shops"
             className="group relative w-full px-8 py-5 overflow-hidden rounded-full border border-gold/10 transition-all duration-500 hover:border-gold/30 flex items-center justify-between"
           >
             <div className="absolute inset-0 bg-gold/[0.02] translate-y-full group-hover:translate-y-0 transition-transform duration-500" />

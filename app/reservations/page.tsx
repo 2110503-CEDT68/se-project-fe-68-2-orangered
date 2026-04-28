@@ -11,7 +11,6 @@ import ReservationLoading from "@/component/ReservationManagement/ReservationLoa
 import ReservationNoSession from "@/component/ReservationManagement/ReservationNoSession";
 import PaginationLinkNav from "@/component/ui/PaginationLinkNav";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import dayjs from "dayjs";
 
 const RESERVATIONS_PER_PAGE = 6;
 
@@ -24,20 +23,16 @@ export default function ReservationPage() {
   const [reservations, setReservations] = useState<Reservations | null>(null);
   const [loading, setLoading] = useState(true);
   const [sortOrder, setSortOrder] = useState<string>("desc");
-  
-  // 1. Tab State (Sync with Backend Status)
   const [currentTab, setCurrentTab] = useState<"upcoming" | "past" | "all">("upcoming");
 
   const isAdmin = session?.user?.role === "admin";
   const parsedPage = Number(searchParams.get("page") ?? "1");
   const currentPage = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
 
-  // 2. Fetch Function (Request filtered data from Server)
   const fetchReservations = useCallback(async (page: number, tab: string) => {
     if (!session?.user?.token) return;
     setLoading(true);
 
-    // Map Frontend Tab to Backend Status keys
     const apiStatus = tab === "upcoming" ? "active" : tab === "past" ? "past" : "all";
 
     try {
@@ -45,7 +40,7 @@ export default function ReservationPage() {
         page,
         limit: RESERVATIONS_PER_PAGE,
         sort: sortOrder,
-        status: apiStatus, // Backend will filter and return correct total count
+        status: apiStatus,
       });
       setReservations(data);
     } catch {
@@ -55,16 +50,14 @@ export default function ReservationPage() {
     }
   }, [session?.user?.token, sortOrder]);
 
-  // 3. Effect: Re-fetch when page, tab or sort changes
   useEffect(() => {
     void fetchReservations(currentPage, currentTab);
   }, [currentPage, currentTab, sortOrder, fetchReservations]);
 
-  // 4. Handle Tab Change
   const handleTabChange = (newTab: "upcoming" | "past" | "all") => {
     setCurrentTab(newTab);
     const params = new URLSearchParams(searchParams.toString());
-    params.delete("page"); // Reset to page 1 when switching tabs
+    params.delete("page");
     router.push(`${pathname}?${params.toString()}`);
   };
 
@@ -88,13 +81,9 @@ export default function ReservationPage() {
     }
   }
 
+  // Handle Loading & No Session
   if (!session) return <ReservationNoSession />;
   if (loading) return <ReservationLoading />;
-  
-  // No records at all in the database for this user/admin
-  if (!reservations || (reservations.pagination.total === 0 && currentTab === "all")) {
-    return <NoReservation isAdmin={isAdmin} />;
-  }
 
   return (
     <div className="min-h-screen bg-background text-text-main pb-32 px-4 sm:px-8 pt-8 selection:bg-accent/30">
@@ -153,8 +142,7 @@ export default function ReservationPage() {
               }`}
             >
               {tab.label}
-              {/* Show total count from API for the selected tab */}
-              {currentTab === tab.id && (
+              {currentTab === tab.id && reservations && (
                 <>
                   <span className="text-[8px] text-accent">({reservations.pagination.total})</span>
                   <div className="absolute bottom-0 left-0 w-full h-[1px] bg-accent shadow-[0_0_10px_rgba(197,163,87,0.4)] animate-in fade-in slide-in-from-left-2" />
@@ -164,28 +152,40 @@ export default function ReservationPage() {
           ))}
         </div>
 
-        {/* 5. Reservations List */}
+        {/* 5. Reservations Content Area */}
         <div className="grid grid-cols-1 gap-6 min-h-[400px]">
-          {reservations.data.length > 0 ? (
+          {/* Case 1: Absolutely No Reservations in System (for "All" tab) */}
+          {!reservations || (reservations.pagination.total === 0 && currentTab === "all") ? (
+            <div className="animate-in fade-in duration-700">
+              <NoReservation isAdmin={isAdmin} />
+            </div>
+          ) : reservations.data.length > 0 ? (
+            // Case 2: Have Data to Show
             reservations.data.map((item, index) => (
               <div key={item._id} className="transition-all duration-500 hover:translate-y-[-2px]">
                 <ReservationCard item={item} index={index} onDelete={handleDelete} />
               </div>
             ))
           ) : (
-            <div className="flex flex-col items-center justify-center py-32 opacity-30">
+            // Case 3: No Data in Specific Tab (e.g. No Past History)
+            <div className="flex flex-col items-center justify-center py-32 opacity-30 animate-in fade-in duration-700">
               <p className="italic text-[10px] tracking-[0.5em] uppercase">— No {currentTab} records found in this section —</p>
             </div>
           )}
         </div>
 
-        <PaginationLinkNav
-          currentPage={currentPage}
-          totalPages={reservations.pagination.totalPages}
-          isLoading={loading}
-        />
+        {/* Pagination - Only show if more than 1 page */}
+        {reservations && reservations.pagination.totalPages > 1 && (
+          <div className="mt-12">
+            <PaginationLinkNav
+              currentPage={currentPage}
+              totalPages={reservations.pagination.totalPages}
+              isLoading={loading}
+            />
+          </div>
+        )}
 
-        {/* Footer Signature */}
+        {/* Decorative Footer */}
         <div className="pt-32 flex flex-col items-center gap-4 opacity-40">
           <div className="h-px w-12 bg-card-border" />
           <div className="italic text-text-sub text-[9px] tracking-[0.6em] uppercase">
