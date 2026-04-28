@@ -23,8 +23,8 @@ export interface Promotion {
   discountPrice: number;
   startDate: Date | string;
   endDate: Date | string;
-  startTime?: string; // เช่น "10:00"
-  endTime?: string; // เช่น "14:00"
+  startTime?: string;
+  endTime?: string; 
   isActive: boolean;
 }
 
@@ -143,6 +143,7 @@ export interface ReservationItem {
   promotion?: {
     title: string;
     discountPrice: number;
+    originalPrice: number; 
   };
   __v: number;
 }

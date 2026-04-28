@@ -11,7 +11,6 @@ import ReservationNoSession from "@/component/ReservationManagement/ReservationN
 import PaginationLinkNav from "@/component/ui/PaginationLinkNav";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import NoReservationShopOwner from "@/component/ReservationManagement/NoReservationShop";
-import dayjs from "dayjs";
 
 const RESERVATIONS_PER_PAGE = 6;
 
@@ -23,27 +22,22 @@ export default function ShopOwnerReservationsPage() {
   
   const [reservations, setReservations] = useState<Reservations | null>(null);
   const [loading, setLoading] = useState(true);
-  
-  // 1. Tab State (Sync กับ Backend Status)
   const [currentTab, setCurrentTab] = useState<"upcoming" | "past" | "all">("upcoming");
 
   const parsedPage = Number(searchParams.get("page") ?? "1");
-  const currentPage =
-    Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+  const currentPage = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
 
-  // 2. Fetch Function ที่ส่ง Status ไปที่ Backend
   const fetchReservations = useCallback(async (page: number, tab: string) => {
     if (!session?.user?.token) return;
     setLoading(true);
 
-    // Map Frontend Tab เป็น Backend Status
     const apiStatus = tab === "upcoming" ? "active" : tab === "past" ? "past" : "all";
 
     try {
       const data = await getAllReservations(session.user.token, {
         page,
         limit: RESERVATIONS_PER_PAGE,
-        status: apiStatus, // ส่ง Filter ไปให้ Backend
+        status: apiStatus,
       });
       setReservations(data);
     } catch {
@@ -53,23 +47,21 @@ export default function ShopOwnerReservationsPage() {
     }
   }, [session?.user?.token]);
 
-  // 3. Handle Tab Change (Reset หน้า 1 เสมอเมื่อเปลี่ยน Tab)
-  const handleTabChange = (newTab: "upcoming" | "past" | "all") => {
-    setCurrentTab(newTab);
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("page"); // กลับไปหน้าแรกของ Tab นั้น
-    router.push(`${pathname}?${params.toString()}`);
-  };
-
   useEffect(() => {
     void fetchReservations(currentPage, currentTab);
   }, [currentPage, currentTab, fetchReservations]);
+
+  const handleTabChange = (newTab: "upcoming" | "past" | "all") => {
+    setCurrentTab(newTab);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("page");
+    router.push(`${pathname}?${params.toString()}`);
+  };
 
   async function handleDelete(rid: string) {
     if (!session) return;
     try {
       await deleteReservation({ token: session.user.token, rid: rid });
-      // ถ้าลบตัวสุดท้ายของหน้านั้น ให้ถอยกลับไป 1 หน้า
       const nextPage = reservations && reservations.data.length === 1 && currentPage > 1
           ? currentPage - 1
           : currentPage;
@@ -86,6 +78,7 @@ export default function ShopOwnerReservationsPage() {
     }
   }
 
+  // 1. Guard Clauses สำหรับ Session และ Role
   if (!session) return <ReservationNoSession />;
 
   if (session.user.role !== "shopowner") {
@@ -102,18 +95,8 @@ export default function ShopOwnerReservationsPage() {
     );
   }
 
+  // 2. Loading State
   if (loading) return <ReservationLoading />;
-  
-  // ถ้าไม่มีข้อมูลเลยในทุก Tab
-  if (!reservations || (reservations.pagination.total === 0 && currentTab === "all")) {
-    return <NoReservationShopOwner/>;
-  }
-
-  const now = Date.now();
-  const activeReservationCount = reservations.data.filter(
-    (item) => new Date(item.appDate).getTime() >= now
-  ).length;
-  const passedReservationCount = reservations.data.length - activeReservationCount;
 
   return (
     <div className="min-h-screen bg-background text-text-main pb-32 px-4 sm:px-8 pt-8 selection:bg-accent/30">
@@ -159,8 +142,7 @@ export default function ShopOwnerReservationsPage() {
               }`}
             >
               {tab.label}
-              {/* แสดงเลขรวมจาก API เฉพาะ Tab ที่เลือกอยู่เพื่อให้แม่นยำ */}
-              {currentTab === tab.id && (
+              {currentTab === tab.id && reservations && (
                 <>
                   <span className="text-[8px] text-accent">({reservations.pagination.total})</span>
                   <div className="absolute bottom-0 left-0 w-full h-[1px] bg-accent shadow-[0_0_10px_rgba(197,163,87,0.4)] animate-in fade-in slide-in-from-left-2" />
@@ -170,9 +152,15 @@ export default function ShopOwnerReservationsPage() {
           ))}
         </div>
 
-        {/* 4. Reservations List */}
+        {/* 4. Reservations Content Area */}
         <div className="grid grid-cols-1 gap-6 min-h-[300px]">
-          {reservations.data.length > 0 ? (
+          {/* Case 1: No reservations at all in the entire shop (Show in "All" tab) */}
+          {!reservations || (reservations.pagination.total === 0 && currentTab === "all") ? (
+            <div className="animate-in fade-in duration-700">
+              <NoReservationShopOwner />
+            </div>
+          ) : reservations.data.length > 0 ? (
+            // Case 2: Data found for the current tab
             reservations.data.map((item: any, index: number) => (
               <div key={item._id} className="transition-all duration-500 hover:translate-y-[-2px]">
                 <ReservationCard
@@ -183,7 +171,8 @@ export default function ShopOwnerReservationsPage() {
               </div>
             ))
           ) : (
-            <div className="flex flex-col items-center justify-center py-32 opacity-30">
+            // Case 3: No data in this specific tab filter
+            <div className="flex flex-col items-center justify-center py-32 opacity-30 animate-in fade-in duration-700">
               <p className="italic text-[10px] tracking-[0.5em] uppercase text-center">
                 — No {currentTab} sessions recorded —
               </p>
@@ -192,13 +181,17 @@ export default function ShopOwnerReservationsPage() {
         </div>
 
         {/* Pagination */}
-        <div className="mt-12">
-           <PaginationLinkNav
+        {reservations && reservations.pagination.totalPages > 1 && (
+          <div className="mt-12">
+            <PaginationLinkNav
               currentPage={currentPage}
               totalPages={reservations.pagination.totalPages}
+              isLoading={loading}
             />
-        </div>
+          </div>
+        )}
 
+        {/* Decorative Footer */}
         <div className="pt-32 flex flex-col items-center gap-4 opacity-40">
           <div className="h-px w-12 bg-card-border" />
           <div className="italic text-text-sub text-[9px] tracking-[0.6em] uppercase">
