@@ -571,7 +571,7 @@ export default function AnnouncementPage() {
   const fetchAnnouncements = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/all`);
+      const res = await fetch(`${API_BASE_URL}/all`, { cache: 'no-store' });
       const result = await res.json();
       setAnnouncements(result.data || []);
     } catch (err) {
@@ -631,7 +631,8 @@ export default function AnnouncementPage() {
 
       if (res.ok) {
         resetForm();
-        fetchAnnouncements();
+        // เติม await ตรงนี้ เพื่อให้มันรอจนกว่าจะโหลด list ใหม่เสร็จ ค่อยเอาปุ่มโหลดออก
+        await fetchAnnouncements(); 
       }
     } catch (err) {
       alert("เกิดข้อผิดพลาด");
