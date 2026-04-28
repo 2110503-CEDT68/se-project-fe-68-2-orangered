@@ -36,7 +36,8 @@ jobs:
         with:
           repository: 2110503-CEDT68/se-project-be-68-2-orangered
           path: backend
-          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: fix/CI
+
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -65,6 +66,18 @@ jobs:
       - name: Start Backend
         run: |
           cd backend
+          # Run seeder with env vars
+          MONGO_URI=mongodb://localhost:27017/test \
+          TEST_CUSTOMER_EMAIL="${{ secrets.TEST_CUSTOMER_EMAIL || 'johannnnnnnn@ex.com' }}" \
+          TEST_CUSTOMER_PASSWORD="${{ secrets.TEST_CUSTOMER_PASSWORD || 'mypassword' }}" \
+          TEST_SHOP_OWNER_EMAIL="${{ secrets.TEST_SHOP_OWNER_EMAIL || 'muhaha@gmail.com' }}" \
+          TEST_SHOP_OWNER_PASSWORD="${{ secrets.TEST_SHOP_OWNER_PASSWORD || '123456' }}" \
+          TEST_SHOP_ID="${{ secrets.TEST_SHOP_ID || '69e09583325ac59ae03654c6' }}" \
+          TEST_ADMIN_EMAIL="${{ secrets.TEST_ADMIN_EMAIL || 'adminkeith@example.com' }}" \
+          TEST_ADMIN_PASSWORD="${{ secrets.TEST_ADMIN_PASSWORD || 'mypassword' }}" \
+          node seed-ci.js
+          
+          # Start server
           PORT=5000 MONGO_URI=mongodb://localhost:27017/test JWT_SECRET=testsecret JWT_EXPIRE=30d node server.js &
           # Wait for backend
           for i in {1..30}; do
@@ -90,11 +103,13 @@ jobs:
           npm run test:e2e
         env:
           TEST_BASE_URL: http://localhost:3000
-          TEST_CUSTOMER_EMAIL: ${{ secrets.TEST_CUSTOMER_EMAIL }}
-          TEST_CUSTOMER_PASSWORD: ${{ secrets.TEST_CUSTOMER_PASSWORD }}
-          TEST_SHOP_OWNER_EMAIL: ${{ secrets.TEST_SHOP_OWNER_EMAIL }}
-          TEST_SHOP_OWNER_PASSWORD: ${{ secrets.TEST_SHOP_OWNER_PASSWORD }}
-          TEST_SHOP_ID: ${{ secrets.TEST_SHOP_ID }}
+          TEST_CUSTOMER_EMAIL: ${{ secrets.TEST_CUSTOMER_EMAIL || 'johannnnnnnn@ex.com' }}
+          TEST_CUSTOMER_PASSWORD: ${{ secrets.TEST_CUSTOMER_PASSWORD || 'mypassword' }}
+          TEST_SHOP_OWNER_EMAIL: ${{ secrets.TEST_SHOP_OWNER_EMAIL || 'muhaha@gmail.com' }}
+          TEST_SHOP_OWNER_PASSWORD: ${{ secrets.TEST_SHOP_OWNER_PASSWORD || '123456' }}
+          TEST_SHOP_ID: ${{ secrets.TEST_SHOP_ID || '69e09583325ac59ae03654c6' }}
+          TEST_ADMIN_EMAIL: ${{ secrets.TEST_ADMIN_EMAIL || 'adminkeith@example.com' }}
+          TEST_ADMIN_PASSWORD: ${{ secrets.TEST_ADMIN_PASSWORD || 'mypassword' }}
 
       - name: Upload Playwright report
         if: always()
