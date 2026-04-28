@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 import { login, goToShop, sendAndConfirm, getBubble } from './testfunction';
 
 const BASE_URL   = process.env.TEST_BASE_URL        ?? 'http://localhost:3000';
@@ -13,8 +13,12 @@ const SHOP_OWNER = {
 const SHOP_ID    = process.env.TEST_SHOP_ID ?? '';
 
 // ─── US2-1: Customer sends a message ─────────────────────────────────────────
+// Input Equivalence Partitions for message textarea:
+//   EC1 (invalid) – empty string     → Send button disabled
+//   EC2 (invalid) – whitespace only  → Send button disabled
+//   EC3 (valid)   – non-empty text   → message sent and visible
 
-test('US2-1: customer can send a message to a shop', async ({ page }) => {
+test('US2-1 [EC3 – valid]: customer can send a message to a shop', async ({ page }) => {
   await login(page, CUSTOMER.email, CUSTOMER.password);
   await goToShop(page);
 
@@ -28,10 +32,18 @@ test('US2-1: customer can send a message to a shop', async ({ page }) => {
   await expect(textarea).toHaveValue('');
 });
 
-test('US2-1: send button is disabled when textarea is empty', async ({ page }) => {
+test('US2-1 [EC1 – empty]: send button is disabled when textarea is empty', async ({ page }) => {
   await login(page, CUSTOMER.email, CUSTOMER.password);
   await goToShop(page);
 
+  await expect(page.getByRole('button', { name: 'Send' })).toBeDisabled();
+});
+
+test('US2-1 [EC2 – whitespace]: send button is disabled for whitespace-only input', async ({ page }) => {
+  await login(page, CUSTOMER.email, CUSTOMER.password);
+  await goToShop(page);
+
+  await page.getByPlaceholder('Compose your message...').fill('   ');
   await expect(page.getByRole('button', { name: 'Send' })).toBeDisabled();
 });
 
@@ -66,6 +78,7 @@ test('US2-2: deleted messages show placeholder text', async ({ page }) => {
   await expect(page.getByText('Withdraw Message?')).toBeVisible();
   await page.getByRole('button', { name: 'Confirm Deletion' }).click();
 
+  await expect(page.getByText('Withdraw Message?')).toBeHidden({ timeout: 15000 });
   await expect(page.getByText('Message vanished into silence').first()).toBeVisible();
 });
 
@@ -106,6 +119,8 @@ test('US2-3: shop owner can click a room to see customer messages', async ({ pag
   await expect(roomBtn).toBeVisible();
   await roomBtn.click();
 
+  // Admin view: wait for Pusher to be ready for the selected room
+  await page.locator('[data-pusher-ready="true"]').waitFor({ timeout: 10000 });
   await expect(page.getByPlaceholder('Compose your message...')).toBeVisible();
 });
 
@@ -114,6 +129,7 @@ test('US2-3: shop owner can reply to a customer', async ({ page }) => {
   await goToShop(page);
 
   await page.locator('button').filter({ hasText: 'Active Conversation' }).first().click();
+  await page.locator('[data-pusher-ready="true"]').waitFor({ timeout: 10000 });
 
   const replyText = `owner reply ${Date.now()}`;
   const textarea = page.getByPlaceholder('Compose your message...');
@@ -133,8 +149,12 @@ test('US2-3: customer does not see Guest Inquiries sidebar', async ({ page }) =>
 });
 
 // ─── US2-4: Edit a message ───────────────────────────────────────────────────
+// Input Equivalence Partitions for edit input field:
+//   EC4 (invalid) – empty string    → save is blocked; edit mode stays open
+//   EC5 (invalid) – whitespace only → save is blocked; edit mode stays open
+//   EC6 (valid)   – non-empty text  → message updated with (refined) label
 
-test('US2-4: customer can edit their own message', async ({ page }) => {
+test('US2-4 [EC6 – valid]: customer can edit their own message', async ({ page }) => {
   await login(page, CUSTOMER.email, CUSTOMER.password);
   await goToShop(page);
 
@@ -160,16 +180,59 @@ test('US2-4: customer can edit their own message', async ({ page }) => {
   await expect(page.getByText('(refined)').first()).toBeVisible();
 });
 
+test('US2-4 [EC4 – empty]: submitting empty edit is blocked and edit mode stays open', async ({ page }) => {
+  await login(page, CUSTOMER.email, CUSTOMER.password);
+  await goToShop(page);
+
+  const original = `Message for empty edit test ${Date.now()}`;
+  await sendAndConfirm(page, original);
+
+  const bubble = getBubble(page, original);
+  await bubble.hover();
+  await bubble.getByTitle('Edit').click();
+
+  const editInput = page.locator('input[class*="bg-transparent"]');
+  await expect(editInput).toBeVisible();
+  await editInput.clear();
+  await editInput.press('Enter');
+
+  await expect(editInput).toBeVisible();
+  await expect(editInput).toHaveValue('');
+});
+
+test('US2-4 [EC5 – whitespace]: submitting whitespace-only edit is blocked and edit mode stays open', async ({ page }) => {
+  await login(page, CUSTOMER.email, CUSTOMER.password);
+  await goToShop(page);
+
+  const original = `Message for whitespace edit test ${Date.now()}`;
+  await sendAndConfirm(page, original);
+
+  const bubble = getBubble(page, original);
+  await bubble.hover();
+  await bubble.getByTitle('Edit').click();
+
+  const editInput = page.locator('input[class*="bg-transparent"]');
+  await expect(editInput).toBeVisible();
+  await editInput.clear();
+  await editInput.fill('   ');
+  await editInput.press('Enter');
+
+  await expect(editInput).toBeVisible();
+});
+
 test('US2-4: edit button not visible on other users messages', async ({ page }) => {
   await login(page, SHOP_OWNER.email, SHOP_OWNER.password);
   await goToShop(page);
 
   await page.locator('button').filter({ hasText: 'Active Conversation' }).first().click();
+  await page.locator('[data-pusher-ready="true"]').waitFor({ timeout: 10000 });
 
-  const firstBubble = page.locator('[class*="group/bubble"]').first();
-  await firstBubble.hover();
+  // Find a bubble from the other user (customer). Customer bubbles are justify-start.
+  const otherBubble = page.locator('.justify-start').locator('.group\\/bubble').first();
+  await otherBubble.waitFor({ state: 'visible' });
+  await otherBubble.hover();
 
-  await expect(firstBubble.getByTitle('Edit')).toHaveCount(0);
+  await expect(otherBubble.getByTitle('Edit')).toHaveCount(0);
 });
 
 // ─── US2-5: Delete a message ─────────────────────────────────────────────────
@@ -188,6 +251,7 @@ test('US2-5: customer can delete their own message', async ({ page }) => {
   await expect(page.getByText('Withdraw Message?')).toBeVisible();
   await page.getByRole('button', { name: 'Confirm Deletion' }).click();
 
+  await expect(page.getByText('Withdraw Message?')).toBeHidden({ timeout: 15000 });
   await expect(
     page.locator('span[class*="overflow-wrap"]').filter({ hasText: msgText })
   ).toHaveCount(0);
@@ -217,9 +281,12 @@ test('US2-5: delete button not visible on other users messages', async ({ page }
   await goToShop(page);
 
   await page.locator('button').filter({ hasText: 'Active Conversation' }).first().click();
+  await page.locator('[data-pusher-ready="true"]').waitFor({ timeout: 10000 });
 
-  const firstBubble = page.locator('[class*="group/bubble"]').first();
-  await firstBubble.hover();
+  // Find a bubble from the other user (customer). Customer bubbles are justify-start.
+  const otherBubble = page.locator('.justify-start').locator('.group\\/bubble').first();
+  await otherBubble.waitFor({ state: 'visible' });
+  await otherBubble.hover();
 
-  await expect(firstBubble.getByTitle('Delete')).toHaveCount(0);
+  await expect(otherBubble.getByTitle('Delete')).toHaveCount(0);
 });
