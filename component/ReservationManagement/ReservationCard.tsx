@@ -111,10 +111,9 @@ export default function ReservationCard({
                     {item.massagePrice ? `฿${item.massagePrice}` : "—"}
                   </p>
 
-                  {(item.promotion?.discountPrice ?? 0) > 0 && (
+                  {item.promotion?.originalPrice && item.promotion.originalPrice > item.massagePrice && (
                     <p className="text-[8px] font-mono text-text-sub/40 line-through">
-                      ฿
-                      {item.massagePrice + (item.promotion?.discountPrice || 0)}
+                      ฿{item.promotion.originalPrice}
                     </p>
                   )}
                 </div>
