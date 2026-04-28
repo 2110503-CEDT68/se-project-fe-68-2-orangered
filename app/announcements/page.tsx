@@ -481,6 +481,7 @@ export default function AnnouncementPage() {
                               {shops.map((shop) => (
                                 <div
                                   key={shop._id}
+                                  data-shop-id={shop._id}
                                   onClick={() => {
                                     setSelectedShopId(shop._id);
                                     setIsShopDropdownOpen(false);
