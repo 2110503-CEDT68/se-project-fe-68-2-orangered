@@ -67,7 +67,7 @@ function ChatRoom({ shopId, shopName, userId, isAdmin }: ChatProps) {
   const activeRoom = isAdmin ? (selectedRoom ?? "") : userRoom;
   const selectedUser = rooms.find((r) => r.room === selectedRoom)?.user;
 
-  const { messages, loading, error, sendMessage, editMessage, deleteMessage } =
+  const { messages, loading, error, pusherReady, sendMessage, editMessage, deleteMessage } =
     useChat(activeRoom, token, {
       _id: session?.user?._id,
       name: session?.user?.name,
@@ -400,6 +400,7 @@ function ChatRoom({ shopId, shopName, userId, isAdmin }: ChatProps) {
   if (isAdmin) {
         return (
             <div
+              data-pusher-ready={pusherReady ? "true" : undefined}
               className={`flex flex-col md:flex-row h-full w-full bg-background overflow-hidden font-sans relative transition-all duration-300 ${isGrayscale ? 'grayscale' : ''}`}
             >
               {easterEggs}
@@ -474,6 +475,7 @@ function ChatRoom({ shopId, shopName, userId, isAdmin }: ChatProps) {
   return (
     <div
       ref={containerRef}
+      data-pusher-ready={pusherReady ? "true" : undefined}
       className={`flex flex-col h-full w-full bg-background overflow-hidden font-sans relative transition-all duration-300 ${isGrayscale ? "grayscale" : ""}`}
     >
       {" "}
