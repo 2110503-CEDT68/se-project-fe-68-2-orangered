@@ -92,12 +92,13 @@ export default function TopMenu() {
 
           {/* Mobile Hamburger */}
           <button
-            className="md:hidden w-9 h-9 flex flex-col justify-center items-center gap-[5px] border border-white/10 rounded-lg"
+            className="md:hidden w-9 h-9 flex flex-col justify-center items-center gap-[5px] border border-white/10 rounded-lg hover:bg-white/5 transition-colors"
             onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Toggle menu"
           >
-            <span className={`w-5 h-[1.5px] ${menuOpen ? "rotate-45 translate-y-[6px]" : ""}`} />
-            <span className={`w-5 h-[1.5px] ${menuOpen ? "opacity-0" : ""}`} />
-            <span className={`w-5 h-[1.5px] ${menuOpen ? "-rotate-45 -translate-y-[6px]" : ""}`} />
+            <span className={`w-5 h-[1.5px] bg-text-main transition-all duration-300 ${menuOpen ? "rotate-45 translate-y-[6.5px]" : ""}`} />
+            <span className={`w-5 h-[1.5px] bg-text-main transition-all duration-300 ${menuOpen ? "opacity-0" : ""}`} />
+            <span className={`w-5 h-[1.5px] bg-text-main transition-all duration-300 ${menuOpen ? "-rotate-45 -translate-y-[6.5px]" : ""}`} />
           </button>
         </div>
       </div>
