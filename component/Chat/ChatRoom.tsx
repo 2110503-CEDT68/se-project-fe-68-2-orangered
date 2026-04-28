@@ -105,6 +105,12 @@ function ChatRoom({ shopId, shopName, userId, isAdmin }: ChatProps) {
       .catch(() => {});
   }, [isAdmin, shopId, token]);
 
+  useEffect(() => {
+    if (!isAdmin || rooms.length === 0 || selectedRoom) return;
+
+    setSelectedRoom(rooms[0].room);
+  }, [isAdmin, rooms, selectedRoom]);
+
   // --- Admin: real-time inbox updates via shop-level Pusher channel ---
   useEffect(() => {
     if (!isAdmin || !shopId) return;

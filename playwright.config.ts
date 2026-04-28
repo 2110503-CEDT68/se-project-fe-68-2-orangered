@@ -2,12 +2,13 @@ import { defineConfig, devices } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
 
-// Load .env.test into process.env (no dotenv dependency needed)
-const envFile = path.resolve(__dirname, '.env.test');
-if (fs.existsSync(envFile)) {
+const loadEnvFile = (fileName: string) => {
+  const envFile = path.resolve(__dirname, fileName);
+  if (!fs.existsSync(envFile)) return;
+
   fs.readFileSync(envFile, 'utf-8')
     .split('\n')
-    .forEach(line => {
+    .forEach((line) => {
       const trimmed = line.trim();
       if (!trimmed || trimmed.startsWith('#')) return;
       const eq = trimmed.indexOf('=');
@@ -16,7 +17,12 @@ if (fs.existsSync(envFile)) {
       const val = trimmed.slice(eq + 1).trim();
       if (key && !(key in process.env)) process.env[key] = val;
     });
-}
+};
+
+// Load the primary e2e env first, then backfill any missing vars from the
+// legacy auth/rating test env so older specs still have the credentials they expect.
+loadEnvFile('.env.test');
+loadEnvFile('.env.testRatingAuth');
 
 export default defineConfig({
   testDir: './tests',

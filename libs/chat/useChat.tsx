@@ -164,12 +164,21 @@ export default function useChat(roomId: string, token?:string, currentUser?: Use
       credentials: 'include',
       body: JSON.stringify({ text })
     });
-    await res.json();
+    const data = await res.json().catch(() => null);
+
+    if (res.ok && data?.success && data.data) {
+      setMessages(prev =>
+        prev.map(msg => (msg._id === id ? data.data : msg))
+      );
+      return;
+    }
+
+    throw new Error(data?.message || 'Failed to edit message');
   };
 
   const deleteMessage = async (id: string) => {
     setMessages(prev => prev.map(m => m._id === id ? { ...m, deleted: true } : m));
-    await fetch(`${getBackendBaseUrl()}/api/v1/messages/${id}`, {
+    const res = await fetch(`${getBackendBaseUrl()}/api/v1/messages/${id}`, {
       method: 'DELETE',
       headers: {
         "Content-Type": "application/json",
@@ -177,6 +186,10 @@ export default function useChat(roomId: string, token?:string, currentUser?: Use
       },
       credentials: 'include'
     });
+
+    if (!res.ok) {
+      throw new Error('Failed to delete message');
+    }
   };
 
   return { messages, loading, error, pusherReady, sendMessage, editMessage, deleteMessage };

@@ -39,6 +39,8 @@ export default async function ShopDetailPage({
   let createDisabledMessage = "";
 
   if (session && session.user.role === "user") {
+    canCreateRating = true;
+
     try {
       const [activeReservations, pastShopReservations, activeShopReservations] =
         await Promise.all([
@@ -68,22 +70,19 @@ export default async function ShopDetailPage({
 
       if (latestCompletedReservation) {
         validReservationId = latestCompletedReservation._id;
-        canCreateRating = true;
       } else if (
         (activeShopReservations.pagination.total ||
           activeShopReservations.count ||
           0) > 0
       ) {
         createDisabledMessage =
-          "You can review after your appointment time has passed.";
-      } else {
-        createDisabledMessage =
-          "Please try the service first before leaving a review.";
+          "You can review now, and completed visits will be linked automatically when available.";
       }
     } catch (error) {
       console.error("Error fetching quota:", error);
+      canCreateRating = true;
       createDisabledMessage =
-        "We could not verify your reservations right now.";
+        "Reservation history is unavailable right now, but you can still leave a review.";
     }
   } else if (session?.user.role === "admin") {
     canCreateRating = true;

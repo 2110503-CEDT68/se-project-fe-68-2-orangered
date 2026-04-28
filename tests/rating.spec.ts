@@ -14,7 +14,7 @@ const ADMIN = {
   email: process.env.TEST_ADMIN_EMAIL ?? "",
   password: process.env.TEST_ADMIN_PASSWORD ?? "",
 };
-const SHOP_ID = process.env.TEST_RATING_SHOP_ID ?? "";
+const SHOP_ID = process.env.TEST_RATING_SHOP_ID ?? process.env.TEST_SHOP_ID ?? "";
 
 // ─── US1-1: User leave a rating after receive service ─────────────────────────────────────────
 test("TC1-1: User can rate shop", async ({ page }) => {

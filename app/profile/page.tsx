@@ -115,17 +115,6 @@ export default function ProfilePage() {
     setIsEditingInfo(false);
   };
 
-  const handleInfoBlur = (e: React.FocusEvent<HTMLDivElement>) => {
-    if (!isEditingInfo) return;
-    const nextFocused = e.relatedTarget as Node | null;
-
-    if (nextFocused && infoEditorRef.current?.contains(nextFocused)) {
-      return;
-    }
-
-    handleCancelInlineEdit();
-  };
-
   const handleSaveInfo = async () => {
     if (!session?.user?.token) return;
 
@@ -171,7 +160,7 @@ export default function ProfilePage() {
       setDraftProfile(profile);
       await update(profile);
       setIsEditingInfo(false);
-      setInfoSuccess("Profile updated");
+      setInfoSuccess("Identity Updated Successfully");
     } catch {
       setInfoError("Failed to update profile");
     } finally {
@@ -180,7 +169,7 @@ export default function ProfilePage() {
   };
 
   // 1. Loading State: เปลี่ยนพื้นหลังและสีตัวหนังสือ
-  if (status === "loading") {
+  if (status === "loading" && !session) {
     return (
       <div className="min-h-screen bg-background text-text-sub flex items-center justify-center font-mono uppercase tracking-[0.2em] text-xs transition-colors duration-500">
         <div className="animate-pulse">Verifying Identity...</div>
@@ -278,7 +267,6 @@ export default function ProfilePage() {
           <div
             className="p-6 sm:p-12 space-y-12"
             ref={infoEditorRef}
-            onBlur={handleInfoBlur}
           >
             <div className="flex flex-col items-center gap-6">
               <div className="relative w-28 h-28 rounded-full p-[2px] bg-gradient-to-b from-gold/40 to-transparent shadow-[0_0_30px_rgba(212,175,55,0.1)]">
@@ -309,6 +297,7 @@ export default function ProfilePage() {
                   />
                   <div className="flex gap-3">
                     <button
+                      type="button"
                       onClick={handleSaveUrl}
                       disabled={saving}
                       className="px-6 py-2 bg-gold/10 border border-gold/30 text-gold text-[9px] uppercase tracking-[0.3em] hover:bg-gold hover:text-background transition-all rounded-full disabled:opacity-50"
@@ -316,6 +305,7 @@ export default function ProfilePage() {
                       {saving ? "Processing..." : "Update Portrait"}
                     </button>
                     <button
+                      type="button"
                       onClick={closeAvatarEditor}
                       className="px-6 py-2 border border-card-border text-text-sub text-[9px] uppercase tracking-[0.3em] hover:text-text-main transition-all rounded-full"
                     >
@@ -416,6 +406,7 @@ export default function ProfilePage() {
             {isEditingInfo && (
               <div className="flex justify-center gap-4 mt-8 animate-in fade-in slide-in-from-top-2 duration-300">
                 <button
+                  type="button"
                   onClick={handleSaveInfo}
                   disabled={infoSaving}
                   className="px-8 py-2 bg-gold/10 border border-gold/30 text-gold text-[10px] uppercase tracking-[0.3em] hover:bg-gold hover:text-background transition-all duration-500 rounded-full disabled:opacity-50"
@@ -424,6 +415,7 @@ export default function ProfilePage() {
                 </button>
 
                 <button
+                  type="button"
                   onClick={handleCancelInlineEdit}
                   className="px-8 py-2 border border-card-border text-text-sub text-[10px] uppercase tracking-[0.3em] hover:text-text-main transition-all duration-500 rounded-full"
                 >

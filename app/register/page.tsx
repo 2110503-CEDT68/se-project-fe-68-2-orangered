@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { Alert, TextField } from "@mui/material";
@@ -30,8 +29,16 @@ export default function RegisterPage() {
   const [hasReadTos, setHasReadTos] = useState(false);
   const [isAgreed, setIsAgreed] = useState(false);
   const [tosError, setTosError] = useState("");
+  const tosContentRef = useRef<HTMLDivElement | null>(null);
 
-  const router = useRouter();
+  const hasReachedTosBottom = () => {
+    const node = tosContentRef.current;
+    if (!node) return false;
+
+    const { scrollTop, scrollHeight, clientHeight } = node;
+    return scrollHeight <= clientHeight + 10 ||
+      Math.ceil(scrollTop + clientHeight) >= scrollHeight - 10;
+  };
 
   const selectRole = (role: "user" | "shopowner") => {
     setFormData((prev) => ({ ...prev, role }));
@@ -65,6 +72,23 @@ export default function RegisterPage() {
     }
   };
 
+  useEffect(() => {
+    if (!isTosOpen) return;
+
+    const frame = requestAnimationFrame(() => {
+      if (hasReachedTosBottom()) {
+        setHasReadTos(true);
+      }
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [isTosOpen]);
+
+  const openTosModal = () => {
+    setIsTosOpen(true);
+    setTosError("");
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -88,19 +112,13 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (data.success) {
-        const result = await signIn("credentials", {
-          redirect: false,
+        await signIn("credentials", {
+          redirect: true,
           email: formData.email,
           password: formData.password,
+          callbackUrl: "/",
         });
-
-        if (result?.error) {
-          setError(data.msg);
-          router.push("/api/auth/signin");
-        } else {
-          router.push("/");
-          router.refresh();
-        }
+        return;
       } else {
         setError(data.msg || "Registration failed. Please try again.");
       }
@@ -240,7 +258,7 @@ export default function RegisterPage() {
                     type="checkbox"
                     id="tos-checkbox"
                     checked={isAgreed}
-                    onClick={!hasReadTos ? () => setIsTosOpen(true) : undefined}
+                    onClick={!hasReadTos ? openTosModal : undefined}
                     onChange={(e) => setIsAgreed(e.target.checked)}
                     className="w-4 h-4 cursor-pointer accent-accent"
                   />
@@ -251,10 +269,10 @@ export default function RegisterPage() {
                     I accept the{" "}
                     <button
                       type="button"
-                      onClick={() => setIsTosOpen(true)}
+                      onClick={openTosModal}
                       className="text-accent underline hover:text-accent/80 font-bold"
                     >
-                      Terms of Service & Privacy Policy
+                      Terms of Service
                     </button>
                   </label>
                 </div>
@@ -325,6 +343,7 @@ export default function RegisterPage() {
             </div>
 
             <div
+              ref={tosContentRef}
               className="p-8 overflow-y-auto flex-1 text-sm text-text-sub custom-scrollbar"
               onScroll={handleScrollTos}
             >
@@ -343,7 +362,9 @@ export default function RegisterPage() {
                 type="button"
                 disabled={!hasReadTos}
                 onClick={() => {
+                  if (!hasReachedTosBottom()) return;
                   setIsAgreed(true);
+                  setHasReadTos(true);
                   setIsTosOpen(false);
                   setTosError("");
                 }}

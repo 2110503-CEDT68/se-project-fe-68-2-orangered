@@ -12,10 +12,17 @@ export default async function userLogin(uesrEmail:string, userPassword:string) {
     }),
   })
 
-  const data = await res.json();
+  const raw = await res.text();
+  let data: { msg?: string; message?: string; [key: string]: any } = {};
+
+  try {
+    data = raw ? JSON.parse(raw) : {};
+  } catch {
+    data = { msg: raw || "Failed to login" };
+  }
 
   if(!res.ok){
-    throw Error(data.msg || "Failed to login");
+    throw Error(data.msg || data.message || "Failed to login");
   }
   return data;
 }

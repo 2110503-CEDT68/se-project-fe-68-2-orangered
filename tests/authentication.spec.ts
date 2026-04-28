@@ -16,7 +16,7 @@ const ADMIN = {
 };
 const INACTIVE_USER = {
   email: process.env.TEST_DEACTIVATE_EMAIL ?? "",
-  password: process.env.TEST_DEACTIVATE_PASSWORD ?? "",
+  password: process.env.TEST_DEACTIVATE_PASSWORD ?? "password123",
 }
 const SHOP_ID = process.env.TEST_SHOP_ID ?? "";
 const TEST_DEACTIVATE_EMAIL = process.env.TEST_DEACTIVATE_EMAIL ?? "";
