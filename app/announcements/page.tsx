@@ -802,7 +802,7 @@ export default function AnnouncementPage() {
                       <div className="flex gap-4">
                         <input
                           type="url"
-                          placeholder="https://example.com/image.gif หรือลิงก์ Youtube/GDrive"
+                          placeholder="https://example.com/image.gif"
                           value={imageUrl}
                           onChange={(e) => setImageUrl(e.target.value)}
                           className="flex-1 bg-background/50 border border-card-border rounded-2xl px-5 py-4 text-sm text-text-main placeholder:text-text-sub/30 focus:outline-none focus:border-accent/60 focus:ring-1 focus:ring-accent/20 transition-all font-mono"
