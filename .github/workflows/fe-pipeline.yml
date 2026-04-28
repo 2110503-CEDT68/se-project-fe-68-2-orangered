@@ -123,7 +123,7 @@ jobs:
           TEST_CUSTOMER_PASSWORD: ${{ secrets.TEST_CUSTOMER_PASSWORD || 'mypassword' }}
           TEST_SHOP_OWNER_EMAIL: ${{ secrets.TEST_SHOP_OWNER_EMAIL || 'muhaha@gmail.com' }}
           TEST_SHOP_OWNER_PASSWORD: ${{ secrets.TEST_SHOP_OWNER_PASSWORD || '123456' }}
-          TEST_SHOP_ID: ${{ secrets.TEST_SHOP_ID || '69e09583325ac59ae03654c6' }}
+          TEST_SHOP_ID: ${{ secrets.TEST_SHOP_ID || '69c18e195177b2a42c8cf139' }}
           TEST_RATING_SHOP_ID: ${{ secrets.TEST_RATING_SHOP_ID || '69c18e195177b2a42c8cf139' }}
           TEST_ADMIN_EMAIL: ${{ secrets.TEST_ADMIN_EMAIL || 'adminkeith@example.com' }}
           TEST_ADMIN_PASSWORD: ${{ secrets.TEST_ADMIN_PASSWORD || 'mypassword' }}
