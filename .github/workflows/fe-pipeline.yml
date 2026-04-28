@@ -73,6 +73,9 @@ jobs:
           export TEST_SHOP_OWNER_EMAIL="${{ secrets.TEST_SHOP_OWNER_EMAIL || 'muhaha@gmail.com' }}"
           export TEST_SHOP_OWNER_PASSWORD="${{ secrets.TEST_SHOP_OWNER_PASSWORD || '123456' }}"
           export TEST_SHOP_ID="${{ secrets.TEST_SHOP_ID || '69e09583325ac59ae03654c6' }}"
+          export TEST_RATING_SHOP_ID="${{ secrets.TEST_RATING_SHOP_ID || '69c18e195177b2a42c8cf139' }}"
+          export TEST_DEACTIVATE_EMAIL="${{ secrets.TEST_DEACTIVATE_EMAIL || 'client_1777004995801@test.com' }}"
+          export TEST_DEACTIVATE_PASSWORD="${{ secrets.TEST_DEACTIVATE_PASSWORD || 'password123' }}"
           
           node seed-ci.js
           
@@ -121,8 +124,11 @@ jobs:
           TEST_SHOP_OWNER_EMAIL: ${{ secrets.TEST_SHOP_OWNER_EMAIL || 'muhaha@gmail.com' }}
           TEST_SHOP_OWNER_PASSWORD: ${{ secrets.TEST_SHOP_OWNER_PASSWORD || '123456' }}
           TEST_SHOP_ID: ${{ secrets.TEST_SHOP_ID || '69e09583325ac59ae03654c6' }}
+          TEST_RATING_SHOP_ID: ${{ secrets.TEST_RATING_SHOP_ID || '69c18e195177b2a42c8cf139' }}
           TEST_ADMIN_EMAIL: ${{ secrets.TEST_ADMIN_EMAIL || 'adminkeith@example.com' }}
           TEST_ADMIN_PASSWORD: ${{ secrets.TEST_ADMIN_PASSWORD || 'mypassword' }}
+          TEST_DEACTIVATE_EMAIL: ${{ secrets.TEST_DEACTIVATE_EMAIL || 'client_1777004995801@test.com' }}
+          TEST_DEACTIVATE_PASSWORD: ${{ secrets.TEST_DEACTIVATE_PASSWORD || 'password123' }}
 
       - name: Print Logs on Failure
         if: failure()
