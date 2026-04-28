@@ -242,6 +242,7 @@ export default function UserComments({
             return (
               <div
                 key={comment._id}
+                data-testid="review-card"
                 className={`relative overflow-hidden rounded-3xl border border-card-border bg-card/40 p-6 transition-all duration-500 ${editingId === comment._id ? "opacity-30 scale-[0.98]" : "hover:shadow-xl hover:shadow-black/5"}`}
               >
                 {/* เส้นตกแต่งด้านบนเปลี่ยนเป็นสีทองจางๆ */}

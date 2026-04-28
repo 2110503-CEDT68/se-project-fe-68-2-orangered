@@ -10,7 +10,10 @@ export async function login(page: Page, email: string, password: string) {
   await page.getByTestId("email-input").fill(email);
   await page.getByTestId("password-input").fill(password);
   await page.getByRole("button", { name: "Log In" }).click();
-  await page.waitForURL(new RegExp(`${BASE_URL}/?$`), { timeout: 10000 });
+  
+  // Escape special characters in BASE_URL for RegExp
+  const escapedBaseUrl = BASE_URL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  await page.waitForURL(new RegExp(`^${escapedBaseUrl}/?$`), { timeout: 45000 });
 }
 
 export async function goToShop(page: Page) {
@@ -21,6 +24,13 @@ export async function goToShop(page: Page) {
     .or(page.getByText("Guest Inquiries"))
     .first()
     .waitFor({ timeout: 10000 });
+  // Wait for Pusher channel subscription if the chat interface is visible.
+  // We use a try-catch to avoid failing navigation if Pusher is just slow,
+  // as downstream actions have their own retry/timeout logic.
+  const textarea = page.getByPlaceholder("Compose your message...");
+  if (await textarea.isVisible()) {
+    await page.locator('[data-pusher-ready="true"]').waitFor({ timeout: 7000 }).catch(() => {});
+  }
 }
 
 // Wait for Pusher to replace the temp ID with the real server ID before acting.

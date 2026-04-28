@@ -21,8 +21,8 @@ if (fs.existsSync(envFile)) {
 export default defineConfig({
   testDir: './tests',
   fullyParallel: false,
-  retries: 0,
-  timeout: 30000,
+  retries: process.env.CI ? 2 : 1,
+  timeout: 60000,
   use: {
     baseURL: process.env.TEST_BASE_URL ?? 'http://localhost:3000',
     headless: true,

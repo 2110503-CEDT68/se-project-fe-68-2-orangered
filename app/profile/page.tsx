@@ -341,6 +341,7 @@ export default function ProfilePage() {
                         setDraftProfile((p) => ({ ...p, name: e.target.value }))
                       }
                       autoFocus
+                      aria-label="Edit name"
                       className="bg-transparent border-b border-gold/40 text-2xl font-serif text-text-main focus:outline-none py-1"
                     />
                   ) : (

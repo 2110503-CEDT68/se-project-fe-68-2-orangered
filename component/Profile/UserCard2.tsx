@@ -295,14 +295,14 @@ export default function UserCard({ session, onUpdate }: UserCardProps) {
                   aria-label="Edit name"
                 />
               ) : (
-                <p className="text-left text-2xl font-serif text-gray-100">
+                <p data-testid="profile-name" className="text-left text-2xl font-serif text-gray-100">
                   {displayProfile.name || session?.user?.name}
                 </p>
               )}
             </div>
             <div className="text-right">
               <p className="text-[8px] uppercase tracking-[0.3em] text-gray-500 font-semibold">Access Level</p>
-              <span className={`text-[10px] font-mono px-3 py-1 rounded-full border ${
+              <span data-testid="user-role" className={`text-[10px] font-mono px-3 py-1 rounded-full border ${
                 session?.user?.role === "admin"
                   ? "border-blue-500/50 text-blue-400"
                   : "border-gray-700 text-gray-400"

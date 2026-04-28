@@ -28,6 +28,7 @@ export interface UseChatReturn {
     messages: Message[];
     loading: boolean;
     error: string | null;
+    pusherReady: boolean;
     sendMessage: (text: string) => Promise<void>;
     editMessage: (id: string, text: string) => Promise<void>;
     deleteMessage: (id: string) => Promise<void>;
@@ -37,6 +38,7 @@ export default function useChat(roomId: string, token?:string, currentUser?: Use
     const [messages, setMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const [pusherReady, setPusherReady] = useState<boolean>(false);
 
   useEffect(() => {
     if (!roomId || !token) {
@@ -73,6 +75,7 @@ export default function useChat(roomId: string, token?:string, currentUser?: Use
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER as string
     });
     const channel = pusher.subscribe(roomId);
+    channel.bind('pusher:subscription_succeeded', () => setPusherReady(true));
     channel.bind('receiveMessage', (newMessage: Message) => {
       setMessages(prev => {
         // Skip if we already have this message (by _id or temp match)
@@ -103,6 +106,7 @@ export default function useChat(roomId: string, token?:string, currentUser?: Use
     });
 
     return () => {
+      setPusherReady(false);
       channel.unbind_all();
       pusher.unsubscribe(roomId);
       pusher.disconnect();
@@ -160,7 +164,7 @@ export default function useChat(roomId: string, token?:string, currentUser?: Use
       credentials: 'include',
       body: JSON.stringify({ text })
     });
-    const data = res.json();
+    await res.json();
   };
 
   const deleteMessage = async (id: string) => {
@@ -175,5 +179,5 @@ export default function useChat(roomId: string, token?:string, currentUser?: Use
     });
   };
 
-  return { messages, loading, error, sendMessage, editMessage, deleteMessage };
+  return { messages, loading, error, pusherReady, sendMessage, editMessage, deleteMessage };
 }

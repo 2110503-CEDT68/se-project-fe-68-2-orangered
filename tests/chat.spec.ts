@@ -119,6 +119,8 @@ test('US2-3: shop owner can click a room to see customer messages', async ({ pag
   await expect(roomBtn).toBeVisible();
   await roomBtn.click();
 
+  // Admin view: wait for Pusher to be ready for the selected room
+  await page.locator('[data-pusher-ready="true"]').waitFor({ timeout: 10000 });
   await expect(page.getByPlaceholder('Compose your message...')).toBeVisible();
 });
 
@@ -127,6 +129,7 @@ test('US2-3: shop owner can reply to a customer', async ({ page }) => {
   await goToShop(page);
 
   await page.locator('button').filter({ hasText: 'Active Conversation' }).first().click();
+  await page.locator('[data-pusher-ready="true"]').waitFor({ timeout: 10000 });
 
   const replyText = `owner reply ${Date.now()}`;
   const textarea = page.getByPlaceholder('Compose your message...');
@@ -222,11 +225,14 @@ test('US2-4: edit button not visible on other users messages', async ({ page }) 
   await goToShop(page);
 
   await page.locator('button').filter({ hasText: 'Active Conversation' }).first().click();
+  await page.locator('[data-pusher-ready="true"]').waitFor({ timeout: 10000 });
 
-  const firstBubble = page.locator('[class*="group/bubble"]').first();
-  await firstBubble.hover();
+  // Find a bubble from the other user (customer). Customer bubbles are justify-start.
+  const otherBubble = page.locator('.justify-start').locator('.group\\/bubble').first();
+  await otherBubble.waitFor({ state: 'visible' });
+  await otherBubble.hover();
 
-  await expect(firstBubble.getByTitle('Edit')).toHaveCount(0);
+  await expect(otherBubble.getByTitle('Edit')).toHaveCount(0);
 });
 
 // ─── US2-5: Delete a message ─────────────────────────────────────────────────
@@ -275,9 +281,12 @@ test('US2-5: delete button not visible on other users messages', async ({ page }
   await goToShop(page);
 
   await page.locator('button').filter({ hasText: 'Active Conversation' }).first().click();
+  await page.locator('[data-pusher-ready="true"]').waitFor({ timeout: 10000 });
 
-  const firstBubble = page.locator('[class*="group/bubble"]').first();
-  await firstBubble.hover();
+  // Find a bubble from the other user (customer). Customer bubbles are justify-start.
+  const otherBubble = page.locator('.justify-start').locator('.group\\/bubble').first();
+  await otherBubble.waitFor({ state: 'visible' });
+  await otherBubble.hover();
 
-  await expect(firstBubble.getByTitle('Delete')).toHaveCount(0);
+  await expect(otherBubble.getByTitle('Delete')).toHaveCount(0);
 });

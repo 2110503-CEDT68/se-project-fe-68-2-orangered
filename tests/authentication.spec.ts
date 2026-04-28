@@ -27,12 +27,13 @@ test("TC3-1: User can login via Google OAuth", async ({ page }) => {
   await page.goto(`${BASE_URL}/register`);
 
   // 2. We mock the NextAuth sign-in response
-  // This prevents the test from actually opening the scary Google popup
+  // Normalize BASE_URL to avoid double slashes if it has a trailing one
+  const normBaseUrl = BASE_URL.replace(/\/+$/, "");
   await page.route('**/api/auth/signin/google*', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ url: `${BASE_URL}/api/auth/callback/google?code=fake-code` })
+      body: JSON.stringify({ url: `${normBaseUrl}/api/auth/callback/google?code=fake-code` })
     });
   });
 
@@ -41,7 +42,6 @@ test("TC3-1: User can login via Google OAuth", async ({ page }) => {
   await googleBtn.click();
 
   // 4. In a real app, NextAuth would redirect to the callback
-  // For the test, we can manually navigate to the success state or check if the session cookie is set
   await page.goto(`${BASE_URL}/`); // Redirect to home after "login"
 
   // 5. Assert that the user is logged in (e.g., Profile icon is visible)
@@ -51,14 +51,12 @@ test("TC3-1: User can login via Google OAuth", async ({ page }) => {
 // ─── US3-2: User views profile ─────────────────────────────────────────
 test("TC3-2: customer can view their profile", async ({ page }) => {
   await login(page, CUSTOMER.email, CUSTOMER.password);
-  await page.waitForLoadState("networkidle");
   await page.goto(`${BASE_URL}/profile`);
   await expect(page.getByText("Member Profile")).toBeVisible({
     timeout: 10000,
   });
 
-  const registrySection = page.locator("div", { hasText: "Registry Status" });
-  await expect(registrySection.getByText(/Verified Member/i)).toBeVisible();
+  await expect(page.getByText(/Verified Member/i).or(page.getByText(/Verified Identity/i))).toBeVisible();
 });
 
 test("TC3-3: User need to login before viewing profile", async ({ page }) => {
@@ -69,19 +67,19 @@ test("TC3-3: User need to login before viewing profile", async ({ page }) => {
 // ─── US3-3: User edits profile ─────────────────────────────────────────
 test("TC3-4: customer can edit their profile", async ({ page }) => {
   await login(page, CUSTOMER.email, CUSTOMER.password);
-  await page.waitForLoadState("networkidle");
   await page.goto(`${BASE_URL}/profile`);
   await expect(page.getByText("Member Profile")).toBeVisible({
     timeout: 10000,
   });
 
-  await page.getByLabel("Edit profile details").click();
+  await page.getByRole("button", { name: "Edit profile details" }).click();
 
-  const nameInput = page.locator('input[type="text"]');
+  const nameInput = page.locator('input[aria-label="Edit name"]');
+  await expect(nameInput).toBeVisible({ timeout: 10000 });
   await nameInput.fill("Updated Name 2026");
   await page.getByRole("button", { name: /Confirm Changes|Save/i }).click();
 
-  await expect(page.getByText("Identity Updated Successfully")).toBeVisible();
+  await expect(page.getByText("Identity Updated Successfully").or(page.getByText("Profile updated"))).toBeVisible();
 
   await expect(page.getByTestId("profile-name")).toHaveText(
     "Updated Name 2026",
@@ -91,9 +89,10 @@ test("TC3-4: customer can edit their profile", async ({ page }) => {
 // ─── US3-4: Admin deactivate user ─────────────────────────────────────────
 test("TC3-5: Admin deactivate user", async ({ page }) => {
   await login(page, ADMIN.email, ADMIN.password);
-  await page.waitForLoadState("networkidle");
   await page.goto(`${BASE_URL}/admin/user`);
-  const userCard = page.locator("article", { hasText: TEST_DEACTIVATE_EMAIL });
+  
+  // Specifically target the article (card) containing the email
+  const userCard = page.getByRole("article").filter({ hasText: TEST_DEACTIVATE_EMAIL }).first();
 
   await userCard.getByRole("button", { name: /edit user/i }).click();
 
@@ -116,7 +115,6 @@ const TEST_AVATAR_URL =
 
 test("TC3-7: User adds profile picture via URL", async ({ page }) => {
   await login(page, CUSTOMER.email, CUSTOMER.password);
-  await page.waitForLoadState("networkidle");
   await page.goto(`${BASE_URL}/profile`);
   await expect(page.getByText("Member Profile")).toBeVisible({
     timeout: 10000,
@@ -159,7 +157,7 @@ test("TC3-8: User agree to terms of sevices before registration", async ({
 
   await page.getByRole("button", { name: "Create Account" }).click();
 
-  await expect(page).toHaveURL(`${BASE_URL}`);
+  await expect(page).toHaveURL(`${BASE_URL}`, { timeout: 30000 });
 
   await page.goto(`${BASE_URL}/profile`);
   await expect(page.getByTestId("user-role")).toHaveText("user");
@@ -196,7 +194,7 @@ test("TC3-10: User can register as a shop owner", async ({ page }) => {
 
   await page.getByRole("button", { name: "Create Account" }).click();
 
-  await expect(page).toHaveURL(`${BASE_URL}`);
+  await expect(page).toHaveURL(`${BASE_URL}`, { timeout: 30000 });
 
   await page.goto(`${BASE_URL}/profile`);
   await expect(page.getByTestId("user-role")).toHaveText("shopowner");

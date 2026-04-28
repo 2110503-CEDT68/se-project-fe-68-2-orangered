@@ -17,7 +17,7 @@ export default async function editAdminUser(token:string, uid:string, payload:Re
   if (!res.ok || !data.success) {
     throw new Error(data.message ?? "Failed to update user");
   }
-  
+
   if(data.data?.status == "inactive"){
     await deactivateUser(token, uid);
   }

@@ -18,55 +18,45 @@ const ADMIN = {
   password: process.env.TEST_ADMIN_PASSWORD ?? "",
 };
 
-const TARGET_SHOP_ID = process.env.TEST_SHOP_ID ?? "";
 
 const createdAnnouncementTitles: string[] = [];
 
 test.describe.configure({ mode: "serial" });
 
 async function selectAnnouncementShop(page: Page) {
-  const shopSection = page.locator("div").filter({ hasText: "Target Shop *" }).first();
+  // The "Target Audience *" label only renders for authorized users (admin/shopowner)
+  const shopLabel = page.getByText("Target Audience *");
   try {
-    // Wait briefly for shop selector to render after shops are fetched
-    await shopSection.waitFor({ state: "visible", timeout: 5000 });
+    await shopLabel.waitFor({ state: "visible", timeout: 5000 });
   } catch {
+    // If not visible, we assume it's not required for this user role
     return;
   }
 
-  const dropdownTrigger = shopSection.getByRole("button").first();
+  // The dropdown trigger is scoped inside the section containing the label.
+  const shopSection = page.locator("div.group").filter({ has: shopLabel }).first();
+  const dropdownTrigger = shopSection.locator("div[class*='cursor-pointer']").first();
   await dropdownTrigger.click();
 
-  const anyOption = page.locator("[data-shop-id]").first();
-  try {
-    // Wait up to 5s for shop options. If none appear, keep current default shop.
-    await anyOption.waitFor({ state: "visible", timeout: 5000 });
-  } catch {
-    await dropdownTrigger.click();
-    return;
-  }
+  // Scope option search to the absolute-positioned dropdown inside shopSection.
+  const dropdownContainer = shopSection.locator("div[class*='absolute']").first();
+  const shopOptions = dropdownContainer
+    .locator("div[class*='cursor-pointer']")
+    .filter({ hasNot: page.getByText(/Global Broadcast/) });
 
-  if (TARGET_SHOP_ID) {
-    const preferredOption = page.locator(`[data-shop-id="${TARGET_SHOP_ID}"]`).first();
-    if ((await preferredOption.count()) > 0) {
-      await preferredOption.click();
-      return;
-    }
-
-    // Target ID not found, keep default selection instead of forcing another shop.
-    await dropdownTrigger.click();
-    return;
-  }
-
-  // No target provided: keep current default selection.
-  await dropdownTrigger.click();
+  // If we can't find a shop option, throw so the test fails explicitly
+  await shopOptions.first().waitFor({ state: "visible", timeout: 5000 });
+  await shopOptions.first().click();
 }
 
 async function createAnnouncement(page: Page, title: string, content: string) {
-  await expect(page.getByPlaceholder("Enter announcement title...")).toBeVisible({ timeout: 10000 });
+  await expect(page.getByPlaceholder("Enter announcement headline...")).toBeVisible({ timeout: 10000 });
   await selectAnnouncementShop(page);
-  await page.getByPlaceholder("Enter announcement title...").fill(title);
-  await page.getByPlaceholder("Write your announcement details here...").fill(content);
+  await page.getByPlaceholder("Enter announcement headline...").fill(title);
+  await page.getByPlaceholder("Compose your message here...").fill(content);
   await page.getByRole("button", { name: "+ Publish Post" }).click();
+  // resetForm() clears the title only on successful POST — if it stays filled, the POST failed
+  await expect(page.getByPlaceholder("Enter announcement headline...")).toHaveValue("", { timeout: 15000 });
   createdAnnouncementTitles.push(title);
 }
 
@@ -129,8 +119,8 @@ test('US4-3: Shop owner want to edit an existing announcement', async ({ page })
   const announcementCard = page.getByRole("article").filter({ has: page.getByRole("heading", { name: originalTitle }) }).first();
   await announcementCard.getByRole("button", { name: "Edit" }).click();
 
-  const titleField = page.getByPlaceholder("Enter announcement title...");
-  const contentField = page.getByPlaceholder("Write your announcement details here...");
+  const titleField = page.getByPlaceholder("Enter announcement headline...");
+  const contentField = page.getByPlaceholder("Compose your message here...");
   await expect(titleField).toHaveValue(originalTitle);
   await expect(contentField).toHaveValue(originalContent);
 
@@ -189,7 +179,7 @@ test('US4-4: Shop owner deletes announcement created in this test', async ({ pag
 
     await card.hover();
     await card.getByRole("button", { name: "Delete" }).click();
-    await page.getByRole("button", { name: "Confirm Delete" }).click();
+    await page.getByRole("button", { name: "Confirm" }).click();
     await expect(page.getByRole("heading", { name: createdTitle })).toHaveCount(0, { timeout: 10000 });
   }
 
@@ -227,8 +217,8 @@ test('US4-8: Admin can edit an announcement', async ({ page }) => {
   const announcementCard = page.getByRole('article').filter({ has: page.getByRole('heading', { name: originalTitle }) }).first();
   await announcementCard.getByRole('button', { name: 'Edit' }).click();
 
-  const titleField = page.getByPlaceholder('Enter announcement title...');
-  const contentField = page.getByPlaceholder('Write your announcement details here...');
+  const titleField = page.getByPlaceholder('Enter announcement headline...');
+  const contentField = page.getByPlaceholder('Compose your message here...');
 
   await expect(titleField).toHaveValue(originalTitle);
   await expect(contentField).toHaveValue(originalContent);
@@ -274,7 +264,7 @@ test('US4-9: Admin deletes announcements created in this test', async ({ page })
     await expect(deleteButton).toBeVisible();
     await deleteButton.click();
 
-    const confirmButton = page.getByRole('button', { name: 'Confirm Delete' });
+    const confirmButton = page.getByRole('button', { name: 'Confirm' });
     await expect(confirmButton).toBeVisible();
     await confirmButton.click();
 

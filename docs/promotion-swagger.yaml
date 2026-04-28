@@ -1,0 +1,594 @@
+openapi: 3.0.3
+info:
+  title: OrangeRed – Promotion API
+  description: |
+    Promotions in OrangeRed are nested objects inside each **MassageType**.
+    There are no standalone promotion endpoints; promotions are managed
+    through the Shop endpoints below.
+
+    ### Key rules
+    - A promotion is a **fixed-amount discount** (`discountPrice` in THB).
+    - Each massage type may hold multiple promotions but only **one active**
+      promotion (`isActive: true`) is applied at a time.
+    - `finalPrice = massageType.price - activePromotion.discountPrice`
+    - The calculated `finalPrice` is stored on the **Reservation** at booking
+      time, together with a snapshot of the promotion title and discount amount.
+  version: 1.0.0
+
+servers:
+  - url: "{backendBaseUrl}/api/v1"
+    description: Backend REST API
+    variables:
+      backendBaseUrl:
+        default: http://localhost:5000
+        description: Set via NEXT_PUBLIC_BACKEND_URL environment variable
+
+tags:
+  - name: Shops
+    description: Shop management – promotions are nested inside massageType
+  - name: Reservations
+    description: Reservation management – stores the applied promotion snapshot
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PATHS
+# ─────────────────────────────────────────────────────────────────────────────
+paths:
+
+  /shops:
+    post:
+      tags: [Shops]
+      summary: Create a shop (with promotions)
+      description: |
+        Creates a new shop. Each item in `massageType` may include a
+        `promotions` array. Pass `isActive: true` on at most one promotion
+        per massage type to make it immediately active.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShopCreateRequest"
+            example:
+              name: "Serene Touch Spa"
+              address:
+                street: "42 Sukhumvit Soi 11"
+                district: "Khlong Toei Nuea"
+                province: "Bangkok"
+                postalcode: "10110"
+              tel: "02-123-4567"
+              openClose:
+                open: "09:00"
+                close: "21:00"
+              massageType:
+                - name: "Thai Massage"
+                  description: "Traditional Thai full-body massage"
+                  price: 500
+                  isPackage: false
+                  isActive: true
+                  promotions:
+                    - title: "Flash Sale"
+                      description: "Limited-time weekend discount"
+                      discountPrice: 100
+                      startDate: "2025-01-01"
+                      endDate: "2025-01-31"
+                      isActive: true
+      responses:
+        "201":
+          description: Shop created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /shops/{shopId}:
+    get:
+      tags: [Shops]
+      summary: Get a single shop (includes promotions)
+      description: |
+        Returns full shop data including all massage types and their promotions.
+        The frontend uses this to display active promotions on the shop detail
+        page and to calculate discounted prices in the reservation form.
+      parameters:
+        - $ref: "#/components/parameters/ShopId"
+      responses:
+        "200":
+          description: Shop found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    put:
+      tags: [Shops]
+      summary: Update a shop (add / edit / remove promotions)
+      description: |
+        Replaces the full shop document including `massageType` with its
+        `promotions` array.
+
+        **To add a promotion** – include a new object in the target massage
+        type's `promotions` array (omit `_id`).
+
+        **To edit a promotion** – include the object with its existing `_id`.
+
+        **To remove a promotion** – omit it from the `promotions` array.
+
+        **To deactivate a promotion** – set `isActive: false`.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ShopId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShopCreateRequest"
+            examples:
+              addPromotion:
+                summary: Add a new promotion to an existing massage type
+                value:
+                  name: "Serene Touch Spa"
+                  address:
+                    street: "42 Sukhumvit Soi 11"
+                    district: "Khlong Toei Nuea"
+                    province: "Bangkok"
+                    postalcode: "10110"
+                  tel: "02-123-4567"
+                  openClose:
+                    open: "09:00"
+                    close: "21:00"
+                  massageType:
+                    - _id: "64f1a2b3c4d5e6f7a8b9c0d1"
+                      name: "Thai Massage"
+                      description: "Traditional Thai full-body massage"
+                      price: 500
+                      isPackage: false
+                      isActive: true
+                      promotions:
+                        - title: "New Year Sale"
+                          discountPrice: 150
+                          startDate: "2025-01-01"
+                          endDate: "2025-01-07"
+                          isActive: true
+              deactivatePromotion:
+                summary: Deactivate an existing promotion
+                value:
+                  name: "Serene Touch Spa"
+                  address:
+                    street: "42 Sukhumvit Soi 11"
+                    district: "Khlong Toei Nuea"
+                    province: "Bangkok"
+                    postalcode: "10110"
+                  tel: "02-123-4567"
+                  openClose:
+                    open: "09:00"
+                    close: "21:00"
+                  massageType:
+                    - _id: "64f1a2b3c4d5e6f7a8b9c0d1"
+                      name: "Thai Massage"
+                      description: "Traditional Thai full-body massage"
+                      price: 500
+                      isPackage: false
+                      isActive: true
+                      promotions:
+                        - _id: "64f1a2b3c4d5e6f7a8b9c0d2"
+                          title: "Flash Sale"
+                          discountPrice: 100
+                          startDate: "2025-01-01"
+                          endDate: "2025-01-31"
+                          isActive: false
+      responses:
+        "200":
+          description: Shop updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /reservations:
+    post:
+      tags: [Reservations]
+      summary: Create a reservation (with promotion snapshot)
+      description: |
+        Creates a reservation for a massage service. If the selected massage
+        type has an active promotion, the frontend passes the **calculated
+        final price** and a **snapshot** of the promotion (title +
+        discountPrice).
+
+        `massagePrice = massageType.price - activePromotion.discountPrice`
+
+        The promotion snapshot is stored on the reservation so that historical
+        data is unaffected if the promotion is later modified or removed.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReservationCreateRequest"
+            examples:
+              withPromotion:
+                summary: Reservation with an active promotion applied
+                value:
+                  shop: "64f1a2b3c4d5e6f7a8b9c0d0"
+                  appDate: "2025-02-14T10:00:00.000Z"
+                  massageType: "Thai Massage"
+                  massagePrice: 400
+                  promotion:
+                    title: "Flash Sale"
+                    discountPrice: 100
+              noPromotion:
+                summary: Reservation with no promotion
+                value:
+                  shop: "64f1a2b3c4d5e6f7a8b9c0d0"
+                  appDate: "2025-02-15T14:00:00.000Z"
+                  massageType: "Aromatherapy"
+                  massagePrice: 800
+      responses:
+        "201":
+          description: Reservation created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# COMPONENTS
+# ─────────────────────────────────────────────────────────────────────────────
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from POST /auth/login
+
+  parameters:
+    ShopId:
+      name: shopId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: MongoDB ObjectId of the shop
+      example: "64f1a2b3c4d5e6f7a8b9c0d0"
+
+  schemas:
+
+    # ── Promotion ────────────────────────────────────────────────────────────
+    Promotion:
+      type: object
+      required:
+        - title
+        - discountPrice
+        - startDate
+        - endDate
+        - isActive
+      properties:
+        _id:
+          type: string
+          description: MongoDB ObjectId (present on saved promotions, omit when creating)
+          example: "64f1a2b3c4d5e6f7a8b9c0d2"
+        title:
+          type: string
+          description: Display name shown to customers
+          example: "Flash Sale"
+        description:
+          type: string
+          description: Optional longer description
+          example: "Limited-time weekend discount"
+        discountPrice:
+          type: number
+          description: Fixed discount amount in THB (not a percentage)
+          minimum: 0
+          example: 100
+        startDate:
+          type: string
+          format: date
+          description: Date from which the promotion is valid (YYYY-MM-DD)
+          example: "2025-01-01"
+        endDate:
+          type: string
+          format: date
+          description: Date until which the promotion is valid (YYYY-MM-DD)
+          example: "2025-01-31"
+        startTime:
+          type: string
+          description: Optional daily start time window (HH:MM)
+          example: "10:00"
+        endTime:
+          type: string
+          description: Optional daily end time window (HH:MM)
+          example: "14:00"
+        isActive:
+          type: boolean
+          description: |
+            Whether this promotion is currently active. Only one promotion
+            per massage type should have isActive: true at a time.
+          example: true
+
+    # ── MassageType ──────────────────────────────────────────────────────────
+    MassageType:
+      type: object
+      required:
+        - name
+        - description
+        - price
+        - isPackage
+        - isActive
+      properties:
+        _id:
+          type: string
+          description: MongoDB ObjectId (present on saved types, omit when creating)
+          example: "64f1a2b3c4d5e6f7a8b9c0d1"
+        name:
+          type: string
+          example: "Thai Massage"
+        description:
+          type: string
+          example: "Traditional Thai full-body massage"
+        price:
+          type: number
+          description: Full original price in THB before any discount
+          minimum: 0
+          example: 500
+        picture:
+          type: string
+          description: URL of the service image
+          example: "https://example.com/images/thai-massage.jpg"
+        isPackage:
+          type: boolean
+          description: Whether this service is sold as a package
+          example: false
+        isActive:
+          type: boolean
+          description: Whether this service is currently offered
+          example: true
+        promotions:
+          type: array
+          description: |
+            List of promotions for this massage type. At most one should
+            have `isActive: true`. Frontend calculates:
+            `finalPrice = price - activePromotion.discountPrice`
+          items:
+            $ref: "#/components/schemas/Promotion"
+
+    # ── Shop ─────────────────────────────────────────────────────────────────
+    ShopCreateRequest:
+      type: object
+      required:
+        - name
+        - address
+        - tel
+        - openClose
+        - massageType
+      properties:
+        name:
+          type: string
+          example: "Serene Touch Spa"
+        address:
+          type: object
+          required: [street, district, province, postalcode]
+          properties:
+            street:
+              type: string
+              example: "42 Sukhumvit Soi 11"
+            district:
+              type: string
+              example: "Khlong Toei Nuea"
+            province:
+              type: string
+              example: "Bangkok"
+            postalcode:
+              type: string
+              example: "10110"
+        tel:
+          type: string
+          example: "02-123-4567"
+        openClose:
+          type: object
+          required: [open, close]
+          properties:
+            open:
+              type: string
+              description: Opening time (HH:MM)
+              example: "09:00"
+            close:
+              type: string
+              description: Closing time (HH:MM)
+              example: "21:00"
+        massageType:
+          type: array
+          items:
+            $ref: "#/components/schemas/MassageType"
+        picture:
+          type: string
+          description: URL of the shop cover image
+        shopDescription:
+          type: string
+          example: "A relaxing sanctuary in the heart of Bangkok"
+
+    ShopResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: "64f1a2b3c4d5e6f7a8b9c0d0"
+            name:
+              type: string
+              example: "Serene Touch Spa"
+            address:
+              type: object
+              properties:
+                street: { type: string }
+                district: { type: string }
+                province: { type: string }
+                postalcode: { type: string }
+            tel:
+              type: string
+            openClose:
+              type: object
+              properties:
+                open: { type: string }
+                close: { type: string }
+            massageType:
+              type: array
+              items:
+                $ref: "#/components/schemas/MassageType"
+            picture:
+              type: string
+            shopDescription:
+              type: string
+
+    # ── Reservation ──────────────────────────────────────────────────────────
+    PromotionSnapshot:
+      type: object
+      description: |
+        Snapshot of the applied promotion at booking time. Stored permanently
+        on the reservation so that historical data is preserved even if the
+        promotion is later changed or removed.
+      required:
+        - title
+        - discountPrice
+      properties:
+        title:
+          type: string
+          description: Promotion name at the time of booking
+          example: "Flash Sale"
+        discountPrice:
+          type: number
+          description: Discount amount (THB) applied at booking time
+          example: 100
+
+    ReservationCreateRequest:
+      type: object
+      required:
+        - shop
+        - appDate
+        - massageType
+        - massagePrice
+      properties:
+        shop:
+          type: string
+          description: MongoDB ObjectId of the shop
+          example: "64f1a2b3c4d5e6f7a8b9c0d0"
+        appDate:
+          type: string
+          format: date-time
+          description: Appointment date and time (ISO 8601)
+          example: "2025-02-14T10:00:00.000Z"
+        massageType:
+          type: string
+          description: Name of the selected massage type
+          example: "Thai Massage"
+        massagePrice:
+          type: number
+          description: |
+            Final price after discount (THB).
+            Calculated by frontend: `massageType.price - activePromotion.discountPrice`
+          example: 400
+        promotion:
+          $ref: "#/components/schemas/PromotionSnapshot"
+
+    ReservationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: "64f1a2b3c4d5e6f7a8b9c0e0"
+            appDate:
+              type: string
+              format: date-time
+            massageType:
+              type: string
+              example: "Thai Massage"
+            massagePrice:
+              type: number
+              description: Final price paid (after discount)
+              example: 400
+            promotion:
+              $ref: "#/components/schemas/PromotionSnapshot"
+            shop:
+              type: string
+              description: Shop ObjectId
+            user:
+              type: string
+              description: User ObjectId
+            createdAt:
+              type: string
+              format: date-time
+
+  responses:
+    BadRequest:
+      description: Invalid request body or parameters
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              message: { type: string, example: "Validation error" }
+
+    Unauthorized:
+      description: Missing or invalid JWT token
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              message: { type: string, example: "Not authorized" }
+
+    Forbidden:
+      description: Authenticated but not permitted (e.g. not the shop owner)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              message: { type: string, example: "Forbidden" }
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              message: { type: string, example: "Shop not found" }
