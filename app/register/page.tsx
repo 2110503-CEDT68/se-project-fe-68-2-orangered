@@ -259,7 +259,7 @@ export default function RegisterPage() {
                     id="tos-checkbox"
                     checked={isAgreed}
                     onClick={!hasReadTos ? openTosModal : undefined}
-                    onChange={(e) => setIsAgreed(e.target.checked)}
+                    onChange={(e) => {hasReadTos ? setIsAgreed(e.target.checked) : setIsAgreed(false)}}
                     className="w-4 h-4 cursor-pointer accent-accent"
                   />
                   <label
